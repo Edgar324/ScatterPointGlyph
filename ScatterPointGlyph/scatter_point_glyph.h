@@ -13,14 +13,13 @@
 
 class QMenu;
 class QVTKWidget;
+class QDockWidget;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
-
-struct RenderingLayer {
-	std::string name;
-	vtkActor* actor;
-};
+class LayerControlWidget;
+class RenderingLayerModel;
+class RenderingLayer;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -31,13 +30,15 @@ public:
 	~ScatterPointGlyph();
 
 protected:
-	void contextMenuEvent(QContextMenuEvent *event);
 
 private:
 	Ui::ScatterPointGlyphClass ui_;
 	QVTKWidget* main_view_;
 	vtkRenderer* main_renderer_;
-	QMenu* context_menu_;
+
+	QDockWidget* layer_control_panel_;
+	LayerControlWidget* layer_control_widget_;
+	RenderingLayerModel* rendering_layer_model_;
 
 	vtkUnstructuredGrid* scatter_point_data_;
 

@@ -19,6 +19,10 @@
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QDockWidget>
+
+#include "layer_control_widget.h"
+#include "rendering_layer_model.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_data_(NULL) {
@@ -42,7 +46,13 @@ void ScatterPointGlyph::InitWidget() {
 	main_renderer_->RemoveAllViewProps();
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
-	context_menu_ = new QMenu;
+
+	layer_control_widget_ = new LayerControlWidget;
+	rendering_layer_model_ = new RenderingLayerModel;
+	layer_control_panel_ = new QDockWidget(QString("Layer Control Panel"), this);
+	layer_control_panel_->setWidget(layer_control_widget_);
+	this->addDockWidget(Qt::RightDockWidgetArea, layer_control_panel_);
+	ui_.menuView->addAction(layer_control_panel_->toggleViewAction());
 
 	connect(ui_.action_open, SIGNAL(triggered()), this, SLOT(OnActionOpenTriggered()));
 }
@@ -113,15 +123,4 @@ void ScatterPointGlyph::AddPointData2View() {
 	main_renderer_->AddActor(test_actor);
 	main_renderer_->ResetCamera();
 	main_view_->update();
-
-	/// update the layer information
-	RenderingLayer layer;
-	layer.actor = test_actor;
-	layer.name = "Point Layer";
-	rendering_layer_vec_.push_back(layer);
-}
-
-void ScatterPointGlyph::contextMenuEvent(QContextMenuEvent *event){
-	QCursor cur = this->cursor();
-	context_menu_->exec(cur.pos());
 }
