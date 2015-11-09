@@ -20,6 +20,9 @@ class vtkActor;
 class LayerControlWidget;
 class RenderingLayerModel;
 class RenderingLayer;
+class HierParaWidget;
+class HierSolver;
+class HierClusterGlyphLayer;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -28,6 +31,11 @@ class ScatterPointGlyph : public QMainWindow
 public:
 	ScatterPointGlyph(QWidget *parent = 0);
 	~ScatterPointGlyph();
+
+	enum SystemMode {
+		HIER_MODE = 0x0,
+		PERCEPTION_MODE,
+	};
 
 protected:
 
@@ -40,11 +48,22 @@ private:
 	LayerControlWidget* layer_control_widget_;
 	RenderingLayerModel* rendering_layer_model_;
 
-	vtkUnstructuredGrid* scatter_point_data_;
+	QDockWidget* hier_para_panel_;
+	HierParaWidget* hier_para_widget_;
 
-	std::vector< RenderingLayer > rendering_layer_vec_;
+	SystemMode sys_mode_;
+
+	HierSolver* hier_solver_;
+	int expected_cluster_num_;
+	HierClusterGlyphLayer* hier_cluster_glyph_layer_;
+
+	vtkUnstructuredGrid* scatter_point_data_;
+	std::vector< std::vector< float > > point_pos_;
+	std::vector< std::vector< float > > point_values_;
 
 	void InitWidget();
+	void PreProcess();
+	void HierarchicalPreProcess();
 	void AddPointData2View();
 
 private slots:
@@ -53,6 +72,10 @@ private slots:
 	void OnActionExitTriggered();
 	void OnActionHierarchicalClusteringTriggered();
 	void OnActionPerceptionDrivenTriggered();
+	
+	void OnHierClusterNumberChanged(int);
+	void OnCombinedClusterUpdated(int, int);
+	void OnOneStepHierFinished();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

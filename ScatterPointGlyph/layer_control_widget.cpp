@@ -7,7 +7,8 @@
 #include <vtkActor.h>
 #include "rendering_layer_model.h"
 
-LayerControlWidget::LayerControlWidget() {
+LayerControlWidget::LayerControlWidget()
+	: layer_model_(NULL) {
 	this->InitWidget();
 }
 
@@ -38,6 +39,7 @@ void LayerControlWidget::InitWidget() {
 	dataset_headers << "Name" << "Point Count";
 	dataset_item_model_->setHorizontalHeaderLabels(dataset_headers);
 	dataset_tableview_->setModel(dataset_item_model_);
+	dataset_tableview_->resizeColumnsToContents();
 
 	rendering_layer_tableview_ = new QTableView;
 	layer_item_model_ = new QStandardItemModel;
@@ -45,6 +47,10 @@ void LayerControlWidget::InitWidget() {
 	layer_headers << "ID" << "Visibility" << "Name";
 	layer_item_model_->setHorizontalHeaderLabels(layer_headers);
 	rendering_layer_tableview_->setModel(layer_item_model_);
+	rendering_layer_tableview_->setColumnHidden(0, true);
+	DisableColumnEidtDelegate *dced = new DisableColumnEidtDelegate();
+	rendering_layer_tableview_->setItemDelegateForColumn(1, dced);
+	rendering_layer_tableview_->resizeColumnsToContents();
 
 	
 	QGroupBox* dataset_groupbox = new QGroupBox(QString("Dataset"));
@@ -67,6 +73,7 @@ void LayerControlWidget::UpdateWidget() {
 	if (dataset_name_.length() != 0) {
 		dataset_item_model_->setRowCount(1);
 		dataset_item_model_->setData(dataset_item_model_->index(0, 0), dataset_name_, Qt::DisplayRole);
+		dataset_item_model_->setData(dataset_item_model_->index(0, 1), dataset_point_number_, Qt::DisplayRole);
 	}
 	else {
 		dataset_item_model_->setRowCount(0);
@@ -78,7 +85,7 @@ void LayerControlWidget::UpdateWidget() {
 		layer_item_model_->setRowCount(layers.size());
 		for (size_t i = 0; i < layers.size(); ++i) {
 			layer_item_model_->setData(layer_item_model_->index(i, 0), layers[i]->layer_id(), Qt::DisplayRole);
-			layer_item_model_->setData(layer_item_model_->index(i, 1), layers[i]->layer_actor->GetVisibility(), Qt::CheckStateRole);
+			layer_item_model_->setData(layer_item_model_->index(i, 1), layers[i]->layer_actor->GetVisibility() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 			layer_item_model_->setData(layer_item_model_->index(i, 2), layers[i]->name, Qt::DisplayRole);
 		}
 	}

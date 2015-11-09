@@ -24,7 +24,7 @@ int RenderingLayerModel::AddLayer(QString& name, vtkActor* layer_actor) {
 }
 
 bool RenderingLayerModel::RemoveLayer(int id) {
-	std::list< RenderingLayer* >::iterator iter;
+	std::list< RenderingLayer* >::iterator iter = rendering_layer_list_.begin();
 	while (iter != rendering_layer_list_.end() && (*iter)->layer_id() != id) iter++;
 	if (iter != rendering_layer_list_.end()) {
 		rendering_layer_list_.erase(iter);
@@ -38,7 +38,7 @@ bool RenderingLayerModel::RemoveLayer(int id) {
 
 void RenderingLayerModel::GetAllLayers(std::vector< RenderingLayer* >& layers) {
 	layers.clear();
-	std::list< RenderingLayer* >::iterator iter;
+	std::list< RenderingLayer* >::iterator iter = rendering_layer_list_.begin();
 	while (iter != rendering_layer_list_.end()) {
 		layers.push_back(*iter);
 		iter++;

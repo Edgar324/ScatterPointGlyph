@@ -2,10 +2,24 @@
 #define LAYER_CONTROL_WIDGET_H_
 
 #include <QtWidgets/QWidget>
+#include <QStyledItemDelegate>
 
 class RenderingLayerModel;
 class QTableView;
 class QStandardItemModel;
+
+class DisableColumnEidtDelegate : public QStyledItemDelegate
+{
+	Q_OBJECT
+public:
+	DisableColumnEidtDelegate(QObject *parent = 0) : QStyledItemDelegate(parent) { }
+	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
+		const QModelIndex &index) const
+	{
+		return NULL;
+	}
+};
+
 
 class LayerControlWidget : public QWidget
 {
