@@ -2,6 +2,7 @@
 #include <vtkProperty.h>
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
+#include "line_extractor.h"
 
 HierClusterGlyphLayer::HierClusterGlyphLayer() 
 	: BasicGlyphLayer() {
@@ -18,6 +19,18 @@ void HierClusterGlyphLayer::SetData(std::vector< float >& pos, std::vector< std:
 
 	highlight_cluster_[0] = -1;
 	highlight_cluster_[1] = -1;
+
+	std::vector< double > x;
+	std::vector< double > y;
+	x.resize(pos.size() / 2);
+	y.resize(pos.size() / 2);
+	for (int i = 0; i < pos.size() / 2; ++i) {
+		x[i] = pos[2 * i];
+		y[i] = pos[2 * i + 1];
+	}
+	LineExtractor* extractor = new LineExtractor;
+	line_paras_.clear();
+	extractor->ExtractLines(x, y, line_paras_);
 
 	this->UpdateGlyphActor();
 }
@@ -76,6 +89,22 @@ void HierClusterGlyphLayer::UpdateGlyphActor() {
 			pre_id = current_id;
 		}
 	}
+
+	vtkCellArray* line_array = vtkCellArray::New();
+	poly_data_->SetLines(line_array);
+	for (int i = 0; i < line_paras_.size() / 3; ++i) {
+		float a = line_paras_[3 * i];
+		float b = line_paras_[3 * i + 1];
+		float c = line_paras_[3 * i + 2];
+		/// ax + by + c = 0
+		vtkIdType ids[2];
+		ids[0] = poly_data_->GetPoints()->InsertNextPoint(-1 * c / a, 0, 0.005);
+		colors->InsertNextTuple3(0, 0, 255);
+		ids[1] = poly_data_->GetPoints()->InsertNextPoint(0, -1 * c / b, 0.005);
+		colors->InsertNextTuple3(0, 0, 255);
+		poly_data_->InsertNextCell(VTK_LINE, 2, ids);
+	}
+
 	poly_data_->GetPointData()->SetScalars(colors);
 
 	mapper_->SetInputData(poly_data_);

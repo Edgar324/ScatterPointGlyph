@@ -16,6 +16,8 @@ private:
 	std::vector< float > glyph_pos_;
 	std::vector< std::vector< float > > glyph_values_;
 
+	std::vector< float > line_paras_;
+
 	int highlight_cluster_[2];
 
 	void UpdateGlyphActor();
