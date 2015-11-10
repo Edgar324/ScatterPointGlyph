@@ -15,7 +15,7 @@ LineExtractor::~LineExtractor() {
 
 void LineExtractor::ExtractLines(std::vector< double >& x, std::vector< double >& y, std::vector< float >& paras) {
 	std::vector< std::pair< size_t, TLine2D > > detectedLines;
-	const double DIST_THRESHOLD = 200;
+	const double DIST_THRESHOLD = 20;
 
 	CVectorDouble xs, ys;
 	xs.resize(x.size());

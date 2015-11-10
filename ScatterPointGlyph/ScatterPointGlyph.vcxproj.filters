@@ -33,6 +33,24 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
+    <Filter Include="Header Files\Gestalt Property">
+      <UniqueIdentifier>{c4ab1a97-3073-4bf2-b393-3bce2d6c11bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Gestalt Property">
+      <UniqueIdentifier>{a68d536a-72cc-4dfc-82c2-453302b46e17}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Triangle">
+      <UniqueIdentifier>{e37c46ef-a8dd-4607-84a6-5f28f05168ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Triangle">
+      <UniqueIdentifier>{d040518a-08e0-46de-ae72-7ea4ff765f59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GcOpt">
+      <UniqueIdentifier>{7d1e45c4-02e8-44d3-b265-9400b7a0e8ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\GcOpt">
+      <UniqueIdentifier>{99359c71-6c4a-4a24-aa51-997d9c1d596b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -96,7 +114,25 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="line_extractor.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Gestalt Property</Filter>
+    </ClCompile>
+    <ClCompile Include="continuity_extractor.cpp">
+      <Filter>Source Files\Gestalt Property</Filter>
+    </ClCompile>
+    <ClCompile Include="triangle.cpp">
+      <Filter>Source Files\Triangle</Filter>
+    </ClCompile>
+    <ClCompile Include="gco-v3.0\GCoptimization.cpp">
+      <Filter>Source Files\GcOpt</Filter>
+    </ClCompile>
+    <ClCompile Include="gco-v3.0\graph.cpp">
+      <Filter>Source Files\GcOpt</Filter>
+    </ClCompile>
+    <ClCompile Include="gco-v3.0\LinkedBlockList.cpp">
+      <Filter>Source Files\GcOpt</Filter>
+    </ClCompile>
+    <ClCompile Include="gco-v3.0\maxflow.cpp">
+      <Filter>Source Files\GcOpt</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,7 +187,28 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="line_extractor.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="continuity_extractor.h">
+      <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="triangle.h">
+      <Filter>Header Files\Triangle</Filter>
+    </ClInclude>
+    <ClInclude Include="gco-v3.0\block.h">
+      <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="gco-v3.0\energy.h">
+      <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="gco-v3.0\GCoptimization.h">
+      <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="gco-v3.0\graph.h">
+      <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="gco-v3.0\LinkedBlockList.h">
+      <Filter>Header Files\GcOpt</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
 #include "line_extractor.h"
+#include "continuity_extractor.h"
 
 HierClusterGlyphLayer::HierClusterGlyphLayer() 
 	: BasicGlyphLayer() {
@@ -20,17 +21,19 @@ void HierClusterGlyphLayer::SetData(std::vector< float >& pos, std::vector< std:
 	highlight_cluster_[0] = -1;
 	highlight_cluster_[1] = -1;
 
-	std::vector< double > x;
-	std::vector< double > y;
+	std::vector< float > x;
+	std::vector< float > y;
 	x.resize(pos.size() / 2);
 	y.resize(pos.size() / 2);
 	for (int i = 0; i < pos.size() / 2; ++i) {
 		x[i] = pos[2 * i];
 		y[i] = pos[2 * i + 1];
 	}
-	LineExtractor* extractor = new LineExtractor;
+
+	
+	/*LineExtractor* extractor = new LineExtractor;
 	line_paras_.clear();
-	extractor->ExtractLines(x, y, line_paras_);
+	extractor->ExtractLines(x, y, line_paras_);*/
 
 	this->UpdateGlyphActor();
 }
@@ -60,7 +63,7 @@ void HierClusterGlyphLayer::UpdateGlyphActor() {
 	for (int i = 0; i < glyph_pos_.size() / 2; ++i) {
 		float x = glyph_pos_[i * 2];
 		float y = glyph_pos_[i * 2 + 1];
-		float r = glyph_values_[i][0] / 5 + 2;
+		float r = glyph_values_[i][0] / 2;
 
 		/// insert circle glyph
 		int center_id = poly_data_->GetPoints()->InsertNextPoint(x, y, 0.01);

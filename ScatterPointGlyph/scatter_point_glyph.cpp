@@ -16,6 +16,9 @@
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkVertexGlyphFilter.h>
+#include <vtkCellArray.h>
+#include <vtkUnstructuredGridWriter.h>
+#include <vtkWriter.h>
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMessageBox>
@@ -26,6 +29,9 @@
 #include "hier_para_widget.h"
 #include "hier_solver.h"
 #include "hier_cluster_glyph_layer.h"
+#include "continuity_extractor.h"
+
+//#define TEST_WRITE
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_data_(NULL), sys_mode_(HIER_MODE), hier_solver_(NULL),
@@ -76,14 +82,20 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	}
 
 	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+#ifdef TEST_WRITE
 	reader->SetFileName("./TestData/timestep0_0003600.vtk");
+#else
+	reader->SetFileName("./TestData/simple001.vtk");
+#endif
 	reader->SetReadAllScalars(1);
 	reader->SetReadAllVectors(1);
 	reader->Update();
 	vtkDataObject* data = reader->GetOutput();
 	scatter_point_data_ = vtkUnstructuredGrid::SafeDownCast(data);
 
+#ifndef TEST_WRITE
 	this->PreProcess();
+#endif
 	this->AddPointData2View();
 }
 
@@ -123,14 +135,26 @@ void ScatterPointGlyph::HierarchicalPreProcess() {
 	weight.resize(2, 1);
 	data_value.resize(sample_num);
 	for (int i = 0; i < sample_num; ++i) data_value[i].resize(2);
+
+	std::vector< float > x;
+	std::vector< float > y;
+	x.resize(sample_num);
+	y.resize(sample_num);
+
 	for (int i = 0; i < sample_num; ++i){
 		data_value[i][0] = p->GetPoint(i)[0];
 		data_value[i][1] = p->GetPoint(i)[1];
+
+		x[i] = p->GetPoint(i)[0];
+		y[i] = p->GetPoint(i)[1];
 		/*data_value[i][2] = xarray->GetValue(i);
 		data_value[i][3] = yarray->GetValue(i);
 		data_value[i][4] = xparray->GetValue(i);
 		data_value[i][5] = yparray->GetValue(i);*/
 	}
+
+	ContinuityExtractor* con_extractor = new ContinuityExtractor;
+	con_extractor->SetData(x, y);
 
 	hier_solver_->SetData(data_value, weight);
 	expected_cluster_num_ = 200;
@@ -166,22 +190,54 @@ void ScatterPointGlyph::AddPointData2View() {
 	vtkSmartPointer< vtkPolyDataMapper > test_mapper = vtkSmartPointer< vtkPolyDataMapper >::New();
 	vtkSmartPointer< vtkPolyData > test_poly = vtkSmartPointer< vtkPolyData >::New();
 
+#ifdef TEST_WRITE
+	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer< vtkPolyData >::New();
+	polydata->SetPoints(scatter_point_data_->GetPoints());
+	vtkPoints* points = vtkPoints::New();
+	polydata->SetPoints(points);
+	vtkCellArray* vert_array = vtkCellArray::New();
+	polydata->SetVerts(vert_array);
+	float x_scale1 = 0.45, x_scale2 = 0.48;
+	float y_scale1 = 0.75, y_scale2 = 0.77;
+	for (int i = 0; i < scatter_point_data_->GetPoints()->GetNumberOfPoints(); ++i) {
+		float x = scatter_point_data_->GetPoint(i)[0];
+		float y = scatter_point_data_->GetPoint(i)[1];
+		double bounds[6];
+		scatter_point_data_->GetBounds(bounds);
+		if (x > bounds[0] + (bounds[1] - bounds[0]) * x_scale1 && x < bounds[0] + (bounds[1] - bounds[0]) * x_scale2
+			&& y > bounds[2] + (bounds[3] - bounds[2]) * y_scale1 && y < bounds[2] + (bounds[3] - bounds[2]) * y_scale2) {
+			points->InsertNextPoint(x, y, 0);
+			vtkIdType id = points->GetNumberOfPoints() - 1;
+			polydata->InsertNextCell(VTK_VERTEX, 1, &id);
+		}
+	}
+#else
 	test_poly->SetPoints(scatter_point_data_->GetPoints());
 	vtkSmartPointer<vtkVertexGlyphFilter> vertexFilter =
-		vtkSmartPointer<vtkVertexGlyphFilter>::New();
+	vtkSmartPointer<vtkVertexGlyphFilter>::New();
 	vertexFilter->SetInputData(test_poly);
 	vertexFilter->Update();
 	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->ShallowCopy(vertexFilter->GetOutput());
+#endif
 
 	vtkSmartPointer<vtkUnsignedCharArray> colors =
 		vtkSmartPointer<vtkUnsignedCharArray>::New();
 	colors->SetNumberOfComponents(1);
 	colors->SetName("Colors");
-	for (size_t i = 0; i < scatter_point_data_->GetPoints()->GetNumberOfPoints(); ++i){
+	for (size_t i = 0; i < polydata->GetPoints()->GetNumberOfPoints(); ++i){
 		colors->InsertNextTuple1(128);
 	}
 	polydata->GetPointData()->SetScalars(colors);
+
+#ifdef TEST_WRITE
+	vtkSmartPointer< vtkUnstructuredGridWriter > writer = vtkSmartPointer< vtkUnstructuredGridWriter >::New();
+	vtkSmartPointer< vtkUnstructuredGrid > new_un_grid = vtkSmartPointer< vtkUnstructuredGrid >::New();
+	new_un_grid->SetPoints(polydata->GetPoints());
+	writer->SetInputData(new_un_grid);
+	writer->SetFileName("./TestData/simple001.vtk");
+	writer->Update();
+#endif
 
 	test_mapper->SetInputData(polydata);
 	test_actor->SetMapper(test_mapper);

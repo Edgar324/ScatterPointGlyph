@@ -14,8 +14,7 @@ class DisableColumnEidtDelegate : public QStyledItemDelegate
 public:
 	DisableColumnEidtDelegate(QObject *parent = 0) : QStyledItemDelegate(parent) { }
 	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option,
-		const QModelIndex &index) const
-	{
+		const QModelIndex &index) const {
 		return NULL;
 	}
 };
