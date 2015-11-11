@@ -107,9 +107,6 @@
     <ClCompile Include="hier_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="hier_cluster_glyph_layer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="gestalt_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -118,9 +115,6 @@
     </ClCompile>
     <ClCompile Include="continuity_extractor.cpp">
       <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="triangle.cpp">
-      <Filter>Source Files\Triangle</Filter>
     </ClCompile>
     <ClCompile Include="gco-v3.0\GCoptimization.cpp">
       <Filter>Source Files\GcOpt</Filter>
@@ -133,6 +127,18 @@
     </ClCompile>
     <ClCompile Include="gco-v3.0\maxflow.cpp">
       <Filter>Source Files\GcOpt</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_gestalt_processor.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="point_rendering_layer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_glyph_layer.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +169,9 @@
     <CustomBuild Include="hier_solver.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="gestalt_processor.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h">
@@ -180,20 +189,11 @@
     <ClInclude Include="basic_glyph_layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="hier_cluster_glyph_layer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="gestalt_processor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="line_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
     </ClInclude>
     <ClInclude Include="continuity_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="triangle.h">
-      <Filter>Header Files\Triangle</Filter>
     </ClInclude>
     <ClInclude Include="gco-v3.0\block.h">
       <Filter>Header Files\GcOpt</Filter>
@@ -209,6 +209,12 @@
     </ClInclude>
     <ClInclude Include="gco-v3.0\LinkedBlockList.h">
       <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="point_rendering_layer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_glyph_layer.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

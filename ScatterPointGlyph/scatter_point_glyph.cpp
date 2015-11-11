@@ -28,14 +28,16 @@
 #include "rendering_layer_model.h"
 #include "hier_para_widget.h"
 #include "hier_solver.h"
-#include "hier_cluster_glyph_layer.h"
+#include "cluster_glyph_layer.h"
 #include "continuity_extractor.h"
+#include "point_rendering_layer.h"
+#include "gestalt_processor.h"
 
 //#define TEST_WRITE
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), scatter_point_data_(NULL), sys_mode_(HIER_MODE), hier_solver_(NULL),
-		hier_cluster_glyph_layer_(NULL) {
+	: QMainWindow(parent), scatter_point_data_(NULL), sys_mode_(PERCEPTION_MODE), hier_solver_(NULL),
+		cluster_glyph_layer_(NULL), point_rendering_layer_(NULL), gestalt_processor_(NULL) {
 	ui_.setupUi(this);
 
 	this->InitWidget();
@@ -92,11 +94,47 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	reader->Update();
 	vtkDataObject* data = reader->GetOutput();
 	scatter_point_data_ = vtkUnstructuredGrid::SafeDownCast(data);
+	vtkPointData* pData = scatter_point_data_->GetPointData();
+	int numArray = pData->GetNumberOfArrays();
+
+#ifdef TEST_WRITE
+	vtkIntArray* xarray = vtkIntArray::SafeDownCast(pData->GetArray(0));
+	std::cout << pData->GetArray(0)->GetName() << std::endl;
+	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(1));
+	std::cout << pData->GetArray(1)->GetName() << std::endl;
+	vtkFloatArray* xparray = vtkFloatArray::SafeDownCast(pData->GetArray(2));
+	std::cout << pData->GetArray(2)->GetName() << std::endl;
+	vtkFloatArray* yparray = vtkFloatArray::SafeDownCast(pData->GetArray(3));
+	std::cout << pData->GetArray(3)->GetName() << std::endl;
+#else
+	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
+#endif
+	vtkPoints* p = scatter_point_data_->GetPoints();
+
+	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
+
+	/// construct the data
+	int sample_num = p->GetNumberOfPoints();
+	variable_weight_.resize(numArray, 1.0 / numArray);
+	point_values_.resize(sample_num);
+	for (int i = 0; i < sample_num; ++i) point_values_[i].resize(1);
+	point_pos_.resize(sample_num);
+	for (int i = 0; i < sample_num; ++i) point_pos_[i].resize(2);
+
+	for (int i = 0; i < sample_num; ++i){
+		point_pos_[i][0] = p->GetPoint(i)[0];
+		point_pos_[i][1] = p->GetPoint(i)[1];
+		point_values_[i][0] = varray->GetValue(i);
+	}
+
+	NormalizePosition(point_pos_);
+	NormalizeVector(point_values_);
+
+	this->AddPointData2View();
 
 #ifndef TEST_WRITE
-	this->PreProcess();
+	//this->PreProcess();
 #endif
-	this->AddPointData2View();
 }
 
 void ScatterPointGlyph::PreProcess() {
@@ -106,6 +144,7 @@ void ScatterPointGlyph::PreProcess() {
 		HierarchicalPreProcess();
 		break;
 	case ScatterPointGlyph::PERCEPTION_MODE:
+		PerceptionPreProcess();
 		break;
 	default:
 		break;
@@ -119,50 +158,45 @@ void ScatterPointGlyph::HierarchicalPreProcess() {
 		connect(hier_solver_, SIGNAL(CombinedClusterChanged(int, int)), this, SLOT(OnCombinedClusterUpdated(int, int)));
 	}
 
-	vtkPointData* pData = scatter_point_data_->GetPointData();
-	int numArray = pData->GetNumberOfArrays();
-	vtkIntArray* xarray = vtkIntArray::SafeDownCast(pData->GetArray(0));
-	vtkFloatArray* yarray = vtkFloatArray::SafeDownCast(pData->GetArray(1));
-	vtkFloatArray* xparray = vtkFloatArray::SafeDownCast(pData->GetArray(2));
-	vtkFloatArray* yparray = vtkFloatArray::SafeDownCast(pData->GetArray(3));
-	vtkPoints* p = scatter_point_data_->GetPoints();
-
-	/// construct the data
-	std::vector< std::vector< float > > data_value;
-	std::vector< float > weight;
-
-	int sample_num = p->GetNumberOfPoints();
-	weight.resize(2, 1);
-	data_value.resize(sample_num);
-	for (int i = 0; i < sample_num; ++i) data_value[i].resize(2);
-
-	std::vector< float > x;
-	std::vector< float > y;
-	x.resize(sample_num);
-	y.resize(sample_num);
-
-	for (int i = 0; i < sample_num; ++i){
-		data_value[i][0] = p->GetPoint(i)[0];
-		data_value[i][1] = p->GetPoint(i)[1];
-
-		x[i] = p->GetPoint(i)[0];
-		y[i] = p->GetPoint(i)[1];
-		/*data_value[i][2] = xarray->GetValue(i);
-		data_value[i][3] = yarray->GetValue(i);
-		data_value[i][4] = xparray->GetValue(i);
-		data_value[i][5] = yparray->GetValue(i);*/
-	}
-
-	ContinuityExtractor* con_extractor = new ContinuityExtractor;
+	/*ContinuityExtractor* con_extractor = new ContinuityExtractor;
 	con_extractor->SetData(x, y);
 
 	hier_solver_->SetData(data_value, weight);
 	expected_cluster_num_ = 200;
 	hier_para_widget_->SetMaxClusterNumber(expected_cluster_num_);
 	hier_solver_->SetInitialClusterNum(expected_cluster_num_);
-	this->OnOneStepHierFinished();
+	this->OnOneStepHierFinished();*/
+}
 
-	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
+void ScatterPointGlyph::PerceptionPreProcess() {
+	if (gestalt_processor_ == NULL) {
+		gestalt_processor_ = new GestaltProcessor;
+	}
+
+	gestalt_processor_->SetData(point_pos_, point_values_, variable_weight_);
+
+#ifdef DEBUG_ON
+	float min_dis = 1e10;
+	for (int i = 0; i < point_pos_.size() - 1; ++i)
+		for (int j = i + 1; j < point_pos_.size(); ++j) {
+			float temp_dis = abs(point_pos_[i][0] - point_pos_[j][0]) + abs(point_pos_[i][1] - point_pos_[j][1]);
+			if (temp_dis < min_dis) min_dis = temp_dis;
+		}
+#endif
+
+	connect(gestalt_processor_, SIGNAL(FinalGlyphUpdated()), this, SLOT(OnGestaltUpdated()));
+
+	std::vector< float > threshold;
+	threshold.push_back(0.05);
+	threshold.push_back(0.02);
+	gestalt_processor_->SetGestaltThreshold(threshold);
+	gestalt_processor_->GenerateLayout();
+}
+
+void ScatterPointGlyph::ExecPerceptionClustering() {
+	
+
+
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
@@ -197,6 +231,20 @@ void ScatterPointGlyph::AddPointData2View() {
 	polydata->SetPoints(points);
 	vtkCellArray* vert_array = vtkCellArray::New();
 	polydata->SetVerts(vert_array);
+	vtkIntArray* x_var_array = vtkIntArray::New();
+	x_var_array->SetNumberOfComponents(1);
+	vtkFloatArray* y_var_array = vtkFloatArray::New();
+	y_var_array->SetNumberOfComponents(1);
+	vtkFloatArray* xp_var_array = vtkFloatArray::New();
+	xp_var_array->SetNumberOfComponents(1);
+	vtkFloatArray* yp_var_array = vtkFloatArray::New();
+	yp_var_array->SetNumberOfComponents(1);
+
+	vtkIntArray* xarray = vtkIntArray::SafeDownCast(scatter_point_data_->GetPointData()->GetArray(0));
+	vtkFloatArray* yarray = vtkFloatArray::SafeDownCast(scatter_point_data_->GetPointData()->GetArray(1));
+	vtkFloatArray* xparray = vtkFloatArray::SafeDownCast(scatter_point_data_->GetPointData()->GetArray(2));
+	vtkFloatArray* yparray = vtkFloatArray::SafeDownCast(scatter_point_data_->GetPointData()->GetArray(3));
+
 	float x_scale1 = 0.45, x_scale2 = 0.48;
 	float y_scale1 = 0.75, y_scale2 = 0.77;
 	for (int i = 0; i < scatter_point_data_->GetPoints()->GetNumberOfPoints(); ++i) {
@@ -209,10 +257,17 @@ void ScatterPointGlyph::AddPointData2View() {
 			points->InsertNextPoint(x, y, 0);
 			vtkIdType id = points->GetNumberOfPoints() - 1;
 			polydata->InsertNextCell(VTK_VERTEX, 1, &id);
+			x_var_array->InsertNextTuple1(xarray->GetValue(i));
+			y_var_array->InsertNextTuple1(yarray->GetValue(i));
+			xp_var_array->InsertNextTuple1(xparray->GetValue(i));
+			yp_var_array->InsertNextTuple1(yparray->GetValue(i));
 		}
 	}
 #else
-	test_poly->SetPoints(scatter_point_data_->GetPoints());
+	vtkSmartPointer< vtkPoints > new_points = vtkSmartPointer< vtkPoints >::New();
+	for (int i = 0; i < point_pos_.size(); ++i)
+		new_points->InsertNextPoint(point_pos_[i][0], point_pos_[i][1], 0);
+	test_poly->SetPoints(new_points);
 	vtkSmartPointer<vtkVertexGlyphFilter> vertexFilter =
 	vtkSmartPointer<vtkVertexGlyphFilter>::New();
 	vertexFilter->SetInputData(test_poly);
@@ -232,21 +287,31 @@ void ScatterPointGlyph::AddPointData2View() {
 
 #ifdef TEST_WRITE
 	vtkSmartPointer< vtkUnstructuredGridWriter > writer = vtkSmartPointer< vtkUnstructuredGridWriter >::New();
-	vtkSmartPointer< vtkUnstructuredGrid > new_un_grid = vtkSmartPointer< vtkUnstructuredGrid >::New();
-	new_un_grid->SetPoints(polydata->GetPoints());
-	writer->SetInputData(new_un_grid);
+	vtkUnstructuredGrid* ungrid = vtkUnstructuredGrid::New();
+	ungrid->SetPoints(polydata->GetPoints());
+	ungrid->GetPointData()->AddArray(y_var_array);
+	int narray = ungrid->GetPointData()->GetNumberOfArrays();
+	writer->SetInputData(ungrid);
 	writer->SetFileName("./TestData/simple001.vtk");
 	writer->Update();
 #endif
 
-	test_mapper->SetInputData(polydata);
-	test_actor->SetMapper(test_mapper);
-	test_actor->GetProperty()->SetPointSize(3);
+	if (point_rendering_layer_ == NULL) point_rendering_layer_ = new PointRenderingLayer;
+	point_rendering_layer_->SetData(polydata);
 
-	rendering_layer_model_->AddLayer(QString("Point Layer"), test_actor);
+	rendering_layer_model_->AddLayer(QString("Point Layer"), point_rendering_layer_->actor());
 
-	main_renderer_->AddActor(test_actor);
+	main_renderer_->AddActor(point_rendering_layer_->actor());
 	main_renderer_->ResetCamera();
+
+	if (cluster_glyph_layer_ == NULL) {
+		cluster_glyph_layer_ = new ClusterGlyphLayer;
+		main_renderer_->AddActor(cluster_glyph_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Hier Cluster Glyph"), cluster_glyph_layer_->actor());
+	}
+
+	cluster_glyph_layer_->SetData(point_pos_, point_values_);
+
 	main_view_->update();
 }
 
@@ -259,24 +324,68 @@ void ScatterPointGlyph::OnHierClusterNumberChanged(int num) {
 }
 
 void ScatterPointGlyph::OnCombinedClusterUpdated(int cluster_one, int cluster_two) {
-	hier_cluster_glyph_layer_->SetHighlighCluster(cluster_one, cluster_two);
+	cluster_glyph_layer_->SetHighlighCluster(cluster_one, cluster_two);
 	main_view_->update();
 }
 
 void ScatterPointGlyph::OnOneStepHierFinished() {
 	/// TODO: update the visualization
-	if (hier_cluster_glyph_layer_ == NULL) {
-		hier_cluster_glyph_layer_ = new HierClusterGlyphLayer;
-		main_renderer_->AddActor(hier_cluster_glyph_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Hier Cluster Glyph"), hier_cluster_glyph_layer_->actor());
+}
+
+void ScatterPointGlyph::OnGestaltUpdated() {
+	std::vector< int > point_index;
+	gestalt_processor_->GetFinalGlyphPoint(point_index);
+	// update the point layer
+	point_rendering_layer_->SetHighlightPointIndex(point_index);
+
+	// add glyph to the glyph layer
+	cluster_glyph_layer_->AddGestaltGlyph(point_index);
+
+	main_renderer_->ResetCamera();
+	main_view_->update();
+}
+
+void ScatterPointGlyph::NormalizeVector(std::vector< std::vector< float > >& vec){
+	
+	for (int i = 0; i < vec[0].size(); ++i){
+		float minValue = 1e10;
+		float maxValue = -1e10;
+
+		for (int j = 0; j < vec.size(); ++j){
+			if (minValue > vec[j][i]) minValue = vec[j][i];
+			if (maxValue < vec[j][i]) maxValue = vec[j][i];
+		}
+
+		if (maxValue - minValue != 0) {
+			for (int j = 0; j < vec[i].size(); ++j)
+				vec[j][i] = (vec[j][i] - minValue) / (maxValue - minValue);
+		}
+		else {
+			for (int j = 0; j < vec[i].size(); ++j) vec[j][i] = 0.5;
+		}
+	}
+}
+
+void ScatterPointGlyph::NormalizePosition(std::vector< std::vector< float > >& vec) {
+	float max_range = -1e10;
+	std::vector< std::vector< float > > ranges;
+	ranges.resize(vec[0].size());
+	for (int i = 0; i < vec[0].size(); ++i){
+		float minValue = 1e10;
+		float maxValue = -1e10;
+
+		for (int j = 0; j < vec.size(); ++j){
+			if (minValue > vec[j][i]) minValue = vec[j][i];
+			if (maxValue < vec[j][i]) maxValue = vec[j][i];
+		}
+		if (maxValue - minValue > max_range) max_range = maxValue - minValue;
+
+		ranges[i].push_back(minValue);
+		ranges[i].push_back(maxValue);
+	}
+	for (int i = 0; i < vec[0].size(); ++i){
+		for (int j = 0; j < vec.size(); ++j)
+			vec[j][i] = (vec[j][i] - ranges[i][0]) / max_range;
 	}
 
-	std::vector< float > pos;
-	std::vector< std::vector< float > > value;
-	hier_solver_->GetGlyphData(pos, value);
-	hier_cluster_glyph_layer_->SetData(pos, value);
-	main_view_->update();
-
-	if (hier_solver_->GetCurrentClusterNum() > expected_cluster_num_) 
-		hier_solver_->start();
 }

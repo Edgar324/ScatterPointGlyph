@@ -3,17 +3,19 @@
 
 #include "basic_glyph_layer.h"
 
-class HierClusterGlyphLayer : public BasicGlyphLayer
+class ClusterGlyphLayer : public BasicGlyphLayer
 {
 public:
-	HierClusterGlyphLayer();
-	~HierClusterGlyphLayer();
+	ClusterGlyphLayer();
+	~ClusterGlyphLayer();
 
-	void SetData(std::vector< float >& pos, std::vector< std::vector< float > >& value);
+	void SetData(std::vector< std::vector< float > >& pos, std::vector< std::vector< float > >& value);
 	void SetHighlighCluster(int cluster_one, int cluster_two);
+	void AddGestaltGlyph(std::vector< int >& point_index);
+	void ClearGlyph();
 
 private:
-	std::vector< float > glyph_pos_;
+	std::vector< std::vector< float > > glyph_pos_;
 	std::vector< std::vector< float > > glyph_values_;
 
 	std::vector< float > line_paras_;

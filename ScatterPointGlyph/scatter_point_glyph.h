@@ -22,7 +22,9 @@ class RenderingLayerModel;
 class RenderingLayer;
 class HierParaWidget;
 class HierSolver;
-class HierClusterGlyphLayer;
+class ClusterGlyphLayer;
+class PointRenderingLayer;
+class GestaltProcessor;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -55,16 +57,25 @@ private:
 
 	HierSolver* hier_solver_;
 	int expected_cluster_num_;
-	HierClusterGlyphLayer* hier_cluster_glyph_layer_;
+	ClusterGlyphLayer* cluster_glyph_layer_;
+	PointRenderingLayer* point_rendering_layer_;
+
+	GestaltProcessor* gestalt_processor_;
 
 	vtkUnstructuredGrid* scatter_point_data_;
 	std::vector< std::vector< float > > point_pos_;
 	std::vector< std::vector< float > > point_values_;
+	std::vector< float > variable_weight_;
+
 
 	void InitWidget();
+	void AddPointData2View();
+
 	void PreProcess();
 	void HierarchicalPreProcess();
-	void AddPointData2View();
+	void PerceptionPreProcess();
+
+	void ExecPerceptionClustering();
 
 private slots:
 	void OnActionOpenTriggered();
@@ -76,6 +87,10 @@ private slots:
 	void OnHierClusterNumberChanged(int);
 	void OnCombinedClusterUpdated(int, int);
 	void OnOneStepHierFinished();
+	void OnGestaltUpdated();
+
+	void NormalizePosition(std::vector< std::vector< float > >& vec);
+	void NormalizeVector(std::vector< std::vector< float > >& vec);
 };
 
 #endif // SCATTER_POINT_GLYPH_H
