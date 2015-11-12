@@ -12,6 +12,7 @@ public:
 
 	void SetData(vtkPolyData* data);
 	void SetHighlightPointIndex(std::vector< int >& index);
+	void SetPointValue(std::vector< float >& values);
 
 private:
 	std::vector< int > point_index_;

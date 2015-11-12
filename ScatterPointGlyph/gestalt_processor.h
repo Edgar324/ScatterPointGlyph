@@ -14,17 +14,21 @@ public:
 
 	void SetData(std::vector< std::vector< float > >& pos, std::vector< std::vector< float > >& values, std::vector< float >& weight);
 	void SetGestaltThreshold(std::vector< float >& threshold);
+	void SetDistanceThreshold(float thresh);
 	void GenerateLayout();
 	void GetFinalGlyphPoint(std::vector< int >& point_index);
+	void GetKmeansClusterResult(std::vector< std::vector< int > >& index);
 
 signals:
 	void FinalGlyphUpdated();
+	void KMeansClusterFinished();
 
 private:
 	std::vector< std::vector< float > > point_pos_;
 	std::vector< float > point_values_;
 
 	/// for kmeans
+	bool is_sample_needed_;
 	int cluster_num_;
 	float dis_scale_;
 	std::vector< int > cluster_index_;
@@ -36,10 +40,12 @@ private:
 
 	/// for extracted gestalt
 	std::vector< bool > is_node_labeled_;
-	std::map< int, int > remaining_node_gestalt_map_;
-	std::map< int, int > remaining_gestalt_node_map_;
+	std::vector< std::map< int, int > > remaining_node_gestalt_map_;
+	std::vector< std::map< int, int > > remaining_gestalt_node_map_;
 	std::vector< std::vector< std::vector< int > > > proposal_gestalt_;
 	std::vector< float > gestalt_threshold_;
+	float distance_threshold_;
+	std::vector< std::vector< float > > node_distance_;
 
 	/// for optimized gestalt
 	std::vector< std::vector< int > > optimized_labels_;
@@ -55,10 +61,15 @@ private:
 
 	void ProcessGestaltRule(int rule);
 
+	void ExtractNodeDistance();
 	void ExtractProposalGestalt(int rule);
 	void ExecLabelOptimization(int rule);
+	void UpdateDecreasingRate(int rule);
 
 	void Sort(std::vector< std::vector< float > >& value, int begin, int end, int sort_index);
+	void NormalizeVec(std::vector< float >& vec);
+	void NormalizeVec(std::vector< std::vector< float > >& vec);
+	bool CheckMetric(std::vector< std::vector< float > >& vec);
 };
 
 #endif

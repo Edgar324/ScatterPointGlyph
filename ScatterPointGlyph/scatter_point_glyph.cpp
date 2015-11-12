@@ -37,7 +37,8 @@
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_data_(NULL), sys_mode_(PERCEPTION_MODE), hier_solver_(NULL),
-		cluster_glyph_layer_(NULL), point_rendering_layer_(NULL), gestalt_processor_(NULL) {
+	cluster_glyph_layer_(NULL), point_rendering_layer_(NULL), original_rendering_layer_(NULL),
+		gestalt_processor_(NULL) {
 	ui_.setupUi(this);
 
 	this->InitWidget();
@@ -133,7 +134,7 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	this->AddPointData2View();
 
 #ifndef TEST_WRITE
-	//this->PreProcess();
+	this->PreProcess();
 #endif
 }
 
@@ -185,18 +186,18 @@ void ScatterPointGlyph::PerceptionPreProcess() {
 #endif
 
 	connect(gestalt_processor_, SIGNAL(FinalGlyphUpdated()), this, SLOT(OnGestaltUpdated()));
+	connect(gestalt_processor_, SIGNAL(KMeansClusterFinished()), this, SLOT(OnKmeansClusterFinished()));
 
 	std::vector< float > threshold;
-	threshold.push_back(0.05);
-	threshold.push_back(0.02);
+	threshold.push_back(0.4);
+	threshold.push_back(0.1);
 	gestalt_processor_->SetGestaltThreshold(threshold);
+	gestalt_processor_->SetDistanceThreshold(0.2);
 	gestalt_processor_->GenerateLayout();
 }
 
 void ScatterPointGlyph::ExecPerceptionClustering() {
 	
-
-
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
@@ -299,6 +300,24 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (point_rendering_layer_ == NULL) point_rendering_layer_ = new PointRenderingLayer;
 	point_rendering_layer_->SetData(polydata);
 
+	if (original_rendering_layer_ == NULL) original_rendering_layer_ = new PointRenderingLayer;
+	vtkPolyData* data_copy = vtkPolyData::New();
+	data_copy->DeepCopy(polydata);
+	for (int i = 0; i < data_copy->GetPoints()->GetNumberOfPoints(); ++i){
+		double* pos = data_copy->GetPoint(i);
+		double new_pos[3];
+		new_pos[0] = pos[0];
+		new_pos[1] = pos[1] + 1;
+		new_pos[2] = pos[2];
+		data_copy->GetPoints()->SetPoint(i, new_pos);
+	}
+	original_rendering_layer_->SetData(data_copy);
+	main_renderer_->AddActor(original_rendering_layer_->actor());
+	rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_rendering_layer_->actor());
+	std::vector< float > temp_value;
+	for (int i = 0; i < point_values_.size(); ++i) temp_value.push_back(point_values_[i][0]);
+	original_rendering_layer_->SetPointValue(temp_value);
+
 	rendering_layer_model_->AddLayer(QString("Point Layer"), point_rendering_layer_->actor());
 
 	main_renderer_->AddActor(point_rendering_layer_->actor());
@@ -339,10 +358,16 @@ void ScatterPointGlyph::OnGestaltUpdated() {
 	point_rendering_layer_->SetHighlightPointIndex(point_index);
 
 	// add glyph to the glyph layer
-	cluster_glyph_layer_->AddGestaltGlyph(point_index);
+	//cluster_glyph_layer_->AddGestaltGlyph(point_index);
 
 	main_renderer_->ResetCamera();
 	main_view_->update();
+}
+
+void ScatterPointGlyph::OnKmeansClusterFinished() {
+	std::vector< std::vector< int > > index;
+	gestalt_processor_->GetKmeansClusterResult(index);
+	for (int i = 0; i < index.size(); ++i) original_rendering_layer_->SetHighlightPointIndex(index[i]);
 }
 
 void ScatterPointGlyph::NormalizeVector(std::vector< std::vector< float > >& vec){
@@ -357,11 +382,11 @@ void ScatterPointGlyph::NormalizeVector(std::vector< std::vector< float > >& vec
 		}
 
 		if (maxValue - minValue != 0) {
-			for (int j = 0; j < vec[i].size(); ++j)
+			for (int j = 0; j < vec.size(); ++j)
 				vec[j][i] = (vec[j][i] - minValue) / (maxValue - minValue);
 		}
 		else {
-			for (int j = 0; j < vec[i].size(); ++j) vec[j][i] = 0.5;
+			for (int j = 0; j < vec.size(); ++j) vec[j][i] = 0.5;
 		}
 	}
 }

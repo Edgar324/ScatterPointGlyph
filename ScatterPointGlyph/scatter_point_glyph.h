@@ -59,6 +59,7 @@ private:
 	int expected_cluster_num_;
 	ClusterGlyphLayer* cluster_glyph_layer_;
 	PointRenderingLayer* point_rendering_layer_;
+	PointRenderingLayer* original_rendering_layer_;
 
 	GestaltProcessor* gestalt_processor_;
 
@@ -88,6 +89,7 @@ private slots:
 	void OnCombinedClusterUpdated(int, int);
 	void OnOneStepHierFinished();
 	void OnGestaltUpdated();
+	void OnKmeansClusterFinished();
 
 	void NormalizePosition(std::vector< std::vector< float > >& vec);
 	void NormalizeVector(std::vector< std::vector< float > >& vec);
