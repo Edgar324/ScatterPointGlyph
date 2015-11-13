@@ -40,8 +40,6 @@ private:
 
 	/// for extracted gestalt
 	std::vector< bool > is_node_labeled_;
-	std::vector< std::map< int, int > > remaining_node_gestalt_map_;
-	std::vector< std::map< int, int > > remaining_gestalt_node_map_;
 	std::vector< std::vector< std::vector< int > > > proposal_gestalt_;
 	std::vector< float > gestalt_threshold_;
 	float distance_threshold_;

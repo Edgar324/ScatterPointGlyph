@@ -20,9 +20,10 @@
 #include <vtkProperty.h>
 #include <vtkVertexGlyphFilter.h>
 #include "./gco-v3.0/GCoptimization.h"
+#include "./gco-v3.0/energy.h"
 
 GestaltProcessor::GestaltProcessor() 
-	: cluster_num_(100), dis_scale_(0.5), distance_threshold_(0.1){
+	: cluster_num_(100), dis_scale_(0.7), distance_threshold_(0.1){
 	is_sample_needed_ = false;
 }
 
@@ -53,7 +54,7 @@ void GestaltProcessor::GetFinalGlyphPoint(std::vector< int >& point_index) {
 	for (int i = 0; i < point_pos_.size(); ++i)
 		if (final_label_[cluster_index_[i]] == final_gestalt_count_) point_index.push_back(i);
 
-	std::cout << "Glyph point number: " << point_index.size() << std::endl;
+	std::cout << final_gestalt_count_ << ": Glyph point number: " << point_index.size() << std::endl;
 }
 
 void GestaltProcessor::GetKmeansClusterResult(std::vector< std::vector< int > >& index){
@@ -81,8 +82,6 @@ void GestaltProcessor::GenerateLayout() {
 	int rule_number = 2;
 	gestalt_info_.resize(rule_number * cluster_num_);
 	for (int i = 0; i < gestalt_info_.size(); ++i) gestalt_info_[i].resize(4);
-	remaining_gestalt_node_map_.resize(rule_number);
-	remaining_node_gestalt_map_.resize(rule_number);
 
 	proposal_gestalt_.resize(rule_number);
 	optimized_labels_.resize(rule_number);
@@ -134,7 +133,7 @@ void GestaltProcessor::GenerateLayout() {
 					temp_decrease_rate[i] = 0;
 					for (int j = 0; j < proposal_gestalt_[rule][i].size(); ++j){
 						int index = proposal_gestalt_[rule][i][j];
-						if (!is_node_labeled_[index] && optimized_labels_[rule][remaining_node_gestalt_map_[rule][index]] == i) temp_decrease_rate[i] += 1;
+						if (!is_node_labeled_[index] && optimized_labels_[rule][index] == i) temp_decrease_rate[i] += 1;
 					}
 				}
 
@@ -150,7 +149,7 @@ void GestaltProcessor::GenerateLayout() {
 
 			begin_index++;
 			is_one_run_passed = true;
-		} while (is_gestalt_valid && begin_index < gestalt_info_.size());
+		} while (/*is_gestalt_valid*/ is_one_run_passed && begin_index < gestalt_info_.size());
 
 		int labeled_count = 0;
 		for (int i = 0; i < is_node_labeled_.size(); ++i)
@@ -181,7 +180,7 @@ void GestaltProcessor::KmeansCluster() {
 		for (int i = 0; i < point_pos_.size(); ++i) cluster_index_[i] = i;
 	}
 	else {
-		cluster_num_ = point_pos_.size() / 3;
+		cluster_num_ = point_pos_.size() / 10;
 		/// Generate random center
 		cluster_center_.resize(cluster_num_);
 		cluster_node_count_.resize(cluster_num_);
@@ -259,7 +258,7 @@ void GestaltProcessor::KmeansCluster() {
 
 		for (int i = 0; i < cluster_num_; ++i) {
 			if (cluster_node_count_[i] == 0) {
-				while (cluster_node_count_[i] == 0){
+				while (cluster_node_count_[i] == 0 && i < cluster_num_){
 					for (int j = i; j < cluster_num_ - 1; ++j){
 						cluster_center_[j] = cluster_center_[j + 1];
 						cluster_node_count_[j] = cluster_node_count_[j + 1];
@@ -273,8 +272,23 @@ void GestaltProcessor::KmeansCluster() {
 		cluster_center_.resize(cluster_num_);
 		cluster_node_count_.resize(cluster_num_);
 	}
-	
-	
+
+	for (int i = 0; i < cluster_num_ - 1; ++i)
+		for (int j = i + 1; j < cluster_num_; ++j){
+			if (abs(cluster_center_[i][0] - cluster_center_[j][0]) + abs(cluster_center_[i][1] - cluster_center_[j][1]) < 1e-5){
+				std::cout << "error" << std::endl;
+			}
+		}
+	// TEMPORARY USAGE
+	for (int i = 31; i < cluster_num_ - 1; ++i) {
+		cluster_center_[i] = cluster_center_[i + 1];
+		cluster_node_count_[i] = cluster_node_count_[i + 1];
+	}
+	cluster_center_.resize(cluster_num_ - 1);
+	cluster_node_count_.resize(cluster_num_ - 1);
+	cluster_num_ -= 1;
+	for (int i = 0; i < point_pos_.size(); ++i) 
+		if (cluster_index_[i] > 31) cluster_index_[i] -= 1;
 }
 
 void GestaltProcessor::Triangulation() {
@@ -304,6 +318,11 @@ void GestaltProcessor::Triangulation() {
 		connect_status_[id3][id2] = true;
 		connect_status_[id1][id3] = true;
 		connect_status_[id3][id1] = true;
+	}
+	for (int i = 0; i < connect_status_.size(); ++i){
+		bool is_connecting = false;
+		for (int j = 0; j < connect_status_[i].size(); ++j) is_connecting = is_connecting || connect_status_[i][j];
+		assert(is_connecting);
 	}
 }
 
@@ -349,7 +368,7 @@ void GestaltProcessor::ExtractNodeDistance() {
 
 			for (int k = 0; k < cluster_num_; ++k)
 				if (!is_reached[k] && connect_status_[min_index][k]) {
-					float temp_dis = sqrt(pow(cluster_center_[j][0] - cluster_center_[k][0], 2) + pow(cluster_center_[j][1] - cluster_center_[k][1], 2));
+					float temp_dis = sqrt(pow(cluster_center_[min_index][0] - cluster_center_[k][0], 2) + pow(cluster_center_[min_index][1] - cluster_center_[k][1], 2));
 					if (node_distance_[i][k] > node_distance_[i][min_index] + temp_dis) node_distance_[i][k] = node_distance_[i][min_index] + temp_dis;
 				}
 		}
@@ -365,14 +384,10 @@ void GestaltProcessor::ExtractProposalGestalt(int rule){
 
 	std::vector< bool > is_reached;
 	is_reached.resize(cluster_num_);
-	remaining_node_gestalt_map_[rule].clear();
-	remaining_gestalt_node_map_[rule].clear();
 
 	int remaining_node_count = 0;
 	for (int i = 0; i < cluster_num_; ++i) {
 		if (is_node_labeled_[i]) continue;
-		remaining_node_gestalt_map_[rule].insert(std::map< int, int >::value_type(i, remaining_node_count));
-		remaining_gestalt_node_map_[rule].insert(std::map< int, int >::value_type(remaining_node_count, i));
 		remaining_node_count++;
 
 		std::vector< int > gestalt;
@@ -392,7 +407,6 @@ void GestaltProcessor::ExtractProposalGestalt(int rule){
 				}
 				if (rule_value < gestalt_threshold_[rule]) gestalt.push_back(j);
 			}
-
 		/// TODO: filter out identical gestalt
 		proposal_gestalt_[rule].push_back(gestalt);
 	}
@@ -401,19 +415,21 @@ void GestaltProcessor::ExtractProposalGestalt(int rule){
 void GestaltProcessor::ExecLabelOptimization(int rule) {
 	try {
 		int gestalt_num = proposal_gestalt_[rule].size();
+
 		// Step 1: construct class
-		GCoptimizationGeneralGraph* gc = new GCoptimizationGeneralGraph(gestalt_num, gestalt_num);
+		GCoptimizationGeneralGraph* gc = new GCoptimizationGeneralGraph(cluster_num_, gestalt_num + 1);
 
 		// Step 2: construct data cost, smooth cost and label cost for each label
 		std::vector< std::vector< float > > data_cost, smooth_cost;
 		std::vector< float > label_cost;
-		data_cost.resize(gestalt_num);
-		smooth_cost.resize(gestalt_num);
-		label_cost.resize(gestalt_num, -1);
-		for (int i = 0; i < gestalt_num; ++i) {
-			data_cost[i].resize(gestalt_num, -1);
-			smooth_cost[i].resize(gestalt_num, -1);
-		}
+		data_cost.resize(cluster_num_);
+		for (int i = 0; i < cluster_num_; ++i)
+			data_cost[i].resize(gestalt_num + 1, -1);
+		smooth_cost.resize(gestalt_num + 1);
+		for (int i = 0; i < gestalt_num + 1; ++i)
+			smooth_cost[i].resize(gestalt_num + 1, -1);
+		label_cost.resize(gestalt_num + 1, -1);
+		
 
 		// label cost
 		std::vector< std::vector< float > > gestalt_average;
@@ -467,74 +483,82 @@ void GestaltProcessor::ExecLabelOptimization(int rule) {
 		}
 		for (int i = 0; i < gestalt_num; ++i)
 			gestalt_variance[i] = sqrt(gestalt_variance[i] / gestalt_node_count[i]);
-		for (int i = 0; i < label_cost.size(); ++i) label_cost[i] = gestalt_variance[i];
+		for (int i = 0; i < gestalt_num; ++i) label_cost[i] = gestalt_variance[i];
+		label_cost[gestalt_num] = 0.0;
 
 		// data cost
-		for (int i = 0; i < proposal_gestalt_[rule].size(); ++i) {
+		for (int i = 0; i < proposal_gestalt_[rule].size(); ++i)
 			for (int j = 0; j < proposal_gestalt_[rule][i].size(); ++j) {
-				int temp_index = proposal_gestalt_[rule][i][j];
-				int gestalt_index = remaining_node_gestalt_map_[rule][temp_index];
-				switch (rule){
-				case 0:
-					data_cost[gestalt_index][i] = abs(cluster_center_[temp_index][2] - gestalt_average[i][0]);
-					break;
-				case 1:
-					data_cost[gestalt_index][i] = sqrt(pow(cluster_center_[temp_index][0] - gestalt_average[i][0], 2) + pow(cluster_center_[temp_index][1] - gestalt_average[i][1], 2));
-					break;
-				default:
-					break;
+				int node_index = proposal_gestalt_[rule][i][j];
+				if (!is_node_labeled_[node_index]) {
+					switch (rule){
+					case 0:
+						data_cost[node_index][i] = abs(cluster_center_[node_index][2] - gestalt_average[i][0]);
+						break;
+					case 1:
+						data_cost[node_index][i] = sqrt(pow(cluster_center_[node_index][0] - gestalt_average[i][0], 2) + pow(cluster_center_[node_index][1] - gestalt_average[i][1], 2));
+						break;
+					default:
+						break;
+					}
 				}
 			}
-		}
-		for (int i = 0; i < gestalt_num; ++i){
-			data_cost[i][i] = 0;
-		}
+		for (int i = 0; i < cluster_num_; ++i)
+			if (is_node_labeled_[i]) data_cost[i][gestalt_num] = 0;
 
 		// smooth cost
 		for (int i = 0; i < gestalt_num; ++i) {
 			for (int j = i + 1; j < gestalt_num; ++j) {
-				int i_index = remaining_gestalt_node_map_[rule][i];
-				int j_index = remaining_gestalt_node_map_[rule][j];
+				int i_index = proposal_gestalt_[rule][i][0];
+				int j_index = proposal_gestalt_[rule][j][0];
 				float temp_dis = sqrt(pow(cluster_center_[i_index][0] - cluster_center_[j_index][0], 2) + pow(cluster_center_[i_index][1] - cluster_center_[j_index][1], 2));
 				if (temp_dis < distance_threshold_) {
-					smooth_cost[i][j] = 0.8;
+					smooth_cost[i][j] = 5;
 				}
 				else
-					smooth_cost[i][j] = 0.4;
+					smooth_cost[i][j] = 10;
+				//smooth_cost[i][j] = 5;
 				//smooth_cost[i][j] = 1.0 / (temp_dis + 1);
 				smooth_cost[j][i] = smooth_cost[i][j];
 				
 			}
 			smooth_cost[i][i] = 0;
 		}
-
-		//if (!CheckMetric(smooth_cost)) exit(-1);
+		for (int i = 0; i < gestalt_num; ++i) {
+			smooth_cost[i][gestalt_num] = 5;
+			smooth_cost[gestalt_num][i] = 5;
+		}
+		smooth_cost[gestalt_num][gestalt_num] = 0;
+			
 
 		NormalizeVec(data_cost);
 		NormalizeVec(label_cost);
-		//NormalizeVec(smooth_cost);
+		for (int i = 0; i < gestalt_num; ++i) label_cost[i] += 5;
 
 		// Step 3: multi-label graph cut
-		for (int i = 0; i < gestalt_num - 1; ++i)
-			for (int j = i + 1; j < gestalt_num; ++j) {
-				int i_index = remaining_gestalt_node_map_[rule][i];
-				int j_index = remaining_gestalt_node_map_[rule][j];
-				if (connect_status_[i_index][j_index]) gc->setNeighbors(i, j);
+		for (int i = 0; i < cluster_num_ - 1; ++i)
+			for (int j = i + 1; j < cluster_num_; ++j) {
+				if (connect_status_[i][j]) gc->setNeighbors(i, j);
 			}
-		for (int i = 0; i < gestalt_num; ++i) {
-			for (int j = 0; j < gestalt_num; ++j) {
-				gc->setDataCost(i, j, data_cost[i][j]);
-				gc->setSmoothCost(i, j, smooth_cost[i][j]);
+		for (int i = 0; i < cluster_num_; ++i) {
+			for (int j = 0; j < gestalt_num + 1; ++j) {
+				gc->setDataCost(i, j, (int)(data_cost[i][j] * 10000));
 			}
-			gc->setLabelCost(label_cost[i]);
 		}
+		for (int i = 0; i < gestalt_num + 1; ++i)
+			for (int j = 0; j < gestalt_num + 1; ++j)
+				gc->setSmoothCost(i, j, (int)(smooth_cost[i][j] * 1000));
+		std::vector< int > intLabelVar;
+		intLabelVar.resize(label_cost.size()); 
+		for (int i = 0; i < label_cost.size(); ++i) intLabelVar[i] = (int)(label_cost[i] * 10000);
+		gc->setLabelCost(intLabelVar.data());
 
 		std::cout << "Before optimization energy is " << gc->compute_energy() << std::endl;
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
 		std::cout << "After optimization energy is " << gc->compute_energy() << std::endl;
 
-		optimized_labels_[rule].resize(gestalt_num);
-		for (int i = 0; i < gestalt_num; i++)
+		optimized_labels_[rule].resize(cluster_num_);
+		for (int i = 0; i < cluster_num_; i++)
 			optimized_labels_[rule][i] = gc->whatLabel(i);
 
 		int pre_count = gestalt_info_.size();
@@ -544,7 +568,7 @@ void GestaltProcessor::ExecLabelOptimization(int rule) {
 		for (int i = 0; i < proposal_gestalt_[rule].size(); ++i){
 			gestalt_info_[pre_count + i][0] = 0;
 			for (int j = 0; j < proposal_gestalt_[rule][i].size(); ++j){
-				int index = remaining_node_gestalt_map_[rule][proposal_gestalt_[rule][i][j]];
+				int index = proposal_gestalt_[rule][i][j];
 				gestalt_info_[pre_count + i][0] += data_cost[index][i];
 			}
 		}
@@ -553,7 +577,7 @@ void GestaltProcessor::ExecLabelOptimization(int rule) {
 		for (int i = 0; i < proposal_gestalt_[rule].size(); ++i){
 			gestalt_info_[pre_count + i][1] = 0;
 			for (int j = 0; j < proposal_gestalt_[rule][i].size(); ++j){
-				int index = remaining_node_gestalt_map_[rule][proposal_gestalt_[rule][i][j]];
+				int index = proposal_gestalt_[rule][i][j];
 				if (optimized_labels_[rule][index] == i) gestalt_info_[pre_count + i][1] += 1;
 			}
 		}

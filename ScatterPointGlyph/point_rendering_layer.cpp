@@ -38,6 +38,7 @@ void PointRenderingLayer::SetHighlightPointIndex(std::vector< int >& index) {
 	int blue = 255 * rand() / RAND_MAX;
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < index.size(); ++i) color_array->SetTuple3(index[i], red, green, blue);
+	color_array->Modified();
 }
 
 void PointRenderingLayer::UpdatePointGlyph() {

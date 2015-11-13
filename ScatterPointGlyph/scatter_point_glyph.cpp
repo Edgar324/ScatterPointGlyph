@@ -19,6 +19,9 @@
 #include <vtkCellArray.h>
 #include <vtkUnstructuredGridWriter.h>
 #include <vtkWriter.h>
+#include <vtkCamera.h>
+#include <vtkMatrix4x4.h>
+#include <vtkInteractorObserver.h>
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMessageBox>
@@ -75,6 +78,7 @@ void ScatterPointGlyph::InitWidget() {
 	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
 
 	connect(ui_.action_open, SIGNAL(triggered()), this, SLOT(OnActionOpenTriggered()));
+	connect(ui_.action_perception_driven, SIGNAL(triggered()), this, SLOT(OnActionPerceptionDrivenTriggered()));
 	connect(hier_para_widget_, SIGNAL(ClusterNumberChanged(int)), this, SLOT(OnHierClusterNumberChanged(int)));
 }
 
@@ -188,12 +192,12 @@ void ScatterPointGlyph::PerceptionPreProcess() {
 	connect(gestalt_processor_, SIGNAL(FinalGlyphUpdated()), this, SLOT(OnGestaltUpdated()));
 	connect(gestalt_processor_, SIGNAL(KMeansClusterFinished()), this, SLOT(OnKmeansClusterFinished()));
 
-	std::vector< float > threshold;
+	/*std::vector< float > threshold;
 	threshold.push_back(0.4);
-	threshold.push_back(0.1);
+	threshold.push_back(0.01);
 	gestalt_processor_->SetGestaltThreshold(threshold);
-	gestalt_processor_->SetDistanceThreshold(0.2);
-	gestalt_processor_->GenerateLayout();
+	gestalt_processor_->SetDistanceThreshold(0.02);
+	gestalt_processor_->GenerateLayout();*/
 }
 
 void ScatterPointGlyph::ExecPerceptionClustering() {
@@ -209,7 +213,7 @@ void ScatterPointGlyph::OnActionCloseTriggered() {
 }
 
 void ScatterPointGlyph::OnActionExitTriggered() {
-
+	
 }
 
 void ScatterPointGlyph::OnActionHierarchicalClusteringTriggered() {
@@ -217,7 +221,26 @@ void ScatterPointGlyph::OnActionHierarchicalClusteringTriggered() {
 }
 
 void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
+	int window_width = this->main_view_->width();
+	vtkCamera* camera = this->main_renderer_->GetActiveCamera();
+	
+	vtkMatrix4x4* mMatrix = camera->GetViewTransformMatrix();
+	vtkMatrix4x4* pMatrix = camera->GetProjectionTransformMatrix(this->main_renderer_);
+	double point_one[4];
+	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 1, 0, 0, point_one);
+	double point_two[4];
+	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
 
+
+	float width_per_scale = abs(point_one[0] - point_two[0]);
+	std::vector< float > threshold;
+	threshold.push_back(0.4);
+	threshold.push_back(30 / width_per_scale);
+	gestalt_processor_->SetGestaltThreshold(threshold);
+	gestalt_processor_->SetDistanceThreshold(60 / width_per_scale);
+	gestalt_processor_->GenerateLayout();
+
+	main_view_->update();
 } 
 
 void ScatterPointGlyph::AddPointData2View() {
@@ -344,7 +367,6 @@ void ScatterPointGlyph::OnHierClusterNumberChanged(int num) {
 
 void ScatterPointGlyph::OnCombinedClusterUpdated(int cluster_one, int cluster_two) {
 	cluster_glyph_layer_->SetHighlighCluster(cluster_one, cluster_two);
-	main_view_->update();
 }
 
 void ScatterPointGlyph::OnOneStepHierFinished() {
@@ -359,9 +381,6 @@ void ScatterPointGlyph::OnGestaltUpdated() {
 
 	// add glyph to the glyph layer
 	//cluster_glyph_layer_->AddGestaltGlyph(point_index);
-
-	main_renderer_->ResetCamera();
-	main_view_->update();
 }
 
 void ScatterPointGlyph::OnKmeansClusterFinished() {
