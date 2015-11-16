@@ -152,6 +152,15 @@
     <ClCompile Include="similarity_extractor.cpp">
       <Filter>Source Files\Gestalt Property</Filter>
     </ClCompile>
+    <ClCompile Include="gestalt_processor2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_gestalt_processor2.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor2.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -182,6 +191,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="gestalt_processor.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="gestalt_processor2.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

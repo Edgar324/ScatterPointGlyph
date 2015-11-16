@@ -11,20 +11,22 @@ public:
 	GestaltCandidateSet(ScatterPointDataset* data);
 	~GestaltCandidateSet();
 
-	void ExtractGestaltCandidates();
+	void ExtractGestaltCandidates(float dis_thresh);
 
 	std::vector< int > point_site_id;
+	int site_num;
 	std::vector< int > site_point_num;
 	std::vector< std::vector< float > > site_center_pos;
 	std::vector< float > site_average_value;
+	std::vector< std::vector< bool > > site_connecting_status;
 	std::vector< bool > is_site_labeled;
 
 	std::vector< std::vector< int > >  gestalt_candidates;
-	std::vector< std::vector< bool > > connecting_status;
-	std::vector< std::vector< int > > edge_links;
 
 private:
 	ScatterPointDataset* dataset_;
+
+	void InitSiteData();
 };
 
 #endif

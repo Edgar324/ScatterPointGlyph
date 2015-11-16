@@ -97,7 +97,7 @@ void SimilarityExtractor::ExtractProposalGestalt(float thres) {
 					int next_site_index = gestalt_candidates->gestalt_candidates[i][j];
 					if (gestalt_candidates->is_site_labeled[next_site_index]) continue;
 
-					if (gestalt_candidates->connecting_status[site_index][next_site_index]) {
+					if (gestalt_candidates->site_connecting_status[site_index][next_site_index]) {
 						float dis = abs(gestalt_candidates->site_average_value[site_index] - gestalt_candidates->site_average_value[center_index]);
 						if (dis < thres) extending_queue.push(j);
 					}

@@ -9,10 +9,15 @@ public:
 	ScatterPointDataset() {}
 	~ScatterPointDataset() {}
 
+	void Sample(int point_num, float left, float right, float bottom, float top) {
+
+	}
+
 	std::vector< std::vector< float > > point_pos;
 	std::vector< float > point_values;
 
-	std::vector< std::vector< float > > origin_point_values;
+	std::vector< std::vector< float > > original_point_pos;
+	std::vector< std::vector< float > > original_point_values;
 	std::vector< float > weights;
 };
 

@@ -42,7 +42,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 			for (int k = j + 1; k < proposal_gestalt.size(); ++k) {
 				int site_index = proposal_gestalt[i][j];
 				int next_node_index = proposal_gestalt[i][k];
-				if (gestalt_candidates->connecting_status[site_index][next_node_index]) {
+				if (gestalt_candidates->site_connecting_status[site_index][next_node_index]) {
 					average_edge_length += sqrt(pow(dataset->point_pos[site_index][0] - dataset->point_pos[next_node_index][0], 2)
 						+ pow(dataset->point_pos[site_index][1] - dataset->point_pos[next_node_index][1], 2));
 					edge_count++;
@@ -120,7 +120,7 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 					int next_site_index = gestalt_candidates->gestalt_candidates[i][j];
 					if (gestalt_candidates->is_site_labeled[next_site_index]) continue;
 
-					if (gestalt_candidates->connecting_status[site_index][next_site_index]) {
+					if (gestalt_candidates->site_connecting_status[site_index][next_site_index]) {
 						float dis = sqrt(pow(gestalt_candidates->site_center_pos[site_index][0] - gestalt_candidates->site_center_pos[next_site_index][0], 2)
 							+ pow(gestalt_candidates->site_center_pos[site_index][1] - gestalt_candidates->site_center_pos[next_site_index][1], 2));
 						if (dis < thres) extending_queue.push(j);

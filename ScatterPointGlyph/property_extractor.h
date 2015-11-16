@@ -21,6 +21,8 @@ public:
 
 	std::vector< std::vector< int > > proposal_gestalt;
 
+	std::vector< int > result_label;
+
 protected:
 	ScatterPointDataset* dataset;
 	GestaltCandidateSet* gestalt_candidates;

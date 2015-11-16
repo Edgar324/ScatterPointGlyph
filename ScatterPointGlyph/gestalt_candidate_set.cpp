@@ -2,13 +2,17 @@
 
 GestaltCandidateSet::GestaltCandidateSet(ScatterPointDataset* data)
 	: dataset_(data) {
-
+	this->InitSiteData();
 }
 
 GestaltCandidateSet::~GestaltCandidateSet() {
 
 }
 
-void GestaltCandidateSet::ExtractGestaltCandidates() {
+void GestaltCandidateSet::InitSiteData() {
+
+}
+
+void GestaltCandidateSet::ExtractGestaltCandidates(float dis_thresh) {
 
 }
