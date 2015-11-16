@@ -202,6 +202,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="gestalt_candidate_set.cpp" />
     <ClCompile Include="gestalt_processor.cpp" />
     <ClCompile Include="cluster_glyph_layer.cpp" />
     <ClCompile Include="hier_para_widget.cpp" />
@@ -211,8 +212,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="perception_solver.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
+    <ClCompile Include="property_extractor.cpp" />
+    <ClCompile Include="proximity_extractor.cpp" />
     <ClCompile Include="rendering_layer_model.cpp" />
     <ClCompile Include="scatter_point_glyph.cpp" />
+    <ClCompile Include="similarity_extractor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -265,6 +269,11 @@
     <ClInclude Include="GeneratedFiles\ui_hier_para_widget.h" />
     <ClInclude Include="GeneratedFiles\ui_perception_para_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h" />
+    <ClInclude Include="gestalt_candidate_set.h" />
+    <ClInclude Include="property_extractor.h" />
+    <ClInclude Include="proximity_extractor.h" />
+    <ClInclude Include="scatter_point_dataset.h" />
+    <ClInclude Include="similarity_extractor.h" />
     <CustomBuild Include="gestalt_processor.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing gestalt_processor.h...</Message>

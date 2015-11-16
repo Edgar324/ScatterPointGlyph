@@ -140,6 +140,18 @@
     <ClCompile Include="cluster_glyph_layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gestalt_candidate_set.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="property_extractor.cpp">
+      <Filter>Source Files\Gestalt Property</Filter>
+    </ClCompile>
+    <ClCompile Include="proximity_extractor.cpp">
+      <Filter>Source Files\Gestalt Property</Filter>
+    </ClCompile>
+    <ClCompile Include="similarity_extractor.cpp">
+      <Filter>Source Files\Gestalt Property</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -215,6 +227,21 @@
     </ClInclude>
     <ClInclude Include="cluster_glyph_layer.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="property_extractor.h">
+      <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="scatter_point_dataset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gestalt_candidate_set.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="proximity_extractor.h">
+      <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="similarity_extractor.h">
+      <Filter>Header Files\Gestalt Property</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
