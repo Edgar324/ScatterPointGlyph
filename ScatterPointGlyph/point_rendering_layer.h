@@ -11,6 +11,7 @@ public:
 	~PointRenderingLayer();
 
 	void SetData(vtkPolyData* data);
+	void SetClusterIndex(int cluster_count, std::vector< int >& point_index);
 	void SetHighlightPointIndex(std::vector< int >& index);
 	void SetPointValue(std::vector< float >& values);
 

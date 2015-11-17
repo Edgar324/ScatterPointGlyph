@@ -24,7 +24,9 @@ class HierParaWidget;
 class HierSolver;
 class ClusterGlyphLayer;
 class PointRenderingLayer;
-class GestaltProcessor;
+class GestaltProcessor2;
+class ScatterPointDataset;
+class ClusterSolver;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -53,20 +55,20 @@ private:
 	QDockWidget* hier_para_panel_;
 	HierParaWidget* hier_para_widget_;
 
+	ClusterGlyphLayer* cluster_glyph_layer_;
+	PointRenderingLayer* original_point_rendering_layer_;
+	PointRenderingLayer* sample_point_rendering_layer_;
+
 	SystemMode sys_mode_;
+	ClusterSolver* current_solver_;
 
 	HierSolver* hier_solver_;
 	int expected_cluster_num_;
-	ClusterGlyphLayer* cluster_glyph_layer_;
-	PointRenderingLayer* point_rendering_layer_;
-	PointRenderingLayer* original_rendering_layer_;
 
-	GestaltProcessor* gestalt_processor_;
+	GestaltProcessor2* gestalt_processor_;
 
 	vtkUnstructuredGrid* scatter_point_data_;
-	std::vector< std::vector< float > > point_pos_;
-	std::vector< std::vector< float > > point_values_;
-	std::vector< float > variable_weight_;
+	ScatterPointDataset* dataset_;
 
 
 	void InitWidget();
@@ -76,23 +78,23 @@ private:
 	void HierarchicalPreProcess();
 	void PerceptionPreProcess();
 
-	void ExecPerceptionClustering();
-
 private slots:
 	void OnActionOpenTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
+
+	void OnActionExtractDataTriggered();
+
+	void OnHierClusterNumberChanged(int);
 	void OnActionHierarchicalClusteringTriggered();
+
 	void OnActionPerceptionDrivenTriggered();
 	
-	void OnHierClusterNumberChanged(int);
-	void OnCombinedClusterUpdated(int, int);
-	void OnOneStepHierFinished();
-	void OnGestaltUpdated();
-	void OnKmeansClusterFinished();
+	void OnClusterAggregated(int cluster_index);
+	void OnClusterFinished();
 
 	void NormalizePosition(std::vector< std::vector< float > >& vec);
-	void NormalizeVector(std::vector< std::vector< float > >& vec);
+	void NormalizeValues(std::vector< std::vector< float > >& vec);
 };
 
 #endif // SCATTER_POINT_GLYPH_H

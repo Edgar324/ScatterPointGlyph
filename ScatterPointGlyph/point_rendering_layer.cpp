@@ -16,8 +16,6 @@ void PointRenderingLayer::SetData(vtkPolyData* data) {
 	poly_data_ = data;
 
 	UpdatePointGlyph();
-
-	srand((unsigned int)time(0));
 }
 
 void PointRenderingLayer::SetPointValue(std::vector< float >& values){
@@ -41,6 +39,22 @@ void PointRenderingLayer::SetHighlightPointIndex(std::vector< int >& index) {
 	color_array->Modified();
 }
 
+void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index) {
+	std::vector< int > rgb;
+	rgb.resize(3 * cluster_count);
+	for (int i = 0; i < cluster_count; ++i) {
+		rgb[3 * i] = 255 * rand() / RAND_MAX;
+		rgb[3 * i + 1] = 255 * rand() / RAND_MAX;
+		rgb[3 * i + 2] = 255 * rand() / RAND_MAX;
+	}
+	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+	for (int i = 0; i < point_index.size(); ++i) {
+		int cindex = point_index[i] * 3;
+		color_array->SetTuple3(i, rgb[cindex], rgb[cindex + 1], rgb[cindex + 2]);
+	}
+	color_array->Modified();
+}
+
 void PointRenderingLayer::UpdatePointGlyph() {
 	vtkSmartPointer<vtkUnsignedCharArray> colors =
 		vtkSmartPointer<vtkUnsignedCharArray>::New();
@@ -54,4 +68,6 @@ void PointRenderingLayer::UpdatePointGlyph() {
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
 	actor_->GetProperty()->SetPointSize(6);
+
+	actor_->Modified();
 }

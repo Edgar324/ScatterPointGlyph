@@ -1,8 +1,26 @@
 #include "hier_solver.h"
 #include <time.h>
+#include <vtkDelaunay2D.h>
+#include <vtkCellArray.h>
+#include <vtkPoints.h>
+#include <vtkTriangle.h>
+#include <vtkPolyData.h>
+#include <vtkPointData.h>
+#include <vtkLine.h>
+#include <vtkCellLocator.h>
+#include <vtkSmartPointer.h>
+#include <vtkDelaunay2D.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkProperty.h>
+#include <vtkVertexGlyphFilter.h>
+#include "scatter_point_dataset.h"
 
 HierSolver::HierSolver() 
-	: current_cluster_num_(-1), cluster_num_(-1) {
+	: current_cluster_num_(-1), expected_cluster_num_(-1), dis_scale_(0.3) {
 
 }
 
@@ -10,152 +28,121 @@ HierSolver::~HierSolver() {
 
 }
 
-void HierSolver::SetData(std::vector< std::vector< float > >& value, std::vector< float >& weight) {
-	value_ = value;
-	weight_ = weight;
+void HierSolver::SetData(ScatterPointDataset* data) {
+	dataset_ = data;
 
-	cluster_index_.resize(value_.size());
-	for (size_t i = 0; i < value_.size(); ++i) cluster_index_[i] = i;
+	final_label_.resize(dataset_->point_pos.size());
+	cluster_center_.resize(dataset_->point_pos.size());
+	for (size_t i = 0; i < final_label_.size(); ++i) {
+		final_label_[i] = i;
+		cluster_center_[i].resize(3);
+		cluster_center_[i][0] = dataset_->point_pos[i][0];
+		cluster_center_[i][1] = dataset_->point_pos[i][1];
+		cluster_center_[i][2] = dataset_->point_values[i];
+	}
 
-	pre_cluster_index_[0] = -1;
-	pre_cluster_index_[1] = -1;
-	current_cluster_num_ = -1;
+	cluster_node_count_.resize(dataset_->point_pos.size());
+	cluster_node_count_.assign(cluster_node_count_.size(), 1);
+	is_label_used_.resize(final_label_.size());
+	is_label_used_.assign(is_label_used_.size(), true);
+	current_cluster_num_ = final_label_.size();
+
+	Triangulation();
 }
 
-void HierSolver::SetInitialClusterNum(int num){
-	cluster_num_ = num;
-	current_cluster_num_ = cluster_num_;
-
-	this->KmeansCluster();
+void HierSolver::SetExpectedClusterNum(int num) {
+	expected_cluster_num_ = num;
 }
 
-void HierSolver::SetClusterNum(int num) {
-	cluster_num_ = num;
-}
+void HierSolver::Triangulation() {
+	vtkSmartPointer< vtkPoints > points = vtkSmartPointer<vtkPoints>::New();
+	for (int i = 0; i < dataset_->point_pos.size(); ++i) {
+		points->InsertNextPoint(dataset_->point_pos[i][0], dataset_->point_pos[i][1], 0);
+	}
+	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(points);
+	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
+	delaunay->SetInputData(polydata);
+	delaunay->Update();
+	vtkPolyData* triangle_out = delaunay->GetOutput();
 
-void HierSolver::GetPreClusterIndex(int& cluster_one, int& cluster_two){
-	cluster_one = pre_cluster_index_[0];
-	cluster_two = pre_cluster_index_[1];
-}
+	int cluster_num = dataset_->point_pos.size();
+	cluster_connecting_status_.resize(cluster_num);
+	for (int i = 0; i < cluster_num; ++i) cluster_connecting_status_[i].resize(cluster_num, false);
 
-void HierSolver::GetGlyphData(std::vector< float >& glyph_pos, std::vector< std::vector< float > >& glyph_values){
-	glyph_pos.resize(cluster_center_.size() * 2);
-	glyph_values.resize(cluster_center_.size());
-	for (int i = 0; i < cluster_center_.size(); ++i) {
-		glyph_pos[i * 2] = cluster_center_[i][0];
-		glyph_pos[i * 2 + 1] = cluster_center_[i][1];
+	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
+	for (int i = 0; i < triangle_out->GetNumberOfPolys(); ++i){
+		double* temp = idarray->GetTuple(i * 3);
+		int id1 = (int)(temp[0]);
+		temp = idarray->GetTuple(i * 3 + 1);
+		int id2 = (int)(temp[0]);
+		temp = idarray->GetTuple(i * 3 + 2);
+		int id3 = (int)(temp[0]);
+		cluster_connecting_status_[id1][id2] = true;
+		cluster_connecting_status_[id2][id1] = true;
+		cluster_connecting_status_[id2][id3] = true;
+		cluster_connecting_status_[id3][id2] = true;
+		cluster_connecting_status_[id1][id3] = true;
+		cluster_connecting_status_[id3][id1] = true;
+	}
 
-		glyph_values[i].resize(1);
-		glyph_values[i][0] = cluster_node_count_[i];
+	for (int i = 0; i < cluster_connecting_status_.size(); ++i){
+		bool is_connecting = false;
+		for (int j = 0; j < cluster_connecting_status_[i].size(); ++j) is_connecting = is_connecting || cluster_connecting_status_[i][j];
+		assert(is_connecting);
 	}
 }
 
 void HierSolver::run() {
-	pre_cluster_index_[0] = -1;
-	pre_cluster_index_[1] = -1;
-	if (current_cluster_num_ <= cluster_num_) return;
-
-	float min_dis = 1e10;
-	for (int i = 0; i < cluster_center_.size() - 1; ++i)
-		for (int j = i + 1; j < cluster_center_.size(); ++j) {
-			float temp_dis = 0;
-			for (int k = 0; k < weight_.size(); ++k)
-				temp_dis += abs(cluster_center_[i][k] - cluster_center_[j][k]) * weight_[k];
-			if (temp_dis < min_dis) {
-				min_dis = temp_dis;
-				pre_cluster_index_[0] = i;
-				pre_cluster_index_[1] = j;
-			}
-		}
-	
-	emit CombinedClusterChanged(pre_cluster_index_[0], pre_cluster_index_[1]);
-	this->msleep(1000);
-
-	std::vector< float > temp_new_center;
-	temp_new_center.resize(weight_.size(), 0);
-	int total_node_count = 0;
-	for (int i = 0; i < value_.size(); ++i)
-		if (cluster_index_[i] == pre_cluster_index_[0] || cluster_index_[i] == pre_cluster_index_[1]) {
-			for (int j = 0; j < weight_.size(); ++j) temp_new_center[j] += value_[i][j];
-			total_node_count++;
-		}
-	if (total_node_count != 0) {
-		for (int i = 0; i < weight_.size(); ++i) temp_new_center[i] /= total_node_count;
-	}
-
-	// update center and cluster index
-	cluster_center_[pre_cluster_index_[0]] = temp_new_center;
-	for (int i = 0; i < value_.size(); ++i) {
-		if (cluster_index_[i] == pre_cluster_index_[1]) cluster_index_[i] = pre_cluster_index_[0];
-		if (cluster_index_[i] > pre_cluster_index_[1]) cluster_index_[i] -= 1;
-	}
-	cluster_node_count_[pre_cluster_index_[0]] += cluster_node_count_[pre_cluster_index_[1]];
-	for (int i = pre_cluster_index_[1]; i < cluster_center_.size() - 1; ++i){
-		cluster_center_[i] = cluster_center_[i + 1];
-		cluster_node_count_[i] = cluster_node_count_[i + 1];
-	}
-	cluster_center_.resize(cluster_center_.size() - 1);
-	current_cluster_num_ = cluster_center_.size();
-	cluster_node_count_.resize(cluster_node_count_.size() - 1);
-}
-
-void HierSolver::KmeansCluster() {
-	/// Generate random center
-	cluster_center_.resize(cluster_num_);
-	cluster_node_count_.resize(cluster_num_);
-	std::vector< bool > is_selected;
-	is_selected.resize(value_.size(), false);
-	srand((unsigned int)time(0));
-	for (int i = 0; i < cluster_num_; ++i) {
-		int temp_index;
-		do {
-			temp_index = (int)((float)rand() / RAND_MAX * (value_.size() - 1) + 0.499);
-		} while (is_selected[temp_index]);
-
-		cluster_center_[i] = value_[temp_index];
-		is_selected[temp_index] = true;
-	}
-	for (int i = 0; i < cluster_index_.size(); ++i) cluster_index_[i] = -1;
-
-	/// Update cluster
-	bool is_center_updated;
-	int iteration_count = 0;
-	do {
-		is_center_updated = false;
-		for (int i = 0; i < cluster_index_.size(); ++i) {
-			float min_dis_index = -1;
-			float min_dis = 1e20;
-			for (int j = 0; j < cluster_num_; ++j) {
-				float temp_dis = 0;
-				for (int k = 0; k < weight_.size(); ++k)
-					temp_dis += abs(cluster_center_[j][k] - value_[i][k]) * weight_[k];
-				if (temp_dis < min_dis) {
-					min_dis = temp_dis;
-					min_dis_index = j;
-				}
-			}
-			if (cluster_index_[i] != min_dis_index) {
-				is_center_updated = true;
-				cluster_index_[i] = min_dis_index;
-			}
-		}
-		if (!is_center_updated) break;
-
-		/// update cluster center
-		for (int i = 0; i < cluster_center_.size(); ++i)
-			memset(cluster_center_[i].data(), 0, cluster_center_[i].size() * sizeof(float));
-		memset(cluster_node_count_.data(), 0, cluster_node_count_.size() * sizeof(int));
-		for (int i = 0; i < cluster_index_.size(); ++i) {
-			cluster_node_count_[cluster_index_[i]]++;
-			for (int j = 0; j < weight_.size(); ++j)
-				cluster_center_[cluster_index_[i]][j] += value_[i][j];
-		}
-		for (int i = 0; i < cluster_num_; ++i)
-			if (cluster_node_count_[i] != 0) {
-				for (int j = 0; j < weight_.size(); ++j)
-					cluster_center_[i][j] /= cluster_node_count_[i];
+	while (current_cluster_num_ > expected_cluster_num_) {
+		int temp_index[2];
+		float min_dis = 1e10;
+		for (int i = 0; i < cluster_center_.size() - 1; ++i)
+			if (is_label_used_[i]) {
+				for (int j = i + 1; j < cluster_center_.size(); ++j)
+					if (is_label_used_[j] && cluster_connecting_status_[i][j]) {
+						float temp_dis = sqrt(pow(cluster_center_[i][0] - cluster_center_[j][0], 2) + pow(cluster_center_[i][1] - cluster_center_[j][1], 2)) * dis_scale_;
+						temp_dis += abs(cluster_center_[i][2] - cluster_center_[j][2]) * (1.0 - dis_scale_);
+						if (temp_dis < min_dis) {
+							min_dis = temp_dis;
+							temp_index[0] = i;
+							temp_index[1] = j;
+						}
+					}
 			}
 
-		iteration_count++;
-	} while (is_center_updated && iteration_count < 3);
+		// update center and cluster index
+		for (int i = 0; i < 3; ++i)
+			cluster_center_[temp_index[0]][i] = cluster_center_[temp_index[0]][i] * cluster_node_count_[temp_index[0]]
+				+ cluster_center_[temp_index[1]][i] * cluster_node_count_[temp_index[1]];
+
+		cluster_node_count_[temp_index[0]] += cluster_node_count_[temp_index[1]];
+		for (int i = 0; i < final_label_.size(); ++i)
+			if (final_label_[i] == temp_index[1]) final_label_[i] = temp_index[0];
+
+		for (int i = 0; i < 3; ++i) 
+			cluster_center_[temp_index[0]][i] /= cluster_node_count_[temp_index[0]];
+
+		is_label_used_[temp_index[1]] = false;
+		for (int i = 0; i < cluster_connecting_status_.size(); ++i)
+			cluster_connecting_status_[temp_index[0]][i] = cluster_connecting_status_[temp_index[0]][i] || cluster_connecting_status_[temp_index[1]][i];
+
+		current_cluster_num_--;
+	}
+
+	// update final label
+	final_label_count_ = expected_cluster_num_;
+	int accu_count = 0;
+	std::vector< int > assigned_labels;
+	assigned_labels.resize(is_label_used_.size(), -1);
+	for (int i = 0; i < is_label_used_.size(); ++i) {
+		if (is_label_used_[i]) {
+			assigned_labels[i] = accu_count;
+			accu_count++;
+		}
+	}
+	final_label_.resize(dataset_->point_pos.size());
+	for (int i = 0; i < final_label_.size(); ++i) {
+		final_label_[i] = assigned_labels[final_label_[i]];
+	}
 }

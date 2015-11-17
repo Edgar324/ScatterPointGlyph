@@ -6,12 +6,11 @@
 class ScatterPointDataset
 {
 public:
-	ScatterPointDataset() {}
-	~ScatterPointDataset() {}
+	ScatterPointDataset();
+	~ScatterPointDataset();
 
-	void Sample(int point_num, float left, float right, float bottom, float top) {
-
-	}
+	void Sample(int point_num, float left, float right, float bottom, float top);
+	void DirectConstruct();
 
 	std::vector< std::vector< float > > point_pos;
 	std::vector< float > point_values;

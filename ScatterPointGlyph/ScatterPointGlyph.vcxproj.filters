@@ -161,6 +161,18 @@
     <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor2.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="scatter_point_dataset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_cluster_solver.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_cluster_solver.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="cluster_solver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -194,6 +206,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="gestalt_processor2.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="cluster_solver.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

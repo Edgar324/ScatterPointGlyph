@@ -3,26 +3,23 @@
 
 #include "basic_glyph_layer.h"
 
+class ScatterPointDataset;
+
 class ClusterGlyphLayer : public BasicGlyphLayer
 {
 public:
 	ClusterGlyphLayer();
 	~ClusterGlyphLayer();
 
-	void SetData(std::vector< std::vector< float > >& pos, std::vector< std::vector< float > >& value);
-	void SetHighlighCluster(int cluster_one, int cluster_two);
-	void AddGestaltGlyph(std::vector< int >& point_index);
+	void SetData(ScatterPointDataset* data);
+	void AddClusterGlyph(std::vector< int >& point_index);
+	void SetClusterIndex(int cluster_count, std::vector< int >& point_index);
 	void ClearGlyph();
 
 private:
-	std::vector< std::vector< float > > glyph_pos_;
-	std::vector< std::vector< float > > glyph_values_;
+	ScatterPointDataset* dataset_;
 
-	std::vector< float > line_paras_;
-
-	int highlight_cluster_[2];
-
-	void UpdateGlyphActor();
+	void InitGlyphActor();
 };
 
 #endif

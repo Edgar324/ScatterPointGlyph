@@ -10,7 +10,7 @@
 #include "./gco-v3.0/energy.h"
 
 GestaltProcessor2::GestaltProcessor2() 
-	: dataset_(NULL), gestalt_candidates_(NULL) {
+	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL) {
 	PropertyExtractor* proximity = new PropertyExtractor;
 	SimilarityExtractor* similarity = new SimilarityExtractor;
 
@@ -21,7 +21,7 @@ GestaltProcessor2::GestaltProcessor2()
 	is_property_on_[0] = true;
 	is_property_on_[1] = true;
 
-	extracted_gestalt_count_ = 0;
+	final_label_count_ = 0;
 	valid_decreasing_rate_ = 0.3;
 }
 
@@ -35,17 +35,6 @@ void GestaltProcessor2::SetData(ScatterPointDataset* data) {
 	gestalt_candidates_ = new GestaltCandidateSet(dataset_);
 }
 
-void GestaltProcessor2::GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {
-	cluster_count = extracted_gestalt_count_;
-	cluster_index = final_label_;
-}
-
-void GestaltProcessor2::GetFinalGlyphPoint(int index, std::vector< int >& point_index) {
-	point_index.clear();
-	for (int i = 0; i < final_label_.size(); ++i)
-		if (final_label_[i] == index) point_index.push_back(i);
-}
-
 void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 	if (gestalt_candidates_ == NULL) return;
 
@@ -55,7 +44,7 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 	gestalt_candidates_->ExtractGestaltCandidates(dis_thresh);
 
 	int labeled_site_count = 0;
-	extracted_gestalt_count_ = 0;
+	final_label_count_ = 0;
 	while (labeled_site_count < gestalt_candidates_->site_num) {
 		ExtractLabels();
 		// process valid gestalt
@@ -65,12 +54,12 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 		PropertyExtractor* extractor = property_extractors_[property_index];
 		for (int i = 0; i < extractor->proposal_gestalt[gestalt_index].size(); ++i) {
 			int site_index = extractor->proposal_gestalt[gestalt_index][i];
-			final_label_[site_index] = extracted_gestalt_count_;
+			final_label_[site_index] = final_label_count_;
 		}
 
-		emit FinalGlyphUpdated(extracted_gestalt_count_);
+		emit ClusterUpdated(final_label_count_);
 
-		extracted_gestalt_count_++;
+		final_label_count_++;
 		labeled_site_count += extractor->proposal_gestalt[gestalt_index].size();
 	}
 }
