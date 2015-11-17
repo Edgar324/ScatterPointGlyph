@@ -1718,7 +1718,7 @@ void GCoptimization::printStatus1(int cycle, bool isSwap, gcoclock_t ticks0)
 
 void GCoptimization::printStatus2(int alpha, int beta, int numVars, gcoclock_t ticks0)
 {
-	if ( m_verbosity < 2 )
+	/*if ( m_verbosity < 2 )
 		return;
 	int microsec = (int)(1000000*(gcoclock() - ticks0) / GCO_CLOCKS_PER_SEC);
 	if ( beta >= 0 )
@@ -1732,7 +1732,7 @@ void GCoptimization::printStatus2(int alpha, int beta, int numVars, gcoclock_t t
 		printf(" \t(%d of %d);",m_stepsThisCycle+1,m_stepsThisCycleTotal);
 
 	printf(microsec > 100 ? "\t %.2f ms\n" : "\t %.3f ms\n",(double)microsec/1000.0);
-	flushnow();
+	flushnow();*/
 }
 
 

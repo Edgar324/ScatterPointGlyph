@@ -15,7 +15,7 @@ void SimilarityExtractor::ExtractCosts(float thres) {
 	// extract cost
 	int label_num = this->proposal_gestalt.size() + 1;
 	int gestalt_num = this->proposal_gestalt.size();
-	int site_num = this->proposal_gestalt.size();
+	int site_num = gestalt_candidates->site_num;
 
 	label_cost.resize(label_num);
 	label_cost.assign(label_num, -1);
@@ -76,6 +76,7 @@ void SimilarityExtractor::ExtractProposalGestalt(float thres) {
 	std::vector< bool > is_selected;
 
 	int gestalt_num = gestalt_candidates->gestalt_candidates.size();
+	this->proposal_gestalt.clear();
 
 	for (int i = 0; i < gestalt_num; ++i) {
 		if (gestalt_candidates->is_site_labeled[i]) continue;
@@ -103,8 +104,10 @@ void SimilarityExtractor::ExtractProposalGestalt(float thres) {
 					}
 				}
 		}
-		this->proposal_gestalt[i].clear();
+
+		std::vector< int > proposal;
 		for (int j = 0; j < is_selected.size(); ++j)
-			if (is_selected[j]) this->proposal_gestalt[i].push_back(gestalt_candidates->gestalt_candidates[i][j]);
+			if (is_selected[j]) proposal.push_back(gestalt_candidates->gestalt_candidates[i][j]);
+		this->proposal_gestalt.push_back(proposal);
 	}
 }

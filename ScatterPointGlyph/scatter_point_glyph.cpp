@@ -38,7 +38,7 @@
 #include "scatter_point_dataset.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), dataset_(NULL), sys_mode_(HIER_MODE), expected_cluster_num_(30),
+	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
 	gestalt_processor_(NULL), hier_solver_(NULL) {
 
@@ -259,7 +259,8 @@ void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
 	std::vector< float > threshold;
 	threshold.push_back(0.4);
 	threshold.push_back(30 / width_per_scale);
-	gestalt_processor_->GenerateCluster(60 / width_per_scale);
+	gestalt_processor_->SetDisThreshold(20 / width_per_scale);
+	gestalt_processor_->start();
 
 	main_view_->update();
 } 
@@ -349,6 +350,8 @@ void ScatterPointGlyph::OnClusterFinished() {
 	sample_point_rendering_layer_->SetClusterIndex(cluster_count, cluster_index);
 	// add glyph to the glyph layer
 	cluster_glyph_layer_->SetClusterIndex(cluster_count, cluster_index);
+
+	main_view_->update();
 }
 
 void ScatterPointGlyph::NormalizeValues(std::vector< std::vector< float > >& vec){

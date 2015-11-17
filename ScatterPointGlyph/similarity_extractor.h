@@ -9,7 +9,7 @@ public:
 	SimilarityExtractor();
 	~SimilarityExtractor();
 
-	void ExtractCosts(float thres);
+	virtual void ExtractCosts(float thres);
 
 private:
 	void ExtractProposalGestalt(float thres);

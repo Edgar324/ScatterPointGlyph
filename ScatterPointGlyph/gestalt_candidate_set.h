@@ -27,6 +27,7 @@ private:
 	ScatterPointDataset* dataset_;
 
 	void InitSiteData();
+	void Triangulation();
 };
 
 #endif

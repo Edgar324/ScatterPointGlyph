@@ -11,7 +11,7 @@
 
 GestaltProcessor2::GestaltProcessor2() 
 	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL) {
-	PropertyExtractor* proximity = new PropertyExtractor;
+	ProximityExtractor* proximity = new ProximityExtractor;
 	SimilarityExtractor* similarity = new SimilarityExtractor;
 
 	property_extractors_.push_back(proximity);
@@ -21,8 +21,13 @@ GestaltProcessor2::GestaltProcessor2()
 	is_property_on_[0] = true;
 	is_property_on_[1] = true;
 
+	property_thresh_.resize(2);
+	property_thresh_[0] = 0.03;
+	property_thresh_[1] = 0.2;
+
 	final_label_count_ = 0;
 	valid_decreasing_rate_ = 0.3;
+	dis_threshold_ = 0.1;
 }
 
 GestaltProcessor2::~GestaltProcessor2() {
@@ -35,6 +40,14 @@ void GestaltProcessor2::SetData(ScatterPointDataset* data) {
 	gestalt_candidates_ = new GestaltCandidateSet(dataset_);
 }
 
+void GestaltProcessor2::SetDisThreshold(float dis_thresh) {
+	dis_threshold_ = dis_thresh;
+}
+
+void GestaltProcessor2::run() {
+	this->GenerateCluster(dis_threshold_);
+}
+
 void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 	if (gestalt_candidates_ == NULL) return;
 
@@ -43,9 +56,9 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 
 	gestalt_candidates_->ExtractGestaltCandidates(dis_thresh);
 
-	int labeled_site_count = 0;
+	labeled_site_count_ = 0;
 	final_label_count_ = 0;
-	while (labeled_site_count < gestalt_candidates_->site_num) {
+	while (labeled_site_count_ < gestalt_candidates_->site_num) {
 		ExtractLabels();
 		// process valid gestalt
 		int property_index, gestalt_index;
@@ -55,19 +68,19 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 		for (int i = 0; i < extractor->proposal_gestalt[gestalt_index].size(); ++i) {
 			int site_index = extractor->proposal_gestalt[gestalt_index][i];
 			final_label_[site_index] = final_label_count_;
+			gestalt_candidates_->is_site_labeled[site_index] = true;
 		}
 
-		emit ClusterUpdated(final_label_count_);
-
 		final_label_count_++;
-		labeled_site_count += extractor->proposal_gestalt[gestalt_index].size();
+		labeled_site_count_ += extractor->proposal_gestalt[gestalt_index].size();
+		std::cout << "Gestalt " << final_label_count_ << "  Point Number: " << extractor->proposal_gestalt[gestalt_index].size() << std::endl;
 	}
 }
 
 void GestaltProcessor2::ExtractLabels() {
 	try {
-		int label_num = gestalt_candidates_->gestalt_candidates.size() + 1;
-		int gestalt_num = gestalt_candidates_->gestalt_candidates.size();
+		int label_num = gestalt_candidates_->gestalt_candidates.size() + 1 - labeled_site_count_;
+		int gestalt_num = gestalt_candidates_->gestalt_candidates.size() - labeled_site_count_;
 		int site_num = gestalt_candidates_->site_num;
 
 		// Step 1: construct class
@@ -83,10 +96,10 @@ void GestaltProcessor2::ExtractLabels() {
 			if (is_property_on_[p]) {
 				PropertyExtractor* extractor = property_extractors_[p];
 				extractor->SetData(dataset_, gestalt_candidates_);
-				extractor->ExtractCosts(property_thresh[p]);
+				extractor->ExtractCosts(property_thresh_[p]);
 
 				for (int i = 0; i < site_num; ++i) {
-					for (int j = 0; j < label_num + 1; ++j) {
+					for (int j = 0; j < label_num; ++j) {
 						gc->setDataCost(i, j, (int)(extractor->data_cost[i][j] * 10000));
 					}
 				}
@@ -99,9 +112,9 @@ void GestaltProcessor2::ExtractLabels() {
 				for (int i = 0; i < label_num; ++i) temp_label_cost[i] = (int)(extractor->label_cost[i] * 10000);
 				gc->setLabelCost(temp_label_cost.data());
 
-				std::cout << "Property: " << p << "    Before optimization energy is " << gc->compute_energy() << std::endl;
+				//std::cout << "Property: " << p << "    Before optimization energy is " << gc->compute_energy() << std::endl;
 				gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
-				std::cout << "Property: " << p << "    After optimization energy is " << gc->compute_energy() << std::endl;
+				//std::cout << "Property: " << p << "    After optimization energy is " << gc->compute_energy() << std::endl;
 
 				extractor->result_label.resize(site_num);
 				for (int i = 0; i < site_num; ++i) extractor->result_label[i] = gc->whatLabel(i);
@@ -135,13 +148,15 @@ void GestaltProcessor2::ExtractValidGestalt(int& property_index, int& gestalt_in
 				for (int k = 0; k < extractor->proposal_gestalt[j].size(); ++k)
 					if (extractor->result_label[k] == j) info_item.values[1] += 1;
 				info_item.values[1] = (extractor->proposal_gestalt[j].size() - info_item.values[1]) / extractor->proposal_gestalt[j].size();
+
+				gestalt_infos.push_back(info_item);
 			}
 		}
 	
-	SortGestaltInfos(gestalt_infos, 0, gestalt_infos.size() - 1, 0);
+	SortGestaltInfos(gestalt_infos, 0, gestalt_infos.size() - 1, 1);
 	int end_index = 1;
 	while (end_index < gestalt_infos.size() && gestalt_infos[end_index].values[1] < valid_decreasing_rate_) end_index++;
-	SortGestaltInfos(gestalt_infos, 0, end_index - 1, 1);
+	SortGestaltInfos(gestalt_infos, 0, end_index - 1, 0);
 
 	property_index = gestalt_infos[0].property_index;
 	gestalt_index = gestalt_infos[0].gestalt_index;
@@ -153,7 +168,7 @@ void GestaltProcessor2::SortGestaltInfos(std::vector< GestaltInfo >& infos, int 
 	int first = begin, last = end;
 	GestaltInfo key = infos[first];
 	while (first < last) {
-		while (first < last && infos[last].values[sort_index >= key.values[sort_index]]) --last;
+		while (first < last && infos[last].values[sort_index] >= key.values[sort_index]) --last;
 		infos[first] = infos[last];
 		while (first < last && infos[first].values[sort_index] <= key.values[sort_index]) ++first;
 		infos[last] = infos[first];

@@ -17,7 +17,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 	// extract cost
 	int label_num = this->proposal_gestalt.size() + 1;
 	int gestalt_num = this->proposal_gestalt.size();
-	int site_num = this->proposal_gestalt.size();
+	int site_num = gestalt_candidates->site_num;
 
 	label_cost.resize(label_num);
 	label_cost.assign(label_num, -1);
@@ -39,7 +39,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 		float average_edge_length = 0;
 		int edge_count = 0;
 		for (int j = 0; j < proposal_gestalt[i].size() - 1; ++j)
-			for (int k = j + 1; k < proposal_gestalt.size(); ++k) {
+			for (int k = j + 1; k < proposal_gestalt[i].size(); ++k) {
 				int site_index = proposal_gestalt[i][j];
 				int next_node_index = proposal_gestalt[i][k];
 				if (gestalt_candidates->site_connecting_status[site_index][next_node_index]) {
@@ -56,8 +56,8 @@ void ProximityExtractor::ExtractCosts(float thres) {
 
 	// update data cost
 	std::vector< std::vector< float > > label_center;
-	label_center.resize(label_num);
-	for (int i = 0; i < label_num; ++i) {
+	label_center.resize(label_num - 1);
+	for (int i = 0; i < label_num - 1; ++i) {
 		label_center[i].resize(2);
 		label_center[i][0] = 0;
 		label_center[i][1] = 0;
@@ -101,6 +101,7 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 	std::vector< bool > is_selected;
 
 	int gestalt_num = gestalt_candidates->gestalt_candidates.size();
+	this->proposal_gestalt.clear();
 
 	for (int i = 0; i < gestalt_num; ++i) {
 		if (gestalt_candidates->is_site_labeled[i]) continue;
@@ -127,8 +128,10 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 					}
 				}
 		}
-		this->proposal_gestalt[i].clear();
+
+		std::vector< int > proposal;
 		for (int j = 0; j < is_selected.size(); ++j)
-			if (is_selected[j]) this->proposal_gestalt[i].push_back(gestalt_candidates->gestalt_candidates[i][j]);
+			if (is_selected[j]) proposal.push_back(gestalt_candidates->gestalt_candidates[i][j]);
+		this->proposal_gestalt.push_back(proposal);
 	}
 }

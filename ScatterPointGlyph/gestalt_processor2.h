@@ -35,19 +35,25 @@ public:
 	void SetPropertyOn(GestaltProperty property);
 	void SetPropertyOff(GestaltProperty property);
 	void SetThreshold(GestaltProperty peroperty, float thresh);
-
-	void GenerateCluster(float dis_thresh);
+	void SetDisThreshold(float dis_thresh);
 
 signals:
+
+protected:
+	virtual void run();
 
 private:
 	GestaltCandidateSet* gestalt_candidates_;
 	ScatterPointDataset* dataset_;
 	std::vector< bool > is_property_on_;
-	std::vector< float > property_thresh;
+	std::vector< float > property_thresh_;
 	std::vector< PropertyExtractor* > property_extractors_;
 
 	float valid_decreasing_rate_;
+	float dis_threshold_;
+	int labeled_site_count_;
+
+	void GenerateCluster(float dis_thresh);
 
 	void ExtractLabels();
 	void ExtractValidGestalt(int& property_index, int& gestalt_index);
