@@ -55,6 +55,7 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 	final_label_.assign(final_label_.size(), -1);
 
 	gestalt_candidates_->ExtractGestaltCandidates(dis_thresh);
+	gestalt_candidates_->is_site_labeled.assign(gestalt_candidates_->is_site_labeled.size(), false);
 
 	labeled_site_count_ = 0;
 	final_label_count_ = 0;

@@ -173,6 +173,15 @@
     <ClCompile Include="cluster_solver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_scatter_point_view.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_scatter_point_view.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="scatter_point_view.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -209,6 +218,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="cluster_solver.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="scatter_point_view.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

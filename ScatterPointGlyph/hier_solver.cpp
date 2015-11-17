@@ -20,7 +20,7 @@
 #include "scatter_point_dataset.h"
 
 HierSolver::HierSolver() 
-	: current_cluster_num_(-1), expected_cluster_num_(-1), dis_scale_(0.3) {
+	: current_cluster_num_(-1), expected_cluster_num_(-1), dis_scale_(0.5) {
 
 }
 

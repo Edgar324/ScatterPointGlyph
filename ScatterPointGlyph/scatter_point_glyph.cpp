@@ -36,11 +36,12 @@
 #include "point_rendering_layer.h"
 #include "gestalt_processor2.h"
 #include "scatter_point_dataset.h"
+#include "scatter_point_view.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
-	gestalt_processor_(NULL), hier_solver_(NULL) {
+	gestalt_processor_(NULL), hier_solver_(NULL), current_solver_(NULL) {
 
 	ui_.setupUi(this);
 
@@ -52,7 +53,7 @@ ScatterPointGlyph::~ScatterPointGlyph() {
 }
 
 void ScatterPointGlyph::InitWidget() {
-	main_view_ = new QVTKWidget;
+	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
 	QHBoxLayout* central_widget_layout = new QHBoxLayout;
 	central_widget_layout->addWidget(main_view_);
@@ -81,6 +82,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(ui_.action_hierarchical_clustering, SIGNAL(triggered()), this, SLOT(OnActionHierarchicalClusteringTriggered()));
 	connect(ui_.action_perception_driven, SIGNAL(triggered()), this, SLOT(OnActionPerceptionDrivenTriggered()));
 	connect(hier_para_widget_, SIGNAL(ClusterNumberChanged(int)), this, SLOT(OnHierClusterNumberChanged(int)));
+	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 }
 
 void ScatterPointGlyph::OnActionOpenTriggered() {
@@ -325,6 +327,21 @@ void ScatterPointGlyph::AddPointData2View() {
 	main_view_->update();
 }
 
+void ScatterPointGlyph::OnMainViewUpdated() {
+	if (current_solver_ == NULL) return;
+	switch (sys_mode_)
+	{
+	case HIER_MODE:
+		OnActionHierarchicalClusteringTriggered();
+		break;
+	case PERCEPTION_MODE:
+		OnActionPerceptionDrivenTriggered();
+		break;
+	default:
+		break;
+	}
+}
+
 void ScatterPointGlyph::OnHierClusterNumberChanged(int num) {
 	expected_cluster_num_ = num;
 	hier_solver_->SetExpectedClusterNum(num);
@@ -347,9 +364,9 @@ void ScatterPointGlyph::OnClusterFinished() {
 	std::vector< int > cluster_index;
 	current_solver_->GetClusterIndex(cluster_count, cluster_index);
 
-	sample_point_rendering_layer_->SetClusterIndex(cluster_count, cluster_index);
+	original_point_rendering_layer_->SetClusterIndex(cluster_count, cluster_index);
 	// add glyph to the glyph layer
-	cluster_glyph_layer_->SetClusterIndex(cluster_count, cluster_index);
+	//cluster_glyph_layer_->SetClusterIndex(cluster_count, cluster_index);
 
 	main_view_->update();
 }

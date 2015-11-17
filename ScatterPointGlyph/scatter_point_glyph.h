@@ -27,6 +27,7 @@ class PointRenderingLayer;
 class GestaltProcessor2;
 class ScatterPointDataset;
 class ClusterSolver;
+class ScatterPointView;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -43,9 +44,10 @@ public:
 
 protected:
 
+
 private:
 	Ui::ScatterPointGlyphClass ui_;
-	QVTKWidget* main_view_;
+	ScatterPointView* main_view_;
 	vtkRenderer* main_renderer_;
 
 	QDockWidget* layer_control_panel_;
@@ -84,6 +86,8 @@ private slots:
 	void OnActionExitTriggered();
 
 	void OnActionExtractDataTriggered();
+
+	void OnMainViewUpdated();
 
 	void OnHierClusterNumberChanged(int);
 	void OnActionHierarchicalClusteringTriggered();
