@@ -14,6 +14,7 @@ public:
 	HierSolver();
 	~HierSolver();
 
+	virtual void GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {}
 	void SetData(ScatterPointDataset* data);
 	void SetExpectedClusterNum(int num);
 

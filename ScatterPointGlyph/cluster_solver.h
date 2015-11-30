@@ -11,7 +11,7 @@ public:
 	ClusterSolver();
 	~ClusterSolver();
 
-	void GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index);
+	virtual void GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index);
 	void GetFinalClusterPoint(int index, std::vector< int >& point_index);
 
 signals:

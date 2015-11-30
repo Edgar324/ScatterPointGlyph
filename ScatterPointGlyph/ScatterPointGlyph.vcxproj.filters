@@ -39,17 +39,23 @@
     <Filter Include="Source Files\Gestalt Property">
       <UniqueIdentifier>{a68d536a-72cc-4dfc-82c2-453302b46e17}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Triangle">
-      <UniqueIdentifier>{e37c46ef-a8dd-4607-84a6-5f28f05168ba}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Triangle">
-      <UniqueIdentifier>{d040518a-08e0-46de-ae72-7ea4ff765f59}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\GcOpt">
       <UniqueIdentifier>{7d1e45c4-02e8-44d3-b265-9400b7a0e8ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\GcOpt">
       <UniqueIdentifier>{99359c71-6c4a-4a24-aa51-997d9c1d596b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scagnostics">
+      <UniqueIdentifier>{7730dac1-daa9-4014-b8ab-a89ac2d50b66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Scagnostics">
+      <UniqueIdentifier>{ee1614b4-d206-4c66-bec5-139532647288}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tree">
+      <UniqueIdentifier>{27568041-6e02-4a68-9d94-0d9eb11aa49a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tree">
+      <UniqueIdentifier>{43fbeeff-559e-4990-abf2-17b7f17377b1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +188,24 @@
     <ClCompile Include="scatter_point_view.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="scagnostics\Binner.cpp">
+      <Filter>Source Files\Scagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="scagnostics\GraphMeasures.cpp">
+      <Filter>Source Files\Scagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="scagnostics\scag.cpp">
+      <Filter>Source Files\Scagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="scagnostics\Scagnostics.cpp">
+      <Filter>Source Files\Scagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="scagnostics\StringTokenizer.cpp">
+      <Filter>Source Files\Scagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="linked_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -281,6 +305,21 @@
     </ClInclude>
     <ClInclude Include="similarity_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="scagnostics\Binner.h">
+      <Filter>Header Files\Scagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="scagnostics\GraphMeasures.h">
+      <Filter>Header Files\Scagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="scagnostics\Scagnostics.h">
+      <Filter>Header Files\Scagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="scagnostics\StringTokenizer.h">
+      <Filter>Header Files\Scagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="linked_tree.h">
+      <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

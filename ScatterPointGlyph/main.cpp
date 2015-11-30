@@ -5,6 +5,6 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 	ScatterPointGlyph w;
-	w.showFullScreen();
+	w.showMaximized();
 	return a.exec();
 }

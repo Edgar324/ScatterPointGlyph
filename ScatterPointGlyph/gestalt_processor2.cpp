@@ -1,16 +1,19 @@
 #include "gestalt_processor2.h"
 #include <iostream>
+#include <queue>
 #include <time.h>
 
 #include "scatter_point_dataset.h"
 #include "gestalt_candidate_set.h"
 #include "similarity_extractor.h"
 #include "proximity_extractor.h"
+#include "linked_tree.h"
 #include "./gco-v3.0/GCoptimization.h"
 #include "./gco-v3.0/energy.h"
 
 GestaltProcessor2::GestaltProcessor2() 
-	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL) {
+	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL), linked_tree_(NULL),
+		level_num_(5), kmeans_cnum_(300), octree_threshold_(0.3), sampling_mode_(DIRECT), current_level_(0) {
 	ProximityExtractor* proximity = new ProximityExtractor;
 	SimilarityExtractor* similarity = new SimilarityExtractor;
 
@@ -27,7 +30,6 @@ GestaltProcessor2::GestaltProcessor2()
 
 	final_label_count_ = 0;
 	valid_decreasing_rate_ = 0.3;
-	dis_threshold_ = 0.1;
 }
 
 GestaltProcessor2::~GestaltProcessor2() {
@@ -38,24 +40,123 @@ void GestaltProcessor2::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
 	if (gestalt_candidates_ != NULL) delete gestalt_candidates_;
 	gestalt_candidates_ = new GestaltCandidateSet(dataset_);
+	if (linked_tree_ != NULL) delete linked_tree_;
+	linked_tree_ = new LinkedTree(dataset_);
+
+	this->SetSamplingMode(sampling_mode_);
+}
+
+void GestaltProcessor2::SetSamplingMode(SamplingMode mode) {
+	sampling_mode_ = mode;
+
+	switch (sampling_mode_)
+	{
+	case GestaltProcessor2::DIRECT:
+		linked_tree_->ConstructDirectly(level_num_);
+		break;
+	case GestaltProcessor2::KMEANS:
+		linked_tree_->ConstructOnKmeans(level_num_, kmeans_cnum_);
+		break;
+	case GestaltProcessor2::OCTREE:
+		linked_tree_->ConstructOnOctree(level_num_, octree_threshold_);
+		break;
+	default:
+		break;
+	}
 }
 
 void GestaltProcessor2::SetDisThreshold(float dis_thresh) {
-	dis_threshold_ = dis_thresh;
+	current_level_ = level_num_ - (int)(log(1.0 / dis_thresh));
+	if (current_level_ >= level_num_) current_level_ = level_num_ - 1;
+}
+
+void GestaltProcessor2::GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {
+	cluster_count = linked_tree_->tree_nodes[current_level_].size();
+	cluster_index.resize(dataset_->point_pos.size());
+
+	for (int i = 0; i < linked_tree_->tree_nodes[current_level_].size(); ++i) {
+		std::queue< Node* > node_queue;
+		node_queue.push(linked_tree_->tree_nodes[current_level_][i]);
+
+		while (node_queue.size() != 0) {
+			Node* current_node = node_queue.front();
+			node_queue.pop();
+			if (current_node->type() == Node::LEAF) {
+				Leaf* leaf_node = dynamic_cast<Leaf*>(current_node);
+				for (int j = 0; j < leaf_node->linked_points.size(); ++j) {
+					int point_index = leaf_node->linked_points[j];
+					cluster_index[point_index] = i;
+				}
+			}
+			else if (current_node->type() == Node::BRANCH) {
+				Branch* branch_node = dynamic_cast<Branch*>(current_node);
+				for (int j = 0; j < branch_node->linked_nodes.size(); ++j) node_queue.push(branch_node->linked_nodes[j]);
+			}
+		}
+	}
+}
+
+void GestaltProcessor2::UpdateGestaltCandidates(int level) {
+	if (linked_tree_->tree_nodes[level].size() != 0 || level <= 0) return;
+	if (level > 0 && linked_tree_->tree_nodes[level - 1].size() == 0) return;
+
+	int pre_level = level - 1;
+
+	gestalt_candidates_->InitSiteData(linked_tree_->tree_nodes[pre_level].size());
+
+	for (int i = 0; i < linked_tree_->tree_nodes[pre_level].size(); ++i) {
+		std::queue< Node* > node_queue;
+		node_queue.push(linked_tree_->tree_nodes[pre_level][i]);
+
+		while (node_queue.size() != 0) {
+			Node* current_node = node_queue.front();
+			node_queue.pop();
+			if (current_node->type() == Node::LEAF) {
+				Leaf* leaf_node = dynamic_cast< Leaf* >(current_node);
+				gestalt_candidates_->site_point_num[i] += leaf_node->linked_points.size();
+				for (int j = 0; j < leaf_node->linked_points.size(); ++j) {
+					int point_index = leaf_node->linked_points[j];
+					gestalt_candidates_->site_center_pos[i][0] += dataset_->point_pos[point_index][0];
+					gestalt_candidates_->site_center_pos[i][1] += dataset_->point_pos[point_index][1];
+					gestalt_candidates_->site_average_value[i] += dataset_->point_values[point_index];
+
+					gestalt_candidates_->point_site_id[point_index] = i;
+				}
+			}
+			else if (current_node->type() == Node::BRANCH) {
+				Branch* branch_node = dynamic_cast< Branch* >(current_node);
+				for (int j = 0; j < branch_node->linked_nodes.size(); ++j) node_queue.push(branch_node->linked_nodes[j]);
+			}
+		}
+
+		gestalt_candidates_->site_center_pos[i][0] /= gestalt_candidates_->site_point_num[i];
+		gestalt_candidates_->site_center_pos[i][1] /= gestalt_candidates_->site_point_num[i];
+		gestalt_candidates_->site_average_value[i] /= gestalt_candidates_->site_point_num[i];
+	}
+
+	gestalt_candidates_->site_connecting_status = linked_tree_->site_connecting_status;
 }
 
 void GestaltProcessor2::run() {
-	this->GenerateCluster(dis_threshold_);
+	int pre_level = 0;
+	while (pre_level < level_num_ && linked_tree_->tree_nodes[pre_level].size() != 0) pre_level++;
+	if (pre_level >= level_num_) return;
+
+	for (int i = pre_level; i <= current_level_; ++i) {
+		this->UpdateGestaltCandidates(i);
+		this->GenerateCluster(i);
+	}
 }
 
-void GestaltProcessor2::GenerateCluster(float dis_thresh) {
+void GestaltProcessor2::GenerateCluster(int level) {
 	if (gestalt_candidates_ == NULL) return;
+	if (linked_tree_->tree_nodes[level].size() != 0) return;
 
 	final_label_.resize(gestalt_candidates_->site_num);
 	final_label_.assign(final_label_.size(), -1);
 
+	float dis_thresh = 1.0 / pow(2, level_num_ - level);
 	gestalt_candidates_->ExtractGestaltCandidates(dis_thresh);
-	gestalt_candidates_->is_site_labeled.assign(gestalt_candidates_->is_site_labeled.size(), false);
 
 	labeled_site_count_ = 0;
 	final_label_count_ = 0;
@@ -76,6 +177,17 @@ void GestaltProcessor2::GenerateCluster(float dis_thresh) {
 		labeled_site_count_ += extractor->proposal_gestalt[gestalt_index].size();
 		std::cout << "Gestalt " << final_label_count_ << "  Point Number: " << extractor->proposal_gestalt[gestalt_index].size() << std::endl;
 	}
+
+	for (int i = 0; i < final_label_count_; ++i) {
+		Branch* node = new Branch;
+		node->seq_index = i;
+		linked_tree_->tree_nodes[level].push_back(node);
+	}
+	for (int i = 0; i < final_label_.size(); ++i) {
+		Branch* node = dynamic_cast<Branch*>(linked_tree_->tree_nodes[level][final_label_[i]]);
+		node->linked_nodes.push_back(linked_tree_->tree_nodes[level - 1][i]);
+	}
+	linked_tree_->UpdateConnectingStatus();
 }
 
 void GestaltProcessor2::ExtractLabels() {

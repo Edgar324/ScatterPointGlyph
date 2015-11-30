@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;.\scagnostics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -124,7 +124,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;.\scagnostics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -235,12 +235,18 @@
     <ClCompile Include="hier_solver.cpp" />
     <ClCompile Include="layer_control_widget.cpp" />
     <ClCompile Include="line_extractor.cpp" />
+    <ClCompile Include="linked_tree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="perception_solver.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
     <ClCompile Include="property_extractor.cpp" />
     <ClCompile Include="proximity_extractor.cpp" />
     <ClCompile Include="rendering_layer_model.cpp" />
+    <ClCompile Include="scagnostics\Binner.cpp" />
+    <ClCompile Include="scagnostics\GraphMeasures.cpp" />
+    <ClCompile Include="scagnostics\scag.cpp" />
+    <ClCompile Include="scagnostics\Scagnostics.cpp" />
+    <ClCompile Include="scagnostics\StringTokenizer.cpp" />
     <ClCompile Include="scatter_point_dataset.cpp" />
     <ClCompile Include="scatter_point_glyph.cpp" />
     <ClCompile Include="scatter_point_view.cpp" />
@@ -334,8 +340,13 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config"</Command>
     </CustomBuild>
+    <ClInclude Include="linked_tree.h" />
     <ClInclude Include="property_extractor.h" />
     <ClInclude Include="proximity_extractor.h" />
+    <ClInclude Include="scagnostics\Binner.h" />
+    <ClInclude Include="scagnostics\GraphMeasures.h" />
+    <ClInclude Include="scagnostics\Scagnostics.h" />
+    <ClInclude Include="scagnostics\StringTokenizer.h" />
     <ClInclude Include="scatter_point_dataset.h" />
     <CustomBuild Include="scatter_point_view.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

@@ -1,5 +1,7 @@
 #include "scatter_point_glyph.h"
 
+#include <fstream>
+
 #include <QVTKWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkGenericDataObjectReader.h>
@@ -37,6 +39,8 @@
 #include "gestalt_processor2.h"
 #include "scatter_point_dataset.h"
 #include "scatter_point_view.h"
+
+#define SAVE_TXT_FILE
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
@@ -99,7 +103,7 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	vtkDataObject* data = reader->GetOutput();
 	scatter_point_data_ = vtkUnstructuredGrid::SafeDownCast(data);
 	vtkPointData* pData = scatter_point_data_->GetPointData();
-	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
+	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0)); 
 	vtkPoints* p = scatter_point_data_->GetPoints();
 
 	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
@@ -126,9 +130,23 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 			dataset_->original_point_values[i][0] = varray->GetValue(i);
 		}
 	}
+
 	NormalizePosition(dataset_->original_point_pos);
 	NormalizeValues(dataset_->original_point_values);
 	dataset_->DirectConstruct();
+
+#ifdef SAVE_TXT_FILE
+	std::ofstream output("E:/GeoVis/scatterdatareview/1.txt");
+	if (output.good()) {
+		output << point_num - 1 << std::endl;
+		for (int i = 0; i < point_num - 1; ++i) {
+			output << dataset_->original_point_pos[i][0] << std::endl;
+			output << dataset_->original_point_pos[i][1] << std::endl;
+			output << dataset_->original_point_values[i][0] << std::endl;
+		}
+	}
+	output.close();
+#endif
 
 	this->AddPointData2View();
 	this->PreProcess();
@@ -410,6 +428,6 @@ void ScatterPointGlyph::NormalizePosition(std::vector< std::vector< float > >& v
 	}
 	for (int i = 0; i < vec[0].size(); ++i){
 		for (int j = 0; j < vec.size(); ++j)
-			vec[j][i] = (vec[j][i] - ranges[i][0]) / max_range;
+			vec[j][i] = (vec[j][i] - (ranges[i][0] + ranges[i][1]) / 2) / max_range + 0.5;
 	}
 }
