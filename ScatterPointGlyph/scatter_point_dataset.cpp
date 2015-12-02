@@ -1,7 +1,7 @@
 #include "scatter_point_dataset.h"
 
 ScatterPointDataset::ScatterPointDataset() {
-
+	this->is_structured_data = false;
 }
 
 ScatterPointDataset::~ScatterPointDataset() {

@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;.\scagnostics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -100,9 +100,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132-dbg.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132-dbg.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +124,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;.\scagnostics;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -133,14 +133,19 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cluster_solver.cpp" />
     <ClCompile Include="continuity_extractor.cpp" />
+    <ClCompile Include="data\wrf_data_common.cpp" />
+    <ClCompile Include="data\wrf_data_manager.cpp" />
+    <ClCompile Include="data\wrf_nc_lambcc_projection_data.cpp" />
+    <ClCompile Include="data\wrf_nc_square_projection_data.cpp" />
+    <ClCompile Include="data\wrf_utility.cpp" />
     <ClCompile Include="gco-v3.0\GCoptimization.cpp" />
     <ClCompile Include="gco-v3.0\graph.cpp" />
     <ClCompile Include="gco-v3.0\LinkedBlockList.cpp" />
@@ -237,6 +242,7 @@
     <ClCompile Include="line_extractor.cpp" />
     <ClCompile Include="linked_tree.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="map_rendering_layer.cpp" />
     <ClCompile Include="perception_solver.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
     <ClCompile Include="property_extractor.cpp" />
@@ -313,6 +319,12 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config"</Command>
     </CustomBuild>
     <ClInclude Include="continuity_extractor.h" />
+    <ClInclude Include="data\wrf_data_common.h" />
+    <ClInclude Include="data\wrf_data_manager.h" />
+    <ClInclude Include="data\wrf_nc_lambcc_projection_data.h" />
+    <ClInclude Include="data\wrf_nc_map_data.h" />
+    <ClInclude Include="data\wrf_nc_square_projection_data.h" />
+    <ClInclude Include="data\wrf_utility.h" />
     <ClInclude Include="gco-v3.0\block.h" />
     <ClInclude Include="gco-v3.0\energy.h" />
     <ClInclude Include="gco-v3.0\GCoptimization.h" />
@@ -341,6 +353,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config"</Command>
     </CustomBuild>
     <ClInclude Include="linked_tree.h" />
+    <ClInclude Include="map_rendering_layer.h" />
     <ClInclude Include="property_extractor.h" />
     <ClInclude Include="proximity_extractor.h" />
     <ClInclude Include="scagnostics\Binner.h" />

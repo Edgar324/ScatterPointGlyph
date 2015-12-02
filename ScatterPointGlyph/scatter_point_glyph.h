@@ -24,10 +24,12 @@ class HierParaWidget;
 class HierSolver;
 class ClusterGlyphLayer;
 class PointRenderingLayer;
+class MapRenderingLayer;
 class GestaltProcessor2;
 class ScatterPointDataset;
 class ClusterSolver;
 class ScatterPointView;
+class WrfDataManager;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -60,6 +62,7 @@ private:
 	ClusterGlyphLayer* cluster_glyph_layer_;
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* sample_point_rendering_layer_;
+	MapRenderingLayer* map_rendering_layer_;
 
 	SystemMode sys_mode_;
 	ClusterSolver* current_solver_;
@@ -71,6 +74,8 @@ private:
 
 	vtkUnstructuredGrid* scatter_point_data_;
 	ScatterPointDataset* dataset_;
+
+	WrfDataManager* data_manager_;
 
 
 	void InitWidget();

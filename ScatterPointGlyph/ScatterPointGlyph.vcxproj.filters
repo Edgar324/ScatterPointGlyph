@@ -57,6 +57,18 @@
     <Filter Include="Source Files\Tree">
       <UniqueIdentifier>{43fbeeff-559e-4990-abf2-17b7f17377b1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Rendering Layer">
+      <UniqueIdentifier>{e18f4f9b-332f-4253-88f7-c5e2da6e043f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Rendering Layer">
+      <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Data">
+      <UniqueIdentifier>{23aced1f-8c33-4cb8-9ed2-34af8a057215}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Data">
+      <UniqueIdentifier>{91ac453c-b2cb-435f-ab1d-f3ed665bc405}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -140,12 +152,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="point_rendering_layer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_glyph_layer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="gestalt_candidate_set.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -206,6 +212,30 @@
     <ClCompile Include="linked_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="cluster_glyph_layer.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="point_rendering_layer.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="data\wrf_data_manager.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\wrf_nc_lambcc_projection_data.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\wrf_nc_square_projection_data.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="data\wrf_data_common.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="map_rendering_layer.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="data\wrf_utility.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -261,9 +291,6 @@
     <ClInclude Include="GeneratedFiles\ui_hier_para_widget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="basic_glyph_layer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="line_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
     </ClInclude>
@@ -284,12 +311,6 @@
     </ClInclude>
     <ClInclude Include="gco-v3.0\LinkedBlockList.h">
       <Filter>Header Files\GcOpt</Filter>
-    </ClInclude>
-    <ClInclude Include="point_rendering_layer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_glyph_layer.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="property_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
@@ -320,6 +341,36 @@
     </ClInclude>
     <ClInclude Include="linked_tree.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="basic_glyph_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster_glyph_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="point_rendering_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_data_manager.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_nc_lambcc_projection_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_nc_map_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_nc_square_projection_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_data_common.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data\wrf_utility.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="map_rendering_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -11,7 +11,7 @@
 // will leave this one just for the laughs :)
 //#define olga_assert(expr) assert(!(expr))
 
-// Choose reasonably high-precision timer (sub-millisec resolution if possible).
+// Choose reasonably high-precision timer (sub-millisec resolution if possible
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
@@ -109,7 +109,7 @@ GCoptimization::GCoptimization(SiteID nSites, LabelID nLabels)
 , m_datacostFnDelete(0)
 , m_smoothcostFnDelete(0)
 , m_random_label_order(false)
-, m_verbosity(2)
+, m_verbosity(1)
 , m_labelingInfoDirty(true)
 , m_lookupSiteVar(new SiteID[nSites])
 , m_labeling(new LabelID[nSites])

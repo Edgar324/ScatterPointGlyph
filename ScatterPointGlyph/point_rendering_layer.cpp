@@ -43,10 +43,12 @@ void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >&
 	std::vector< int > rgb;
 	rgb.resize(3 * cluster_count);
 	for (int i = 0; i < cluster_count; ++i) {
+		
 		rgb[3 * i] = 255 * rand() / RAND_MAX;
 		rgb[3 * i + 1] = 255 * rand() / RAND_MAX;
 		rgb[3 * i + 2] = 255 * rand() / RAND_MAX;
 	}
+
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < point_index.size(); ++i) {
 		int cindex = point_index[i] * 3;

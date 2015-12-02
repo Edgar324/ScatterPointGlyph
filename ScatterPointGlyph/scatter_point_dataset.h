@@ -12,6 +12,9 @@ public:
 	void Sample(int point_num, float left, float right, float bottom, float top);
 	void DirectConstruct();
 
+	bool is_structured_data;
+	int w, h;
+
 	std::vector< std::vector< float > > point_pos;
 	std::vector< float > point_values;
 

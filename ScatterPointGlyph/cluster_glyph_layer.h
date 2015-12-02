@@ -12,12 +12,15 @@ public:
 	~ClusterGlyphLayer();
 
 	void SetData(ScatterPointDataset* data);
-	void AddClusterGlyph(std::vector< int >& point_index);
+	void SetRadiusRange(float maxR, float minR);
+
 	void SetClusterIndex(int cluster_count, std::vector< int >& point_index);
+
 	void ClearGlyph();
 
 private:
 	ScatterPointDataset* dataset_;
+	float radius_range_[2];
 
 	void InitGlyphActor();
 };

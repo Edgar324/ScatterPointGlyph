@@ -13,7 +13,7 @@
 
 GestaltProcessor2::GestaltProcessor2() 
 	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL), linked_tree_(NULL),
-		level_num_(5), kmeans_cnum_(300), octree_threshold_(0.3), sampling_mode_(DIRECT), current_level_(0) {
+		level_num_(4), kmeans_cnum_(600), octree_threshold_(0.3), sampling_mode_(KMEANS), current_level_(0) {
 	ProximityExtractor* proximity = new ProximityExtractor;
 	SimilarityExtractor* similarity = new SimilarityExtractor;
 
@@ -25,11 +25,13 @@ GestaltProcessor2::GestaltProcessor2()
 	is_property_on_[1] = true;
 
 	property_thresh_.resize(2);
-	property_thresh_[0] = 0.03;
-	property_thresh_[1] = 0.2;
+	property_thresh_[0] = 0.1;
+	property_thresh_[1] = 0.3;
 
 	final_label_count_ = 0;
 	valid_decreasing_rate_ = 0.3;
+
+	alpha_ = 0.1 / pow(2, level_num_ - 1);
 }
 
 GestaltProcessor2::~GestaltProcessor2() {
@@ -66,8 +68,10 @@ void GestaltProcessor2::SetSamplingMode(SamplingMode mode) {
 }
 
 void GestaltProcessor2::SetDisThreshold(float dis_thresh) {
-	current_level_ = level_num_ - (int)(log(1.0 / dis_thresh));
+	/*current_level_ = (int)((log(dis_thresh) - log(alpha_)) / log(2.0));
 	if (current_level_ >= level_num_) current_level_ = level_num_ - 1;
+	if (current_level_ < 0) current_level_ = 0;*/
+	current_level_ = 3;
 }
 
 void GestaltProcessor2::GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {
@@ -155,7 +159,7 @@ void GestaltProcessor2::GenerateCluster(int level) {
 	final_label_.resize(gestalt_candidates_->site_num);
 	final_label_.assign(final_label_.size(), -1);
 
-	float dis_thresh = 1.0 / pow(2, level_num_ - level);
+	float dis_thresh = alpha_ * pow(2, level);
 	gestalt_candidates_->ExtractGestaltCandidates(dis_thresh);
 
 	labeled_site_count_ = 0;
@@ -194,7 +198,7 @@ void GestaltProcessor2::ExtractLabels() {
 	try {
 		int label_num = gestalt_candidates_->gestalt_candidates.size() + 1 - labeled_site_count_;
 		int gestalt_num = gestalt_candidates_->gestalt_candidates.size() - labeled_site_count_;
-		int site_num = gestalt_candidates_->site_num;
+		int site_num = gestalt_candidates_->site_num; 
 
 		// Step 1: construct class
 		GCoptimizationGeneralGraph* gc = new GCoptimizationGeneralGraph(site_num, label_num);

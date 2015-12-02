@@ -49,7 +49,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 				}
 			}
 		if (edge_count != 0) average_edge_length /= edge_count;
-		label_cost[i] = average_edge_length;
+		label_cost[i] = average_edge_length + 1e-3;
 	}
 	label_cost[label_num - 1] = 0;
 	NormalizeVec(label_cost);
@@ -79,7 +79,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 			int site_index = proposal_gestalt[i][j];
 			float dis = sqrt(pow(gestalt_candidates->site_center_pos[site_index][0] - label_center[i][0], 2)
 				+ pow(gestalt_candidates->site_center_pos[site_index][1] - label_center[i][1], 2));
-			data_cost[site_index][i] = dis;
+			data_cost[site_index][i] = dis + 1e-3;
 		}
 	}
 	for (int i = 0; i < site_num; ++i)

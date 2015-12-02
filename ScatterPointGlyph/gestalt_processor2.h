@@ -62,6 +62,8 @@ private:
 	int kmeans_cnum_;
 	float octree_threshold_;
 
+	double alpha_;
+
 	std::vector< bool > is_property_on_;
 	std::vector< float > property_thresh_;
 	std::vector< PropertyExtractor* > property_extractors_;

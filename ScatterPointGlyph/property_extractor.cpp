@@ -34,7 +34,7 @@ void PropertyExtractor::NormalizeVec(std::vector< float >& vec) {
 	if (maxValue - minValue != 0 && maxValue - minValue < 1e10) {
 		for (int i = 0; i < vec.size(); ++i)
 			if (vec[i] >= 0)
-				vec[i] = (vec[i] - minValue) / (maxValue - minValue);
+				vec[i] = vec[i] / maxValue;
 			else
 				vec[i] = 10.0;
 	}
@@ -57,7 +57,7 @@ void PropertyExtractor::NormalizeVec(std::vector< std::vector< float > >& vec) {
 		for (int i = 0; i < vec.size(); ++i)
 			for (int j = 0; j < vec[i].size(); ++j)
 				if (vec[i][j] >= 0)
-					vec[i][j] = (vec[i][j] - minValue) / (maxValue - minValue);
+					vec[i][j] = vec[i][j] / maxValue;
 				else
 					vec[i][j] = 10.0;
 	}

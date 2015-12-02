@@ -1,7 +1,5 @@
 #include "scatter_point_glyph.h"
-
 #include <fstream>
-
 #include <QVTKWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkGenericDataObjectReader.h>
@@ -39,15 +37,20 @@
 #include "gestalt_processor2.h"
 #include "scatter_point_dataset.h"
 #include "scatter_point_view.h"
+#include "wrf_data_manager.h"
+#include "map_rendering_layer.h"
 
-#define SAVE_TXT_FILE
+//#define SAVE_TXT_FILE
+#define WEATHREVIS
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
-	gestalt_processor_(NULL), hier_solver_(NULL), current_solver_(NULL) {
+	map_rendering_layer_(NULL),	gestalt_processor_(NULL), hier_solver_(NULL), current_solver_(NULL) {
 
 	ui_.setupUi(this);
+
+	data_manager_ = WrfDataManager::GetInstance();
 
 	this->InitWidget();
 }
@@ -95,6 +98,45 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 		return;
 	}
 
+	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
+	dataset_->weights.resize(1, 1.0);
+
+#ifdef WEATHREVIS
+	data_manager_->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("E:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
+	std::vector< WrfGridValueMap* > maps;
+	QDateTime temp_datetime = QDateTime(QDate(2015, 4, 5), QTime(0, 0));
+	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_ACCUMULATED_PRECIPITATION, 24, maps);
+	MapRange map_range;
+	data_manager_->GetModelMapRange(WRF_NCEP_ENSEMBLES, map_range);
+
+	int point_num = map_range.x_grid_number * map_range.y_grid_number;
+	dataset_->original_point_values.resize(point_num);
+	for (int i = 0; i < point_num; ++i) dataset_->original_point_values[i].resize(1);
+	dataset_->original_point_pos.resize(point_num);
+	for (int i = 0; i < point_num; ++i) dataset_->original_point_pos[i].resize(2);
+
+	for (int i = 0; i < point_num; ++i){
+		int w = i % map_range.x_grid_number;
+		int h = i / map_range.x_grid_number;
+		dataset_->original_point_pos[i][0] = map_range.start_x + map_range.x_grid_space * w;
+		dataset_->original_point_pos[i][1] = map_range.start_y + map_range.y_grid_space * h;
+		dataset_->original_point_values[i][0] = maps[0]->values[i];
+	}
+	dataset_->is_structured_data = true;
+	dataset_->w = map_range.x_grid_number;
+	dataset_->h = map_range.y_grid_number;
+
+	NormalizeValues(dataset_->original_point_values);
+	dataset_->DirectConstruct();
+	NormalizePosition(dataset_->point_pos);
+
+	/*if (map_rendering_layer_ == NULL) {
+		map_rendering_layer_ = new MapRenderingLayer;
+		map_rendering_layer_->SetFieldData(maps[0]->values, map_range.x_grid_number, map_range.y_grid_number, map_range.x_grid_space, map_range.y_grid_space, map_range.start_x, map_range.start_y);
+		main_renderer_->AddActor(map_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Map"), map_rendering_layer_->actor());
+	}*/
+#else
 	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName("./TestData/simple001.vtk");
 	reader->SetReadAllScalars(1);
@@ -103,15 +145,13 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	vtkDataObject* data = reader->GetOutput();
 	scatter_point_data_ = vtkUnstructuredGrid::SafeDownCast(data);
 	vtkPointData* pData = scatter_point_data_->GetPointData();
-	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0)); 
+	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
 	vtkPoints* p = scatter_point_data_->GetPoints();
 
 	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
 
 	int point_num = p->GetNumberOfPoints();
 	int numArray = pData->GetNumberOfArrays();
-	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
-	dataset_->weights.resize(numArray, 1.0 / numArray);
 	dataset_->original_point_values.resize(point_num - 1);
 	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_values[i].resize(1);
 	dataset_->original_point_pos.resize(point_num - 1);
@@ -134,6 +174,7 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	NormalizePosition(dataset_->original_point_pos);
 	NormalizeValues(dataset_->original_point_values);
 	dataset_->DirectConstruct();
+#endif
 
 #ifdef SAVE_TXT_FILE
 	std::ofstream output("E:/GeoVis/scatterdatareview/1.txt");
@@ -280,6 +321,7 @@ void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
 	threshold.push_back(0.4);
 	threshold.push_back(30 / width_per_scale);
 	gestalt_processor_->SetDisThreshold(20 / width_per_scale);
+	cluster_glyph_layer_->SetRadiusRange(20 / width_per_scale, 20 / width_per_scale * 0.1);
 	gestalt_processor_->start();
 
 	main_view_->update();
@@ -307,14 +349,15 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor());
 	}
 	original_point_rendering_layer_->SetData(original_vertex_data);
+	original_point_rendering_layer_->SetPointValue(dataset_->point_values);
 
 	vtkSmartPointer< vtkPolyData > sample_data = vtkSmartPointer< vtkPolyData >::New();
 	vtkSmartPointer< vtkPoints > sample_points = vtkSmartPointer< vtkPoints >::New();
 	sample_data->SetPoints(sample_points);
-	for (int i = 0; i < dataset_->point_pos.size(); ++i){
+	for (int i = 0; i < dataset_->original_point_pos.size(); ++i){
 		double new_pos[3];
-		new_pos[0] = dataset_->point_pos[i][0];
-		new_pos[1] = dataset_->point_pos[i][1] + 1;
+		new_pos[0] = dataset_->original_point_pos[i][0];
+		new_pos[1] = dataset_->original_point_pos[i][1] + 40;
 		new_pos[2] = 0;
 		sample_points->InsertNextPoint(new_pos);
 	}
@@ -372,9 +415,6 @@ void ScatterPointGlyph::OnClusterAggregated(int cluster_index) {
 
 	// update the point layer
 	sample_point_rendering_layer_->SetHighlightPointIndex(point_index);
-
-	// add glyph to the glyph layer
-	cluster_glyph_layer_->AddClusterGlyph(point_index);
 }
 
 void ScatterPointGlyph::OnClusterFinished() {

@@ -6,7 +6,8 @@
 
 ClusterGlyphLayer::ClusterGlyphLayer() 
 	: BasicGlyphLayer(), dataset_(NULL) {
-
+	radius_range_[0] = 0;
+	radius_range_[1] = 0.1;
 }
 
 ClusterGlyphLayer::~ClusterGlyphLayer() {
@@ -17,6 +18,11 @@ void ClusterGlyphLayer::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
 
 	this->InitGlyphActor();
+}
+
+void ClusterGlyphLayer::SetRadiusRange(float maxR, float minR){
+	radius_range_[0] = minR;
+	radius_range_[1] = maxR;
 }
 
 void ClusterGlyphLayer::InitGlyphActor() {
@@ -56,46 +62,10 @@ void ClusterGlyphLayer::InitGlyphActor() {
 	actor_->SetMapper(mapper_);
 }
 
-void ClusterGlyphLayer::AddClusterGlyph(std::vector< int >& point_index) {
-	if (point_index.size() == 0 || dataset_ == NULL) return;
-
-	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
-
-	float x = 0;
-	float y = 0;
-	for (int i = 0; i < point_index.size(); ++i) {
-		x += dataset_->point_pos[point_index[i]][0];
-		y += dataset_->point_pos[point_index[i]][1];
-	}
-	x /= point_index.size();
-	y /= point_index.size();
-
-	/// construct glyph
-	float r = 0.005 * log(point_index.size() + 1) + 0.001;
-
-	/// insert circle glyph
-	int center_id = poly_data_->GetPoints()->InsertNextPoint(x, y, 0.01);
-	colors->InsertNextTuple3(255, 0, 0);
-	int pre_id = poly_data_->GetPoints()->InsertNextPoint(x + r, y, 0.01);
-	colors->InsertNextTuple3(255, 0, 0);
-	vtkIdType cell_ids[3];
-	for (int j = 1; j <= 20; ++j) {
-		float end_arc = 2 * 3.14159 * j / 20;
-		int current_id = poly_data_->GetPoints()->InsertNextPoint(x + r * cos(end_arc), y + r * sin(end_arc), 0.01);
-		colors->InsertNextTuple3(255, 0, 0);
-		cell_ids[0] = center_id;
-		cell_ids[1] = pre_id;
-		cell_ids[2] = current_id;
-		poly_data_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
-		pre_id = current_id;
-	}
-
-	colors->Modified();
-	actor_->Modified();
-}
-
 void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index) {
 	if (point_index.size() == 0 || dataset_ == NULL) return;
+
+	InitGlyphActor();
 
 	std::vector< float > x, y;
 	x.resize(cluster_count);
@@ -120,9 +90,28 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 			return;
 		}
 
-	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+	std::vector< float > cluster_radius;
+	cluster_radius.resize(cluster_count, 0);
+	for (int i = 0; i < point_index.size(); ++i) {
+		int cluster_index = point_index[i];
+		cluster_radius[cluster_index] += sqrt(pow(dataset_->point_pos[i][0] - x[cluster_index], 2) + pow(dataset_->point_pos[i][1] - y[cluster_index], 2));
+	}
 	for (int i = 0; i < cluster_count; ++i) {
-		float r = 0.005 * log(point_index.size() + 1) + 0.001;
+		cluster_radius[i] /= cluster_point_count[i];
+	}
+
+	float max_point_count = 0;
+	float min_point_count = 10000000;
+	for (int i = 0; i < cluster_count; ++i) {
+		if (cluster_point_count[i] > max_point_count) max_point_count = cluster_point_count[i];
+		if (cluster_point_count[i] < min_point_count) min_point_count = cluster_point_count[i];
+	}
+
+	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+
+	for (int i = 0; i < cluster_count; ++i) {
+		//float r = radius_range_[0] + log((cluster_point_count[i] - min_point_count) / (max_point_count - min_point_count) + 1) / log(2.0) * (radius_range_[1] - radius_range_[0]) * 0.6;
+		float r = cluster_radius[i] + radius_range_[0];
 		int center_id = poly_data_->GetPoints()->InsertNextPoint(x[i], y[i], 0.01);
 		colors->InsertNextTuple3(255, 0, 0);
 		int pre_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r, y[i], 0.01);

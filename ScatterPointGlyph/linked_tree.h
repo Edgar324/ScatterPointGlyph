@@ -37,6 +37,7 @@ public:
 	~Leaf();
 
 	std::vector< int > linked_points;
+	std::vector< float > center_pos;
 };
 
 class Branch : public Node
