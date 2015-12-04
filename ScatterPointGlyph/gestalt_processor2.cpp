@@ -13,7 +13,7 @@
 
 GestaltProcessor2::GestaltProcessor2() 
 	: ClusterSolver(), dataset_(NULL), gestalt_candidates_(NULL), linked_tree_(NULL),
-		level_num_(4), kmeans_cnum_(600), octree_threshold_(0.3), sampling_mode_(KMEANS), current_level_(0) {
+	level_num_(2), kmeans_cnum_(600), octree_threshold_(0.3), sampling_mode_(DIRECT), current_level_(0) {
 	ProximityExtractor* proximity = new ProximityExtractor;
 	SimilarityExtractor* similarity = new SimilarityExtractor;
 
@@ -22,7 +22,7 @@ GestaltProcessor2::GestaltProcessor2()
 
 	is_property_on_.resize(5, false);
 	is_property_on_[0] = true;
-	is_property_on_[1] = true;
+	//is_property_on_[1] = true;
 
 	property_thresh_.resize(2);
 	property_thresh_[0] = 0.1;
@@ -71,7 +71,7 @@ void GestaltProcessor2::SetDisThreshold(float dis_thresh) {
 	/*current_level_ = (int)((log(dis_thresh) - log(alpha_)) / log(2.0));
 	if (current_level_ >= level_num_) current_level_ = level_num_ - 1;
 	if (current_level_ < 0) current_level_ = 0;*/
-	current_level_ = 3;
+	current_level_ = 1;
 }
 
 void GestaltProcessor2::GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {
