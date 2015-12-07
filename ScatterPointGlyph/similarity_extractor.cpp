@@ -79,6 +79,7 @@ void SimilarityExtractor::ExtractProposalGestalt(float thres) {
 
 	int gestalt_num = gestalt_candidates->gestalt_cluster_index.size();
 	this->proposal_gestalt.clear();
+	this->proposal_clusters.clear();
 
 	for (int i = 0; i < gestalt_num; ++i) {
 		is_selected.resize(gestalt_candidates->gestalt_cluster_index[i].size());
@@ -110,9 +111,9 @@ void SimilarityExtractor::ExtractProposalGestalt(float thres) {
 		std::vector< int > cluster_proposal;
 		for (int j = 0; j < is_selected.size(); ++j)
 			if (is_selected[j]) {
-				cluster_proposal.push_back(j);
+				cluster_proposal.push_back(gestalt_candidates->gestalt_cluster_index[i][j]);
 				for (int k = 0; k < gestalt_candidates->site_nodes.size(); ++k)
-					if (gestalt_candidates->basic_node_index[k] == j) proposal.push_back(k);
+					if (gestalt_candidates->basic_node_index[k] == gestalt_candidates->gestalt_cluster_index[i][j]) proposal.push_back(k);
 			}
 		this->proposal_clusters.push_back(cluster_proposal);
 		this->proposal_gestalt.push_back(proposal);

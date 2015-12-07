@@ -61,7 +61,7 @@ void LinkedTree::ConstructOnOctree(int level_num, float thre) {
 }
 
 void LinkedTree::ConstructOnKmeans(int level_num, int basic_cnum) {
-	std::vector< std::vector< float > > cluster_center;
+	/*std::vector< std::vector< float > > cluster_center;
 	std::vector< int > cluster_node_count;
 	std::vector< int > cluster_index;
 	float dis_scale = 0.5;
@@ -200,7 +200,7 @@ void LinkedTree::ConstructOnKmeans(int level_num, int basic_cnum) {
 		CLeaf* leaf_node = dynamic_cast< CLeaf* >(tree_nodes[0][cluster_index[i]]);
 		leaf_node->linked_points.push_back(i);
 	}
-	VtkTriangulation();
+	VtkTriangulation();*/
 }
 
 void LinkedTree::ConstructDirectly(int level_num) {

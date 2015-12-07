@@ -12,6 +12,7 @@ public:
 	~HierarchicalTree();
 
 	void GenerateCluster(float dis_per_pixel = 0.01, int min_pixel_radius = 1);
+	void SetVariableWeights(std::vector< float >& weights);
 
 private:
 	int max_level_;
@@ -19,7 +20,7 @@ private:
 	float fitness_threshold_;
 	std::vector< int > node_cluster_index_;
 
-	void GenerateFitValues(int origin_count, int current_count, std::vector< int >& origin_index, std::vector< int >& current_index)
+	std::vector< float > var_weights_;
 };
 
 #endif

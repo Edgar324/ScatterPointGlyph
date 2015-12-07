@@ -37,12 +37,12 @@ GestaltProcessor2::~GestaltProcessor2() {
 }
 
 void GestaltProcessor2::SetData(std::vector< CLeaf* >& nodes, std::vector< CNode* >& clusters, 
-	std::vector< int >& node_index, std::vector< std::vector< bool > >& connecting_status,
+	std::vector< int >& node_index, std::vector< std::vector< bool > >& node_connecting_status,
 	std::vector< float >& var_weights) {
 	gestalt_candidates_->site_nodes = nodes;
 	gestalt_candidates_->clusters = clusters;
 	gestalt_candidates_->basic_node_index = node_index;
-	gestalt_candidates_->site_connecting_status = connecting_status;
+	gestalt_candidates_->site_connecting_status = node_connecting_status;
 	gestalt_candidates_->var_weights = var_weights;
 	gestalt_candidates_->InitSiteData();
 }
@@ -75,7 +75,7 @@ void GestaltProcessor2::GetCluster(float fitness, std::vector< int >& cluster_in
 		if (is_property_on_[i]) {
 			PropertyExtractor* extractor = property_extractors_[i];
 			for (int j = 0; j < extractor->fitness.size(); ++j)
-				if (extractor->fitness[j] > fitness && extractor->fitness[j] > best_fitness && extractor->proposal_gestalt[j].size() >= 2) {
+				if (extractor->fitness[j] > fitness && extractor->fitness[j] > best_fitness && extractor->proposal_clusters[j].size() >= 2) {
 					best_fitness = extractor->fitness[j];
 					property_index = i;
 					gestalt_index = j;
@@ -85,6 +85,8 @@ void GestaltProcessor2::GetCluster(float fitness, std::vector< int >& cluster_in
 	cluster_index.clear();
 	if (property_index != -1 && gestalt_index != -1) {
 		PropertyExtractor* extractor = property_extractors_[property_index];
+		for (int i = 0; i < extractor->proposal_clusters[gestalt_index].size(); ++i)
+			cluster_index.push_back(extractor->proposal_clusters[gestalt_index][i]);
 	}
 }
 

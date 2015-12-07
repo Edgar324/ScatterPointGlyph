@@ -43,6 +43,7 @@ void TreeCommon::ConstructDirectly() {
 	for (int i = 0; i < dataset_->point_pos.size(); ++i) {
 		CLeaf* temp_leaf = new CLeaf();
 		temp_leaf->center_pos = dataset_->point_pos[i];
+		temp_leaf->average_values = dataset_->point_values[i];
 		temp_leaf->linked_points.push_back(i);
 		leaf_nodes_[i] = temp_leaf;
 		leaf_nodes_[i]->seq_index = i;
@@ -71,7 +72,7 @@ void TreeCommon::ConstructDirectly() {
 	}
 }
 
-void TreeCommon::GenerateCluster(float dis_per_pixel = 0.01, int min_pixel_radius = 1) {
+void TreeCommon::GenerateCluster(float dis_per_pixel, int min_pixel_radius) {
 
 }
 
@@ -118,6 +119,8 @@ void TreeCommon::VtkTriangulation() {
 			+ pow(leaf_nodes_[id3]->center_pos[1] - leaf_nodes_[id2]->center_pos[1], 2));
 	}
 	average_edge_length_ /= (3 * triangle_out->GetNumberOfPolys());
+	// For temperary usage
+	average_edge_length_ = 0.05;
 
 	for (int i = 0; i < node_connecting_status_.size(); ++i){
 		bool is_connecting = false;

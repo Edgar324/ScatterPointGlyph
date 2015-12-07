@@ -31,7 +31,7 @@ HierSolver::~HierSolver() {
 void HierSolver::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
 
-	final_label_.resize(dataset_->point_pos.size());
+	/*final_label_.resize(dataset_->point_pos.size());
 	cluster_center_.resize(dataset_->point_pos.size());
 	for (size_t i = 0; i < final_label_.size(); ++i) {
 		final_label_[i] = i;
@@ -45,7 +45,7 @@ void HierSolver::SetData(ScatterPointDataset* data) {
 	cluster_node_count_.assign(cluster_node_count_.size(), 1);
 	is_label_used_.resize(final_label_.size());
 	is_label_used_.assign(is_label_used_.size(), true);
-	current_cluster_num_ = final_label_.size();
+	current_cluster_num_ = final_label_.size();*/
 
 	Triangulation();
 }

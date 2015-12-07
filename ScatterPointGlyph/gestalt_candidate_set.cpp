@@ -16,6 +16,8 @@ void GestaltCandidateSet::ExtractGestaltCandidates(float dis_thresh) {
 
 	gestalt_candidates.resize(cluster_num);
 	gestalt_cluster_index.resize(cluster_num);
+	gestalt_center_pos.resize(cluster_num);
+	gestalt_average_values.resize(cluster_num);
 
 	std::vector< bool > is_reached;
 	is_reached.resize(cluster_num);
@@ -54,6 +56,24 @@ void GestaltCandidateSet::ExtractGestaltCandidates(float dis_thresh) {
 				for (int k = 0; k < site_nodes.size(); ++k)
 					if (basic_node_index[k] == j) gestalt_candidates[i].push_back(k);
 			}
+
+		std::vector< float > average_value;
+		std::vector< float > average_pos;
+		average_pos.resize(2, 0);
+		average_value.resize(var_weights.size(), 0);
+		for (int j = 0; j < gestalt_candidates[i].size(); ++j) {
+			for (int k = 0; k < var_weights.size(); ++k)
+				average_value[k] += site_nodes[gestalt_candidates[i][j]]->average_values[k];
+			average_pos[0] += site_nodes[gestalt_candidates[i][j]]->center_pos[0];
+			average_pos[1] += site_nodes[gestalt_candidates[i][j]]->center_pos[1];
+		}
+		for (int k = 0; k < var_weights.size(); ++k)
+			average_value[k] /= gestalt_candidates[i].size();
+		average_pos[0] /= gestalt_candidates[i].size();
+		average_pos[1] /= gestalt_candidates[i].size();
+
+		gestalt_center_pos[i] = average_pos;
+		gestalt_average_values[i] = average_value;
 	}
 }
 

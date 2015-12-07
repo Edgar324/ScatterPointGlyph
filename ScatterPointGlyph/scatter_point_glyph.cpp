@@ -39,9 +39,10 @@
 #include "scatter_point_view.h"
 #include "wrf_data_manager.h"
 #include "map_rendering_layer.h"
+#include "hierarchical_tree.h"
 
 //#define SAVE_TXT_FILE
-#define WEATHREVIS
+//#define WEATHREVIS
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
@@ -282,8 +283,6 @@ void ScatterPointGlyph::PerceptionPreProcess() {
 		connect(gestalt_processor_, SIGNAL(ClusterUpdated(int)), this, SLOT(OnClusterAggregated(int)));
 		connect(gestalt_processor_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
 	}
-
-	gestalt_processor_->SetData(dataset_);
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
@@ -317,12 +316,17 @@ void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
 	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
 
 	float width_per_scale = abs(point_one[0] - point_two[0]);
-	std::vector< float > threshold;
+	/*std::vector< float > threshold;
 	threshold.push_back(0.4);
 	threshold.push_back(30 / width_per_scale);
 	gestalt_processor_->SetDisThreshold(20 / width_per_scale);
 	cluster_glyph_layer_->SetRadiusRange(20 / width_per_scale, 20 / width_per_scale * 0.1);
-	gestalt_processor_->start();
+	gestalt_processor_->start();*/
+	HierarchicalTree* tree = new HierarchicalTree(dataset_);
+	std::vector< float > weights;
+	weights.push_back(1.0);
+	tree->SetVariableWeights(weights);
+	tree->GenerateCluster(1.0 / width_per_scale, 2);
 
 	main_view_->update();
 } 
@@ -349,7 +353,7 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor());
 	}
 	original_point_rendering_layer_->SetData(original_vertex_data);
-	original_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	//original_point_rendering_layer_->SetPointValue(dataset_->point_values);
 
 	vtkSmartPointer< vtkPolyData > sample_data = vtkSmartPointer< vtkPolyData >::New();
 	vtkSmartPointer< vtkPoints > sample_points = vtkSmartPointer< vtkPoints >::New();
@@ -357,7 +361,7 @@ void ScatterPointGlyph::AddPointData2View() {
 	for (int i = 0; i < dataset_->original_point_pos.size(); ++i){
 		double new_pos[3];
 		new_pos[0] = dataset_->original_point_pos[i][0];
-		new_pos[1] = dataset_->original_point_pos[i][1] + 40;
+		new_pos[1] = dataset_->original_point_pos[i][1] + 1;
 		new_pos[2] = 0;
 		sample_points->InsertNextPoint(new_pos);
 	}
@@ -373,7 +377,7 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Sample Point Layer"), sample_point_rendering_layer_->actor());
 	}
 	sample_point_rendering_layer_->SetData(sample_vert_data);
-	sample_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	//sample_point_rendering_layer_->SetPointValue(dataset_->point_values);
 
 	main_renderer_->ResetCamera();
 

@@ -27,7 +27,7 @@ public:
 	};
 
 	void SetData(std::vector< CLeaf* >& nodes, std::vector< CNode* >& clusters,
-		std::vector< int >& node_index, std::vector< std::vector< bool > >& connecting_status,
+		std::vector< int >& node_index, std::vector< std::vector< bool > >& node_connecting_status,
 		std::vector< float >& var_weights);
 
 	void SetPropertyOn(GestaltProperty property);
