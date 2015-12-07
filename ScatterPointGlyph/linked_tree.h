@@ -2,52 +2,12 @@
 #define LINKED_TREE_H_
 
 #include <vector>
+#include "tree_common.h"
 
 class ScatterPointDataset;
 class GestaltProcessor2;
 class GestaltCandidateSet;
 
-class Node 
-{
-public:
-	Node();
-	virtual ~Node();
-
-	enum NodeType {
-		LEAF = 0x0,
-		BRANCH,
-		UNKNOWN
-	};
-
-	virtual NodeType type() { return type_; }
-	int level() { return level_; }
-	void set_level(int l) { level_ = l; }
-
-	int seq_index;
-
-protected:
-	NodeType type_;
-	int level_;
-};
-
-class Leaf : public Node
-{
-public:
-	Leaf();
-	~Leaf();
-
-	std::vector< int > linked_points;
-	std::vector< float > center_pos;
-};
-
-class Branch : public Node
-{
-public:
-	Branch();
-	~Branch();
-
-	std::vector< Node* > linked_nodes;
-};
 
 class LinkedTree
 {
@@ -60,7 +20,7 @@ public:
 	void ConstructDirectly(int level_num);
 	void UpdateConnectingStatus();
 
-	std::vector< std::vector< Node*> > tree_nodes;
+	std::vector< std::vector< CNode*> > tree_nodes;
 	std::vector< std::vector< bool > > site_connecting_status;
 
 private:

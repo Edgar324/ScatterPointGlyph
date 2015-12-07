@@ -420,7 +420,7 @@ void ScatterPointGlyph::OnClusterAggregated(int cluster_index) {
 void ScatterPointGlyph::OnClusterFinished() {
 	int cluster_count = 0;
 	std::vector< int > cluster_index;
-	current_solver_->GetClusterIndex(cluster_count, cluster_index);
+	current_solver_->GetCluster(cluster_count, cluster_index);
 
 	original_point_rendering_layer_->SetClusterIndex(cluster_count, cluster_index);
 	// add glyph to the glyph layer

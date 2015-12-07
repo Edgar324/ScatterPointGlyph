@@ -9,7 +9,7 @@ ClusterSolver::~ClusterSolver() {
 
 }
 
-void ClusterSolver::GetClusterIndex(int& cluster_count, std::vector< int >& cluster_index) {
+void ClusterSolver::GetCluster(int& cluster_count, std::vector< int >& cluster_index) {
 	cluster_count = final_label_count_;
 	cluster_index = final_label_;
 }

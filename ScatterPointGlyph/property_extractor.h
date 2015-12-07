@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "gestalt_candidate_set.h"
-#include "scatter_point_dataset.h"
 
 class PropertyExtractor
 {
@@ -12,19 +11,20 @@ public:
 	PropertyExtractor();
 	~PropertyExtractor();
 
-	void SetData(ScatterPointDataset* data, GestaltCandidateSet* candidates);
+	void SetData(GestaltCandidateSet* candidates);
 	virtual void ExtractCosts(float thres);
+	void ExtractFitness();
 
 	std::vector< float > label_cost;
 	std::vector< std::vector< float > > smooth_cost;
 	std::vector< std::vector< float > > data_cost;
 
 	std::vector< std::vector< int > > proposal_gestalt;
-
+	std::vector< std::vector< int > > proposal_clusters;
+	std::vector< float > fitness;
 	std::vector< int > result_label;
 
 protected:
-	ScatterPointDataset* dataset;
 	GestaltCandidateSet* gestalt_candidates;
 
 	virtual void ExtractProposalGestalt(float thres);

@@ -9,8 +9,7 @@ PropertyExtractor::~PropertyExtractor() {
 
 }
 
-void PropertyExtractor::SetData(ScatterPointDataset* data, GestaltCandidateSet* candidates) {
-	dataset = data;
+void PropertyExtractor::SetData(GestaltCandidateSet* candidates) {
 	gestalt_candidates = candidates;
 }
 
@@ -20,6 +19,22 @@ void PropertyExtractor::ExtractCosts(float thres) {
 
 void PropertyExtractor::ExtractProposalGestalt(float thres) {
 
+}
+
+void PropertyExtractor::ExtractFitness() {
+	fitness.resize(this->proposal_gestalt.size());
+
+	std::vector< float > belongs;
+	belongs.resize(this->proposal_gestalt.size());
+
+	for (int i = 0; i < this->proposal_gestalt.size(); ++i) {
+		for (int j = 0; j < this->proposal_gestalt[i].size(); ++j) {
+			int site_index = this->proposal_gestalt[i][j];
+			if (belongs[site_index] == i) belongs[i] += 1.0;
+		}
+	}
+	for (int i = 0; i < this->proposal_gestalt.size(); ++i)
+		belongs[i] /= this->proposal_gestalt[i].size();
 }
 
 void PropertyExtractor::NormalizeVec(std::vector< float >& vec) {

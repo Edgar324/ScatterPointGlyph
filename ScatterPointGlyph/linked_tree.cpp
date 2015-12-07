@@ -18,27 +18,27 @@
 #include <vtkVertexGlyphFilter.h>
 #include "scatter_point_dataset.h"
 
-Node::Node() : type_(UNKNOWN), level_(-1), seq_index(-1) {
+CNode::CNode() : type_(UNKNOWN), level_(-1), seq_index(-1) {
 
 }
 
-Node::~Node() {
+CNode::~CNode() {
 
 }
 
-Leaf::Leaf() : Node() {
-	type_ = Node::LEAF;
+CLeaf::CLeaf() : CNode() {
+	type_ = CNode::LEAF;
 }
 
-Leaf::~Leaf() {
+CLeaf::~CLeaf() {
 
 }
 
-Branch::Branch() : Node() {
-	type_ = Node::BRANCH;
+CBranch::CBranch() : CNode() {
+	type_ = CNode::BRANCH;
 }
 
-Branch::~Branch() {
+CBranch::~CBranch() {
 
 }
 
@@ -191,13 +191,13 @@ void LinkedTree::ConstructOnKmeans(int level_num, int basic_cnum) {
 	tree_nodes.resize(level_num);
 	tree_nodes[0].resize(basic_cnum);
 	for (int i = 0; i < basic_cnum; ++i) {
-		Leaf* temp_leaf = new Leaf();
+		CLeaf* temp_leaf = new CLeaf();
 		temp_leaf->center_pos = cluster_center[i];
 		tree_nodes[0][i] = temp_leaf;
 		tree_nodes[0][i]->seq_index = i;
 	}
 	for (int i = 0; i < cluster_index.size(); ++i) {
-		Leaf* leaf_node = dynamic_cast< Leaf* >(tree_nodes[0][cluster_index[i]]);
+		CLeaf* leaf_node = dynamic_cast< CLeaf* >(tree_nodes[0][cluster_index[i]]);
 		leaf_node->linked_points.push_back(i);
 	}
 	VtkTriangulation();
@@ -209,7 +209,7 @@ void LinkedTree::ConstructDirectly(int level_num) {
 	tree_nodes.resize(level_num);
 	tree_nodes[0].resize(dataset_->point_pos.size());
 	for (int i = 0; i < dataset_->point_pos.size(); ++i) {
-		Leaf* temp_leaf = new Leaf();
+		CLeaf* temp_leaf = new CLeaf();
 		temp_leaf->center_pos = dataset_->point_pos[i];
 		temp_leaf->linked_points.push_back(i);
 		tree_nodes[0][i] = temp_leaf;
@@ -241,7 +241,7 @@ void LinkedTree::ConstructDirectly(int level_num) {
 void LinkedTree::VtkTriangulation() {
 	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < tree_nodes[0].size(); ++i) {
-		Leaf* leaf_node = dynamic_cast<Leaf*>(tree_nodes[0][i]);
+		CLeaf* leaf_node = dynamic_cast<CLeaf*>(tree_nodes[0][i]);
 		points->InsertNextPoint(leaf_node->center_pos[0], leaf_node->center_pos[1], 0);
 	}
 	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
@@ -292,8 +292,8 @@ void LinkedTree::UpdateConnectingStatus() {
 	}
 	for (int i = 0; i < tree_nodes[top_level].size() - 1; ++i)
 		for (int j = i + 1; j < tree_nodes[top_level].size(); ++j) {
-			Branch* node_one = dynamic_cast< Branch* >(tree_nodes[top_level][i]);
-			Branch* node_two = dynamic_cast< Branch* >(tree_nodes[top_level][j]);
+			CBranch* node_one = dynamic_cast< CBranch* >(tree_nodes[top_level][i]);
+			CBranch* node_two = dynamic_cast< CBranch* >(tree_nodes[top_level][j]);
 			for (int si = 0; si < node_one->linked_nodes.size(); ++si)
 				for (int sj = 0; sj < node_two->linked_nodes.size(); ++sj) {
 					temp_status[i][j] = temp_status[i][j] || site_connecting_status[node_one->linked_nodes[si]->seq_index][node_two->linked_nodes[sj]->seq_index];

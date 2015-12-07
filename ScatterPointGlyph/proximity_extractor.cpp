@@ -15,9 +15,8 @@ void ProximityExtractor::ExtractCosts(float thres) {
 	ExtractProposalGestalt(thres);
 
 	// extract cost
-	int label_num = this->proposal_gestalt.size() + 1;
-	int gestalt_num = this->proposal_gestalt.size();
-	int site_num = gestalt_candidates->site_num;
+	int label_num = this->proposal_gestalt.size();
+	int site_num = gestalt_candidates->site_nodes.size();
 
 	label_cost.resize(label_num);
 	label_cost.assign(label_num, -1);
@@ -35,7 +34,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 	}
 
 	// update label cost
-	for (int i = 0; i < gestalt_num; ++i) {
+	for (int i = 0; i < label_num; ++i) {
 		float average_edge_length = 0;
 		int edge_count = 0;
 		for (int j = 0; j < proposal_gestalt[i].size() - 1; ++j)
@@ -43,8 +42,8 @@ void ProximityExtractor::ExtractCosts(float thres) {
 				int site_index = proposal_gestalt[i][j];
 				int next_node_index = proposal_gestalt[i][k];
 				if (gestalt_candidates->site_connecting_status[site_index][next_node_index]) {
-					average_edge_length += sqrt(pow(dataset->point_pos[site_index][0] - dataset->point_pos[next_node_index][0], 2)
-						+ pow(dataset->point_pos[site_index][1] - dataset->point_pos[next_node_index][1], 2));
+					average_edge_length += sqrt(pow(gestalt_candidates->site_nodes[site_index]->center_pos[0] - gestalt_candidates->site_nodes[next_node_index]->center_pos[0], 2)
+						+ pow(gestalt_candidates->site_nodes[site_index]->center_pos[1] - gestalt_candidates->site_nodes[next_node_index]->center_pos[1], 2));
 					edge_count++;
 				}
 			}
@@ -56,8 +55,8 @@ void ProximityExtractor::ExtractCosts(float thres) {
 
 	// update data cost
 	std::vector< std::vector< float > > label_center;
-	label_center.resize(label_num - 1);
-	for (int i = 0; i < label_num - 1; ++i) {
+	label_center.resize(label_num);
+	for (int i = 0; i < label_num; ++i) {
 		label_center[i].resize(2);
 		label_center[i][0] = 0;
 		label_center[i][1] = 0;
@@ -65,25 +64,23 @@ void ProximityExtractor::ExtractCosts(float thres) {
 
 		for (int j = 0; j < proposal_gestalt[i].size(); ++j) {
 			int site_index = proposal_gestalt[i][j];
-			label_center[i][0] += dataset->point_pos[site_index][0] * gestalt_candidates->site_point_num[site_index];
-			label_center[i][1] += dataset->point_pos[site_index][1] * gestalt_candidates->site_point_num[site_index];
-			point_count_sum += gestalt_candidates->site_point_num[site_index];
+			label_center[i][0] += gestalt_candidates->site_nodes[site_index]->center_pos[0];
+			label_center[i][1] += gestalt_candidates->site_nodes[site_index]->center_pos[1];
+			point_count_sum += 1;
 		}
 
 		label_center[i][0] /= point_count_sum;
 		label_center[i][1] /= point_count_sum;
 	}
 
-	for (int i = 0; i < gestalt_num; ++i) {
+	for (int i = 0; i < label_num; ++i) {
 		for (int j = 0; j < proposal_gestalt[i].size(); ++j) {
 			int site_index = proposal_gestalt[i][j];
-			float dis = sqrt(pow(gestalt_candidates->site_center_pos[site_index][0] - label_center[i][0], 2)
-				+ pow(gestalt_candidates->site_center_pos[site_index][1] - label_center[i][1], 2));
+			float dis = sqrt(pow(gestalt_candidates->site_nodes[site_index]->center_pos[0] - label_center[i][0], 2)
+				+ pow(gestalt_candidates->site_nodes[site_index]->center_pos[1] - label_center[i][1], 2));
 			data_cost[site_index][i] = dis + 1e-3;
 		}
 	}
-	for (int i = 0; i < site_num; ++i)
-		if (gestalt_candidates->is_site_labeled[i]) data_cost[i][label_num - 1] = 0;
 	NormalizeVec(data_cost);
 
 	// update smooth cost
@@ -100,38 +97,41 @@ void ProximityExtractor::ExtractCosts(float thres) {
 void ProximityExtractor::ExtractProposalGestalt(float thres) {
 	std::vector< bool > is_selected;
 
-	int gestalt_num = gestalt_candidates->gestalt_candidates.size();
+	int gestalt_num = gestalt_candidates->gestalt_cluster_index.size();
 	this->proposal_gestalt.clear();
 
 	for (int i = 0; i < gestalt_num; ++i) {
-		if (gestalt_candidates->is_site_labeled[i]) continue;
-
-		is_selected.resize(gestalt_candidates->gestalt_candidates[i].size());
+		is_selected.resize(gestalt_candidates->gestalt_cluster_index[i].size());
 		is_selected.assign(is_selected.size(), false);
 		
 		std::queue< int > extending_queue;
 		extending_queue.push(0);
 		while (!extending_queue.empty()) {
-			int site_index = gestalt_candidates->gestalt_candidates[i][extending_queue.front()];
+			int site_index = gestalt_candidates->gestalt_cluster_index[i][extending_queue.front()];
 			is_selected[extending_queue.front()] = true;
 			extending_queue.pop();
 
-			for (int j = 0; j < gestalt_candidates->gestalt_candidates[i].size(); ++j) 
+			for (int j = 0; j < gestalt_candidates->gestalt_cluster_index[i].size(); ++j)
 				if (!is_selected[j]) {
-					int next_site_index = gestalt_candidates->gestalt_candidates[i][j];
-					if (gestalt_candidates->is_site_labeled[next_site_index]) continue;
+					int next_site_index = gestalt_candidates->gestalt_cluster_index[i][j];
 
-					if (gestalt_candidates->site_connecting_status[site_index][next_site_index]) {
-						float dis = sqrt(pow(gestalt_candidates->site_center_pos[site_index][0] - gestalt_candidates->site_center_pos[next_site_index][0], 2)
-							+ pow(gestalt_candidates->site_center_pos[site_index][1] - gestalt_candidates->site_center_pos[next_site_index][1], 2));
+					if (gestalt_candidates->cluster_connecting_status[site_index][next_site_index]) {
+						float dis = sqrt(pow(gestalt_candidates->clusters[site_index]->center_pos[0] - gestalt_candidates->clusters[next_site_index]->center_pos[0], 2)
+							+ pow(gestalt_candidates->clusters[site_index]->center_pos[1] - gestalt_candidates->clusters[next_site_index]->center_pos[1], 2));
 						if (dis < thres) extending_queue.push(j);
 					}
 				}
 		}
 
 		std::vector< int > proposal;
+		std::vector< int > cluster_proposal;
 		for (int j = 0; j < is_selected.size(); ++j)
-			if (is_selected[j]) proposal.push_back(gestalt_candidates->gestalt_candidates[i][j]);
+			if (is_selected[j]) {
+				cluster_proposal.push_back(j);
+				for (int k = 0; k < gestalt_candidates->site_nodes.size(); ++k)
+					if (gestalt_candidates->basic_node_index[k] == j) proposal.push_back(k);
+			}
+		this->proposal_clusters.push_back(cluster_proposal);
 		this->proposal_gestalt.push_back(proposal);
 	}
 }
