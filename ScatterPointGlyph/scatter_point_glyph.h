@@ -68,6 +68,7 @@ private:
 	SystemMode sys_mode_;
 	std::vector< TreeCommon* > cluster_tree_vec_;
 	float dis_per_pixel_;
+	int min_pixel_radius_;
 
 	WrfDataManager* data_manager_;
 	ScatterPointDataset* dataset_;

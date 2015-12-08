@@ -62,6 +62,7 @@ public:
 	void ConstructDirectly();
 
 	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
+	virtual void GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index);
 
 protected:
 	ScatterPointDataset* dataset_;

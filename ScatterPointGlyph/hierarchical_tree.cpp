@@ -7,10 +7,11 @@ HierarchicalTree::HierarchicalTree(ScatterPointDataset* data)
 	: TreeCommon(data),
 	similarity_threshold_(0.3),
 	proximity_threshold_(0.1),
-	fitness_threshold_(0.75),
-	min_pixel_radius_(5),
-	max_level_(4){
+	fitness_threshold_(0.5),
+	min_pixel_radius_(30),
+	max_level_(-1){
 
+	this->ConstructDirectly();
 }
 
 HierarchicalTree::~HierarchicalTree() {
@@ -52,14 +53,37 @@ void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::v
 		this->Traverse(level_node[i], cluster_index[i]);
 }
 
+void HierarchicalTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
+	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->average_edge_length_) / log(2.0) + 1);
+	if (level < 0) level = 0;
+	if (level > max_level_) level = max_level_;
+
+	cluster_index.resize(dataset_->point_pos.size());
+
+	std::vector< CNode* > level_node;
+	this->Traverse(level, level_node);
+
+	cluster_num = level_node.size();
+
+	for (int i = 0; i < level_node.size(); ++i) {
+		std::vector< int > point_vec;
+		this->Traverse(level_node[i], point_vec);
+		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
+	}
+}
+
 void HierarchicalTree::run() {
-	this->GenerateCluster(min_pixel_radius_);
+	if (root_->linked_nodes.size() == 0) this->GenerateCluster(min_pixel_radius_);
 }
 
 void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	if (leaf_nodes_.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
+	}
+
+	if (max_level_ == -1) {
+		max_level_ = (int)(log(0.4 / average_edge_length_) / log(2.0)) + 1;
 	}
 
 	node_cluster_index_.resize(leaf_nodes_.size());

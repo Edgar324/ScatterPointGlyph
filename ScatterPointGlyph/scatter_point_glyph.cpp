@@ -47,7 +47,7 @@
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), 
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
-	map_rendering_layer_(NULL) {
+	map_rendering_layer_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
 
 	ui_.setupUi(this);
 
@@ -264,17 +264,21 @@ void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
 	
 	if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
 		cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
+
+		connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
 	}
+
+	this->UpdateClusterView();
 } 
 
 void ScatterPointGlyph::AddPointData2View() {
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
 	original_point_poly->SetPoints(original_points);
-	for (int i = 0; i < dataset_->original_point_pos.size(); ++i){
+	for (int i = 0; i < dataset_->point_pos.size(); ++i){
 		double new_pos[3];
-		new_pos[0] = dataset_->original_point_pos[i][0];
-		new_pos[1] = dataset_->original_point_pos[i][1];
+		new_pos[0] = dataset_->point_pos[i][0];
+		new_pos[1] = dataset_->point_pos[i][1];
 		new_pos[2] = 0;
 		original_points->InsertNextPoint(new_pos);
 	}
@@ -294,10 +298,10 @@ void ScatterPointGlyph::AddPointData2View() {
 	vtkSmartPointer< vtkPolyData > sample_data = vtkSmartPointer< vtkPolyData >::New();
 	vtkSmartPointer< vtkPoints > sample_points = vtkSmartPointer< vtkPoints >::New();
 	sample_data->SetPoints(sample_points);
-	for (int i = 0; i < dataset_->original_point_pos.size(); ++i){
+	for (int i = 0; i < dataset_->point_pos.size(); ++i){
 		double new_pos[3];
-		new_pos[0] = dataset_->original_point_pos[i][0];
-		new_pos[1] = dataset_->original_point_pos[i][1] + 1;
+		new_pos[0] = dataset_->point_pos[i][0];
+		new_pos[1] = dataset_->point_pos[i][1] + 1;
 		new_pos[2] = 0;
 		sample_points->InsertNextPoint(new_pos);
 	}
@@ -333,7 +337,20 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
-	this->UpdateClusterView();
+	int cluter_num;
+	std::vector< int > cluster_index;
+
+	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_, cluter_num, cluster_index);
+		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 15, dis_per_pixel_ * 15);
+		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
+
+		sample_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+		original_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+	}
+
+	main_view_->update();
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {

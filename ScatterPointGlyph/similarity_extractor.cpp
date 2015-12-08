@@ -59,9 +59,9 @@ void SimilarityExtractor::ExtractCosts(float thres) {
 		value_var = sqrt(value_var / point_count_sum);
 		label_cost[i] = value_var + 1e-3;
 	}
-	NormalizeVec(label_cost);
+	//NormalizeVec(label_cost);
 
-	NormalizeVec(data_cost);
+	//NormalizeVec(data_cost);
 
 	// update smooth cost
 	for (int i = 0; i < label_num; ++i){

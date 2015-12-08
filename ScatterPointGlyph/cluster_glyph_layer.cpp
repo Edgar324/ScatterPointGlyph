@@ -1,4 +1,6 @@
 #include "cluster_glyph_layer.h"
+#include <algorithm>
+#include <vector> 
 #include <vtkProperty.h>
 #include <vtkCellArray.h>
 #include <vtkPointData.h>
@@ -43,21 +45,6 @@ void ClusterGlyphLayer::InitGlyphActor() {
 	colors->SetName("Colors");
 	poly_data_->GetPointData()->SetScalars(colors);
 
-	/*vtkCellArray* line_array = vtkCellArray::New();
-	poly_data_->SetLines(line_array);
-	for (int i = 0; i < line_paras_.size() / 3; ++i) {
-	float a = line_paras_[3 * i];
-	float b = line_paras_[3 * i + 1];
-	float c = line_paras_[3 * i + 2];
-	/// ax + by + c = 0
-	vtkIdType ids[2];
-	ids[0] = poly_data_->GetPoints()->InsertNextPoint(-1 * c / a, 0, 0.005);
-	colors->InsertNextTuple3(0, 0, 255);
-	ids[1] = poly_data_->GetPoints()->InsertNextPoint(0, -1 * c / b, 0.005);
-	colors->InsertNextTuple3(0, 0, 255);
-	poly_data_->InsertNextCell(VTK_LINE, 2, ids);
-	}*/
-
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
 }
@@ -90,6 +77,14 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 			return;
 		}
 
+	std::vector< int > new_count;
+	new_count = cluster_point_count;
+	std::sort(new_count.data(), new_count.data() + new_count.size());
+	int thresh = -1;
+	for (int i = 0; i < cluster_point_count.size(); ++i)
+		if (cluster_point_count[i] > thresh) thresh = cluster_point_count[i];
+	thresh = (int)(thresh * 0.1);
+
 	std::vector< float > cluster_radius;
 	cluster_radius.resize(cluster_count, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
@@ -111,16 +106,26 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 
 	for (int i = 0; i < cluster_count; ++i) {
 		//float r = radius_range_[0] + log((cluster_point_count[i] - min_point_count) / (max_point_count - min_point_count) + 1) / log(2.0) * (radius_range_[1] - radius_range_[0]) * 0.6;
-		float r = cluster_radius[i] + radius_range_[0];
+		float r = radius_range_[0];
+		if (cluster_point_count[i] <= thresh) r = 0.5 * radius_range_[0];
 		int center_id = poly_data_->GetPoints()->InsertNextPoint(x[i], y[i], 0.01);
-		colors->InsertNextTuple3(255, 0, 0);
+		if (cluster_point_count[i] <= thresh)
+			colors->InsertNextTuple3(0, 255, 0);
+		else
+			colors->InsertNextTuple3(255, 0, 0);
 		int pre_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r, y[i], 0.01);
-		colors->InsertNextTuple3(255, 0, 0);
+		if (cluster_point_count[i] <= 1)
+			colors->InsertNextTuple3(0, 255, 0);
+		else
+			colors->InsertNextTuple3(255, 0, 0);
 		vtkIdType cell_ids[3];
 		for (int j = 1; j <= 20; ++j) {
 			float end_arc = 2 * 3.14159 * j / 20;
 			int current_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r * cos(end_arc), y[i] + r * sin(end_arc), 0.01);
-			colors->InsertNextTuple3(255, 0, 0);
+			if (cluster_point_count[i] <= thresh)
+				colors->InsertNextTuple3(0, 255, 0);
+			else
+				colors->InsertNextTuple3(255, 0, 0);
 			cell_ids[0] = center_id;
 			cell_ids[1] = pre_id;
 			cell_ids[2] = current_id;
