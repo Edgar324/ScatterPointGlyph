@@ -27,7 +27,14 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="action_open"/>
+    <widget class="QMenu" name="menuOpen">
+     <property name="title">
+      <string>Open</string>
+     </property>
+     <addaction name="actionRaw_Grid_Data"/>
+     <addaction name="actionVTK_Unstructured_Grid_Data"/>
+    </widget>
+    <addaction name="menuOpen"/>
     <addaction name="action_close"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -69,11 +76,6 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
-  <action name="action_open">
-   <property name="text">
-    <string>Open</string>
-   </property>
-  </action>
   <action name="action_close">
    <property name="text">
     <string>Close</string>
@@ -100,6 +102,16 @@
    </property>
    <property name="text">
     <string>Layer Panel</string>
+   </property>
+  </action>
+  <action name="actionRaw_Grid_Data">
+   <property name="text">
+    <string>Raw Grid Data</string>
+   </property>
+  </action>
+  <action name="actionVTK_Unstructured_Grid_Data">
+   <property name="text">
+    <string>VTK Unstructured Grid Data</string>
    </property>
   </action>
  </widget>

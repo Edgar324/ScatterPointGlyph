@@ -30,6 +30,7 @@ class ScatterPointDataset;
 class ClusterSolver;
 class ScatterPointView;
 class WrfDataManager;
+class TreeCommon;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -65,28 +66,21 @@ private:
 	MapRenderingLayer* map_rendering_layer_;
 
 	SystemMode sys_mode_;
-	ClusterSolver* current_solver_;
-
-	HierSolver* hier_solver_;
-	int expected_cluster_num_;
-
-	GestaltProcessor2* gestalt_processor_;
-
-	vtkUnstructuredGrid* scatter_point_data_;
-	ScatterPointDataset* dataset_;
+	std::vector< TreeCommon* > cluster_tree_vec_;
+	float dis_per_pixel_;
 
 	WrfDataManager* data_manager_;
-
+	ScatterPointDataset* dataset_;
 
 	void InitWidget();
 	void AddPointData2View();
 
-	void PreProcess();
-	void HierarchicalPreProcess();
-	void PerceptionPreProcess();
+	void UpdateClusterView();
+	float GetMainViewDisPerPixel();
 
 private slots:
-	void OnActionOpenTriggered();
+	void OnActionOpenVtkFileTriggered();
+	void OnActionOpenRawGridFileTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
 
@@ -94,12 +88,9 @@ private slots:
 
 	void OnMainViewUpdated();
 
-	void OnHierClusterNumberChanged(int);
 	void OnActionHierarchicalClusteringTriggered();
-
 	void OnActionPerceptionDrivenTriggered();
 	
-	void OnClusterAggregated(int cluster_index);
 	void OnClusterFinished();
 
 	void NormalizePosition(std::vector< std::vector< float > >& vec);

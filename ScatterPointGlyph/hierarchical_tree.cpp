@@ -1,22 +1,62 @@
 #include "hierarchical_tree.h"
+#include <queue>
 #include "gestalt_processor2.h"
+#include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
 	: TreeCommon(data),
-	  fitness_threshold_(0.75),
-	  max_level_(4){
-	this->ConstructDirectly();
+	similarity_threshold_(0.3),
+	proximity_threshold_(0.1),
+	fitness_threshold_(0.75),
+	min_pixel_radius_(5),
+	max_level_(4){
+
 }
 
 HierarchicalTree::~HierarchicalTree() {
 
 }
 
-void HierarchicalTree::SetVariableWeights(std::vector< float >& weights) {
-	var_weights_ = weights;
+void HierarchicalTree::SetMaxLevel(int level) {
+	this->max_level_ = level;
 }
 
-void HierarchicalTree::GenerateCluster(float dis_per_pixel, int min_pixel_radius) {
+void HierarchicalTree::SetSimilarityThreshold(float thre) {
+	this->similarity_threshold_ = thre;
+}
+
+void HierarchicalTree::SetProximityThreshold(float thre) {
+	this->proximity_threshold_ = thre;
+}
+
+void HierarchicalTree::SetFitnessThreshold(float thre) {
+	this->fitness_threshold_ = thre;
+}
+
+void HierarchicalTree::SetRadiusParameters(float min_pixel_radius) {
+	this->min_pixel_radius_ = min_pixel_radius;
+}
+
+void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
+	cluster_index.clear();
+
+	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->average_edge_length_) / log(2.0) + 1);
+	if (level < 0) level = 0;
+	if (level > max_level_) level = max_level_;
+
+	std::vector< CNode* > level_node;
+	this->Traverse(level, level_node);
+
+	cluster_index.resize(level_node.size());
+	for (int i = 0; i < level_node.size(); ++i)
+		this->Traverse(level_node[i], cluster_index[i]);
+}
+
+void HierarchicalTree::run() {
+	this->GenerateCluster(min_pixel_radius_);
+}
+
+void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	if (leaf_nodes_.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
@@ -38,12 +78,12 @@ void HierarchicalTree::GenerateCluster(float dis_per_pixel, int min_pixel_radius
 	std::vector< std::vector< bool > > cluster_connecting_status = node_connecting_status_;
 
 	while (current_level < max_level_) {
-		float current_max_radius = average_edge_length_ * pow(2, current_level - 1);
+		float current_max_radius = this->average_edge_length_ * pow(2, current_level - 1);
 
 		processor->SetDisThreshold(current_max_radius);
-		//processor->SetThreshold(GestaltProcessor2::SIMILARITY, similarity_threshold_);
-		//processor->SetThreshold(GestaltProcessor2::PROXIMITY, proximity_threshold_);
-		processor->SetData(leaf_nodes_, cluster_nodes, node_cluster_index_, node_connecting_status_, var_weights_);
+		processor->SetThreshold(GestaltProcessor2::SIMILARITY, similarity_threshold_);
+		processor->SetThreshold(GestaltProcessor2::PROXIMITY, proximity_threshold_);
+		processor->SetData(leaf_nodes_, cluster_nodes, node_cluster_index_, node_connecting_status_, dataset_->weights);
 		processor->GenerateCluster();
 
 		std::vector< int > new_cluster_index;
@@ -60,6 +100,7 @@ void HierarchicalTree::GenerateCluster(float dis_per_pixel, int min_pixel_radius
 			current_cluster_count -= (new_cluster_index.size() - 1);
 
 			CBranch* branch_node = new CBranch;
+			branch_node->set_level(current_level);
 			for (int i = 0; i < new_cluster_index.size(); ++i)
 				branch_node->linked_nodes.push_back(cluster_nodes[new_cluster_index[i]]);
 			cluster_nodes[new_cluster_index[0]] = branch_node;
@@ -72,16 +113,16 @@ void HierarchicalTree::GenerateCluster(float dis_per_pixel, int min_pixel_radius
 			std::vector< float > average_pos;
 			int node_count = 0;
 			average_pos.resize(2, 0);
-			average_value.resize(var_weights_.size(), 0);
+			average_value.resize(dataset_->weights.size(), 0);
 			for (int j = 0; j < node_cluster_index_.size(); ++j) 
 				if (node_cluster_index_[j] == new_cluster_index[0]) {
-					for (int k = 0; k < var_weights_.size(); ++k)
+					for (int k = 0; k < dataset_->weights.size(); ++k)
 						average_value[k] += leaf_nodes_[j]->average_values[k];
 					average_pos[0] += leaf_nodes_[j]->center_pos[0];
 					average_pos[1] += leaf_nodes_[j]->center_pos[1];
 					node_count += 1;
 				}
-			for (int k = 0; k < var_weights_.size(); ++k)
+			for (int k = 0; k < dataset_->weights.size(); ++k)
 				average_value[k] /= node_count;
 			average_pos[0] /= node_count;
 			average_pos[1] /= node_count;
@@ -91,4 +132,7 @@ void HierarchicalTree::GenerateCluster(float dis_per_pixel, int min_pixel_radius
 			current_level++;
 		}
 	}
+
+	root_->linked_nodes = cluster_nodes;
+	root_->set_level(max_level_);
 }

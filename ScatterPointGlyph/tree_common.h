@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include <QThread>
 
 class ScatterPointDataset;
 
@@ -50,7 +51,7 @@ public:
 	std::vector< CNode* > linked_nodes;
 };
 
-class TreeCommon
+class TreeCommon : public QThread
 {
 public:
 	TreeCommon(ScatterPointDataset* data);
@@ -60,18 +61,23 @@ public:
 	void ConstructOnKmeans(int basic_cnum);
 	void ConstructDirectly();
 
-	virtual void GenerateCluster(float dis_per_pixel = 0.01, int min_pixel_radius = 1);
+	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
 
 protected:
 	ScatterPointDataset* dataset_;
 
-	CNode* root_;
+	CBranch* root_;
 	std::vector< CLeaf* > leaf_nodes_;
 	std::vector< std::vector< bool > > node_connecting_status_;
 
 	float average_edge_length_;
 
 	void VtkTriangulation();
+
+	virtual void run();
+	virtual void GenerateCluster(int min_pixel_radius = 1);
+	void Traverse(CNode* node, std::vector< int >& linked_points);
+	void Traverse(int level, std::vector< CNode* >& nodes);
 };
 
 #endif

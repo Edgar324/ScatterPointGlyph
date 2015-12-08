@@ -1,4 +1,5 @@
 #include "tree_common.h"
+#include <queue>
 #include <vtkDelaunay2D.h>
 #include <vtkCellArray.h>
 #include <vtkPoints.h>
@@ -21,12 +22,20 @@
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
-	  average_edge_length_(0),
-	  root_(NULL) {
+	average_edge_length_(0) {
 
+	root_ = new CBranch;
 }
 
 TreeCommon::~TreeCommon() {
+
+}
+
+void TreeCommon::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
+
+}
+
+void TreeCommon::run() {
 
 }
 
@@ -47,6 +56,7 @@ void TreeCommon::ConstructDirectly() {
 		temp_leaf->linked_points.push_back(i);
 		leaf_nodes_[i] = temp_leaf;
 		leaf_nodes_[i]->seq_index = i;
+		leaf_nodes_[i]->set_level(0);
 	}
 
 	if (dataset_->is_structured_data) {
@@ -72,8 +82,57 @@ void TreeCommon::ConstructDirectly() {
 	}
 }
 
-void TreeCommon::GenerateCluster(float dis_per_pixel, int min_pixel_radius) {
+void TreeCommon::GenerateCluster(int min_pixel_radius) {
 
+}
+
+void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
+	nodes.clear();
+
+	std::queue< CNode* > node_queue;
+	node_queue.push(root_);
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (temp_node->level() == level) {
+			nodes.push_back(temp_node);
+		}
+		else if (temp_node->level() > level) {
+			if (temp_node->type() == CNode::BRANCH) {
+				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+				if (branch != NULL) {
+					for (int i = 0; i < branch->linked_nodes.size(); ++i)
+						node_queue.push(branch->linked_nodes[i]);
+				}
+			}
+		}
+	}
+}
+
+void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
+	std::queue< CNode* > node_queue;
+	node_queue.push(node);
+
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (temp_node->type() == CNode::BRANCH) {
+			CBranch* branch = dynamic_cast< CBranch* >(temp_node);
+			if (branch != NULL) {
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					node_queue.push(branch->linked_nodes[i]);
+			}
+		}
+		else if (temp_node->type() == CNode::LEAF) {
+			CLeaf* leaf = dynamic_cast< CLeaf* >(temp_node);
+			if (leaf != NULL) {
+				for (int i = 0; i < leaf->linked_points.size(); ++i)
+					linked_points.push_back(leaf->linked_points[i]);
+			}
+		}
+	}
 }
 
 void TreeCommon::VtkTriangulation() {

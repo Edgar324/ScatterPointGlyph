@@ -45,15 +45,17 @@
 //#define WEATHREVIS
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), expected_cluster_num_(30),
+	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), 
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
-	map_rendering_layer_(NULL),	gestalt_processor_(NULL), hier_solver_(NULL), current_solver_(NULL) {
+	map_rendering_layer_(NULL) {
 
 	ui_.setupUi(this);
 
 	data_manager_ = WrfDataManager::GetInstance();
 
 	this->InitWidget();
+
+	cluster_tree_vec_.resize(2, NULL);
 }
 
 ScatterPointGlyph::~ScatterPointGlyph() {
@@ -86,23 +88,60 @@ void ScatterPointGlyph::InitWidget() {
 	this->addDockWidget(Qt::RightDockWidgetArea, hier_para_panel_);
 	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
 
-	connect(ui_.action_open, SIGNAL(triggered()), this, SLOT(OnActionOpenTriggered()));
+	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
 	connect(ui_.action_hierarchical_clustering, SIGNAL(triggered()), this, SLOT(OnActionHierarchicalClusteringTriggered()));
 	connect(ui_.action_perception_driven, SIGNAL(triggered()), this, SLOT(OnActionPerceptionDrivenTriggered()));
-	connect(hier_para_widget_, SIGNAL(ClusterNumberChanged(int)), this, SLOT(OnHierClusterNumberChanged(int)));
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 }
 
-void ScatterPointGlyph::OnActionOpenTriggered() {
-	if (scatter_point_data_ != NULL) {
-		QMessageBox::warning(this, tr("Warning"), tr("Data has been opened!"));
-		return;
-	}
-
+void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
+
+	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+	reader->SetFileName("./TestData/simple001.vtk");
+	reader->SetReadAllScalars(1);
+	reader->SetReadAllVectors(1);
+	reader->Update();
+	vtkDataObject* data = reader->GetOutput();
+	vtkUnstructuredGrid* scatter_point_data = vtkUnstructuredGrid::SafeDownCast(data);
+	vtkPointData* pData = scatter_point_data->GetPointData();
+	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
+	vtkPoints* p = scatter_point_data->GetPoints();
+
+	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
+
+	int point_num = p->GetNumberOfPoints();
+	int numArray = pData->GetNumberOfArrays();
+	dataset_->original_point_values.resize(point_num - 1);
+	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_values[i].resize(1);
+	dataset_->original_point_pos.resize(point_num - 1);
+	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_pos[i].resize(2);
+
+	for (int i = 0; i < point_num; ++i){
+		if (i == 31) continue;
+		if (i > 31) {
+			dataset_->original_point_pos[i - 1][0] = p->GetPoint(i)[0];
+			dataset_->original_point_pos[i - 1][1] = p->GetPoint(i)[1];
+			dataset_->original_point_values[i - 1][0] = varray->GetValue(i);
+		}
+		else {
+			dataset_->original_point_pos[i][0] = p->GetPoint(i)[0];
+			dataset_->original_point_pos[i][1] = p->GetPoint(i)[1];
+			dataset_->original_point_values[i][0] = varray->GetValue(i);
+		}
+	}
 	dataset_->weights.resize(1, 1.0);
 
-#ifdef WEATHREVIS
+	dataset_->DirectConstruct();
+	NormalizePosition(dataset_->point_pos);
+	NormalizeValues(dataset_->point_values);
+
+	this->AddPointData2View();
+}
+
+void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
+	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
+
 	data_manager_->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("E:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
 	std::vector< WrfGridValueMap* > maps;
 	QDateTime temp_datetime = QDateTime(QDate(2015, 4, 5), QTime(0, 0));
@@ -130,72 +169,10 @@ void ScatterPointGlyph::OnActionOpenTriggered() {
 	NormalizeValues(dataset_->original_point_values);
 	dataset_->DirectConstruct();
 	NormalizePosition(dataset_->point_pos);
-
-	/*if (map_rendering_layer_ == NULL) {
-		map_rendering_layer_ = new MapRenderingLayer;
-		map_rendering_layer_->SetFieldData(maps[0]->values, map_range.x_grid_number, map_range.y_grid_number, map_range.x_grid_space, map_range.y_grid_space, map_range.start_x, map_range.start_y);
-		main_renderer_->AddActor(map_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Map"), map_rendering_layer_->actor());
-	}*/
-#else
-	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
-	reader->SetFileName("./TestData/simple001.vtk");
-	reader->SetReadAllScalars(1);
-	reader->SetReadAllVectors(1);
-	reader->Update();
-	vtkDataObject* data = reader->GetOutput();
-	scatter_point_data_ = vtkUnstructuredGrid::SafeDownCast(data);
-	vtkPointData* pData = scatter_point_data_->GetPointData();
-	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
-	vtkPoints* p = scatter_point_data_->GetPoints();
-
-	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
-
-	int point_num = p->GetNumberOfPoints();
-	int numArray = pData->GetNumberOfArrays();
-	dataset_->original_point_values.resize(point_num - 1);
-	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_values[i].resize(1);
-	dataset_->original_point_pos.resize(point_num - 1);
-	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_pos[i].resize(2);
-
-	for (int i = 0; i < point_num; ++i){
-		if (i == 31) continue;
-		if (i > 31) {
-			dataset_->original_point_pos[i - 1][0] = p->GetPoint(i)[0];
-			dataset_->original_point_pos[i - 1][1] = p->GetPoint(i)[1];
-			dataset_->original_point_values[i - 1][0] = varray->GetValue(i);
-		}
-		else {
-			dataset_->original_point_pos[i][0] = p->GetPoint(i)[0];
-			dataset_->original_point_pos[i][1] = p->GetPoint(i)[1];
-			dataset_->original_point_values[i][0] = varray->GetValue(i);
-		}
-	}
-
-	NormalizePosition(dataset_->original_point_pos);
-	NormalizeValues(dataset_->original_point_values);
-	dataset_->DirectConstruct();
-#endif
-
-#ifdef SAVE_TXT_FILE
-	std::ofstream output("E:/GeoVis/scatterdatareview/1.txt");
-	if (output.good()) {
-		output << point_num - 1 << std::endl;
-		for (int i = 0; i < point_num - 1; ++i) {
-			output << dataset_->original_point_pos[i][0] << std::endl;
-			output << dataset_->original_point_pos[i][1] << std::endl;
-			output << dataset_->original_point_values[i][0] << std::endl;
-		}
-	}
-	output.close();
-#endif
-
-	this->AddPointData2View();
-	this->PreProcess();
 }
 
 void ScatterPointGlyph::OnActionExtractDataTriggered() {
-	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+	/*vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName("./TestData/timestep0_0003600.vtk");
 	reader->SetReadAllScalars(1);
 	reader->SetReadAllVectors(1);
@@ -249,86 +226,45 @@ void ScatterPointGlyph::OnActionExtractDataTriggered() {
 	int narray = ungrid->GetPointData()->GetNumberOfArrays();
 	writer->SetInputData(ungrid);
 	writer->SetFileName("./TestData/simple001.vtk");
-	writer->Update();
-}
-
-void ScatterPointGlyph::PreProcess() {
-	switch (sys_mode_)
-	{
-	case ScatterPointGlyph::HIER_MODE:
-		HierarchicalPreProcess();
-		break;
-	case ScatterPointGlyph::PERCEPTION_MODE:
-		PerceptionPreProcess();
-		break;
-	default:
-		break;
-	}
-}
-
-void ScatterPointGlyph::HierarchicalPreProcess() {
-	if (hier_solver_ == NULL) {
-		hier_solver_ = new HierSolver;
-		connect(hier_solver_, SIGNAL(ClusterUpdated(int)), this, SLOT(OnClusterAggregated(int)));
-		connect(hier_solver_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-	}
-
-	hier_solver_->SetData(dataset_);
-	hier_solver_->SetExpectedClusterNum(expected_cluster_num_);
-}
-
-void ScatterPointGlyph::PerceptionPreProcess() {
-	if (gestalt_processor_ == NULL) {
-		gestalt_processor_ = new GestaltProcessor2;
-		connect(gestalt_processor_, SIGNAL(ClusterUpdated(int)), this, SLOT(OnClusterAggregated(int)));
-		connect(gestalt_processor_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-	}
+	writer->Update();*/
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
-	if (scatter_point_data_ != NULL) {
-		scatter_point_data_->Delete();
-		scatter_point_data_ = NULL;
-	}
-	/// TODO: clear the memory
+
 }
 
 void ScatterPointGlyph::OnActionExitTriggered() {
 	
 }
 
+void ScatterPointGlyph::UpdateClusterView() {
+	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
+	
+	switch (sys_mode_)
+	{
+	case ScatterPointGlyph::HIER_MODE:
+		break;
+	case ScatterPointGlyph::PERCEPTION_MODE:
+	{
+		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_vec_[PERCEPTION_MODE]);
+		if (hier_tree != NULL) hier_tree->start();
+	}
+		break;
+	default:
+		break;
+	}
+}
+
 void ScatterPointGlyph::OnActionHierarchicalClusteringTriggered() {
-	current_solver_ = hier_solver_;
-	hier_solver_->start();
+
 }
 
 void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
-	current_solver_ = gestalt_processor_;
-
-	int window_width = this->main_view_->width();
-	vtkCamera* camera = this->main_renderer_->GetActiveCamera();
+	sys_mode_ = PERCEPTION_MODE;
 	
-	vtkMatrix4x4* mMatrix = camera->GetViewTransformMatrix();
-	vtkMatrix4x4* pMatrix = camera->GetProjectionTransformMatrix(this->main_renderer_);
-	double point_one[4];
-	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 1, 0, 0, point_one);
-	double point_two[4];
-	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
-
-	float width_per_scale = abs(point_one[0] - point_two[0]);
-	/*std::vector< float > threshold;
-	threshold.push_back(0.4);
-	threshold.push_back(30 / width_per_scale);
-	gestalt_processor_->SetDisThreshold(20 / width_per_scale);
-	cluster_glyph_layer_->SetRadiusRange(20 / width_per_scale, 20 / width_per_scale * 0.1);
-	gestalt_processor_->start();*/
-	HierarchicalTree* tree = new HierarchicalTree(dataset_);
-	std::vector< float > weights;
-	weights.push_back(1.0);
-	tree->SetVariableWeights(weights);
-	tree->GenerateCluster(1.0 / width_per_scale, 2);
-
-	main_view_->update();
+	if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
+		cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
+	}
 } 
 
 void ScatterPointGlyph::AddPointData2View() {
@@ -393,44 +329,23 @@ void ScatterPointGlyph::AddPointData2View() {
 }
 
 void ScatterPointGlyph::OnMainViewUpdated() {
-	if (current_solver_ == NULL) return;
-	switch (sys_mode_)
-	{
-	case HIER_MODE:
-		OnActionHierarchicalClusteringTriggered();
-		break;
-	case PERCEPTION_MODE:
-		OnActionPerceptionDrivenTriggered();
-		break;
-	default:
-		break;
-	}
-}
-
-void ScatterPointGlyph::OnHierClusterNumberChanged(int num) {
-	expected_cluster_num_ = num;
-	hier_solver_->SetExpectedClusterNum(num);
-	hier_solver_->start();
-}
-
-void ScatterPointGlyph::OnClusterAggregated(int cluster_index) {
-	std::vector< int > point_index;
-	current_solver_->GetFinalClusterPoint(cluster_index, point_index);
-
-	// update the point layer
-	sample_point_rendering_layer_->SetHighlightPointIndex(point_index);
+	this->UpdateClusterView();
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
-	int cluster_count = 0;
-	std::vector< int > cluster_index;
-	current_solver_->GetCluster(cluster_count, cluster_index);
+	this->UpdateClusterView();
+}
 
-	original_point_rendering_layer_->SetClusterIndex(cluster_count, cluster_index);
-	// add glyph to the glyph layer
-	//cluster_glyph_layer_->SetClusterIndex(cluster_count, cluster_index);
-
-	main_view_->update();
+float ScatterPointGlyph::GetMainViewDisPerPixel() {
+	int window_width = this->main_view_->width();
+	vtkCamera* camera = this->main_renderer_->GetActiveCamera();
+	vtkMatrix4x4* mMatrix = camera->GetViewTransformMatrix();
+	vtkMatrix4x4* pMatrix = camera->GetProjectionTransformMatrix(this->main_renderer_);
+	double point_one[4];
+	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 1, 0, 0, point_one);
+	double point_two[4];
+	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
+	return (1.0 / abs(point_one[0] - point_two[0]));
 }
 
 void ScatterPointGlyph::NormalizeValues(std::vector< std::vector< float > >& vec){

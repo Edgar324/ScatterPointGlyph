@@ -25,14 +25,20 @@ void PropertyExtractor::ExtractFitness() {
 	fitness.resize(this->proposal_gestalt.size());
 	fitness.assign(this->proposal_gestalt.size(), 0);
 
+	std::vector< float > label_fitness;
+	label_fitness.resize(this->proposal_clusters.size());
+
 	for (int i = 0; i < this->proposal_gestalt.size(); ++i) {
+		label_fitness.assign(label_fitness.size(), 0);
 		for (int j = 0; j < this->proposal_gestalt[i].size(); ++j) {
 			int site_index = this->proposal_gestalt[i][j];
-			if (result_label[gestalt_candidates->basic_node_index[site_index]] == i) fitness[i] += 1.0;
+			label_fitness[result_label[gestalt_candidates->basic_node_index[site_index]]] += 1;
+		}
+		for (int j = 0; j < label_fitness.size(); ++j) {
+			label_fitness[j] /= this->proposal_gestalt[i].size();
+			if (label_fitness[j] > fitness[i]) fitness[i] = label_fitness[j];
 		}
 	}
-	for (int i = 0; i < this->proposal_gestalt.size(); ++i)
-		fitness[i] /= this->proposal_gestalt[i].size();
 }
 
 void PropertyExtractor::NormalizeVec(std::vector< float >& vec) {
