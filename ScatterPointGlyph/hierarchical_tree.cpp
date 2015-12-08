@@ -93,8 +93,8 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	int current_cluster_count = leaf_nodes_.size();
 
 	GestaltProcessor2* processor = new GestaltProcessor2;
-	processor->SetPropertyOn(GestaltProcessor2::SIMILARITY);
-	processor->SetPropertyOff(GestaltProcessor2::PROXIMITY);
+	processor->SetPropertyOff(GestaltProcessor2::SIMILARITY);
+	processor->SetPropertyOn(GestaltProcessor2::PROXIMITY);
 
 	std::vector< CNode* > cluster_nodes;
 	cluster_nodes.resize(leaf_nodes_.size());

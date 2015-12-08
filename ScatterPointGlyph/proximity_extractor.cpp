@@ -50,7 +50,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 		if (edge_count != 0) average_edge_length /= edge_count;
 		label_cost[i] = average_edge_length + 1e-3;
 	}
-	NormalizeVec(label_cost);
+	//NormalizeVec(label_cost);
 
 	// update data cost
 	std::vector< std::vector< float > > label_center;
@@ -80,7 +80,7 @@ void ProximityExtractor::ExtractCosts(float thres) {
 			data_cost[site_index][i] = dis + 1e-3;
 		}
 	}
-	NormalizeVec(data_cost);
+	//NormalizeVec(data_cost);
 
 	// update smooth cost
 	for (int i = 0; i < label_num; ++i){
@@ -98,6 +98,7 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 
 	int gestalt_num = gestalt_candidates->gestalt_cluster_index.size();
 	this->proposal_gestalt.clear();
+	this->proposal_clusters.clear();
 
 	for (int i = 0; i < gestalt_num; ++i) {
 		is_selected.resize(gestalt_candidates->gestalt_cluster_index[i].size());
