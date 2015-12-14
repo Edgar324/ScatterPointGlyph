@@ -94,7 +94,7 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 
 	GestaltProcessor2* processor = new GestaltProcessor2;
 	processor->SetPropertyOn(GestaltProcessor2::SIMILARITY);
-	processor->SetPropertyOff(GestaltProcessor2::PROXIMITY);
+	processor->SetPropertyOn(GestaltProcessor2::PROXIMITY);
 
 	std::vector< CNode* > cluster_nodes;
 	cluster_nodes.resize(leaf_nodes_.size());
@@ -103,7 +103,7 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	while (current_level < max_level_) {
 		float current_max_radius = this->min_edge_length_ * pow(2, current_level - 1);
 
-		proximity_threshold_ = 0.5 * current_max_radius;
+		proximity_threshold_ = 1.0 / 3 * current_max_radius;
 		processor->SetDisThreshold(current_max_radius);
 		processor->SetThreshold(GestaltProcessor2::SIMILARITY, similarity_threshold_);
 		processor->SetThreshold(GestaltProcessor2::PROXIMITY, proximity_threshold_);

@@ -1,7 +1,7 @@
 #include "similarity_extractor.h"
 #include <queue>
 
-SimilarityExtractor::SimilarityExtractor() {
+SimilarityExtractor::SimilarityExtractor() : PropertyExtractor() {
 
 }
 
@@ -32,7 +32,6 @@ void SimilarityExtractor::ExtractCosts(float thres) {
 		data_cost[i].assign(label_num, -1);
 	}
 
-	// update label cost
 	for (int i = 0; i < label_num; ++i) {
 		std::vector< float > average_value;
 		average_value.resize(var_num, 0);
@@ -54,21 +53,35 @@ void SimilarityExtractor::ExtractCosts(float thres) {
 				value_dis += abs(gestalt_candidates->site_nodes[site_index]->average_values[k] - average_value[k]) * gestalt_candidates->var_weights[k];
 			value_var += pow(value_dis, 2);
 
-			data_cost[site_index][i] = value_dis + 1e-10;
+			data_cost[site_index][i] = value_dis;
 		}
 		value_var = sqrt(value_var / point_count_sum);
-		label_cost[i] = value_var + 1e-10;
+		label_cost[i] = value_var;
 	}
-	NormalizeVec(label_cost);
 
-	NormalizeVec(data_cost);
-
-	// update smooth cost
 	for (int i = 0; i < label_num; ++i){
 		smooth_cost[i][i] = 0;
 
 		for (int j = i + 1; j < label_num; ++j) {
-			smooth_cost[i][j] = 1.0;
+			smooth_cost[i][j] = 0;
+			for (int k = 0; k < var_num; ++k)
+				smooth_cost[i][j] += abs(gestalt_candidates->clusters[i]->average_values[k] - gestalt_candidates->clusters[j]->average_values[k]) * gestalt_candidates->var_weights[k];
+			smooth_cost[j][i] = smooth_cost[i][j];
+		}
+	}
+
+	for (int i = 0; i < label_cost.size(); ++i) {
+		if (label_cost[i] < 0) label_cost[i] = this->maximum_cost;
+		label_cost[i] = label_cost[i] * scales[2] + bias[2];
+	}
+	for (int i = 0; i < data_cost.size(); ++i)
+		for (int j = 0; j < data_cost[i].size(); ++j) {
+			if (data_cost[i][j] < 0) data_cost[i][j] = this->maximum_cost;
+			data_cost[i][j] = data_cost[i][j] * scales[0] + bias[0];
+		}
+	for (int i = 0; i < label_num; ++i){
+		for (int j = i + 1; j < label_num; ++j) {
+			smooth_cost[i][j] = smooth_cost[i][j] * scales[1] + bias[1];
 			smooth_cost[j][i] = smooth_cost[i][j];
 		}
 	}

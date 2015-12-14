@@ -34,25 +34,24 @@ void ProximityExtractor::ExtractCosts(float thres) {
 	}
 
 	// update label cost
+	std::vector< float > average_edge_length;
+	average_edge_length.resize(label_num, 0);
 	for (int i = 0; i < label_num; ++i) {
-		float average_edge_length = 0;
+		average_edge_length[i] = 0;
 		int edge_count = 0;
 		for (int j = 0; j < proposal_gestalt[i].size() - 1; ++j)
 			for (int k = j + 1; k < proposal_gestalt[i].size(); ++k) {
 				int site_index = proposal_gestalt[i][j];
 				int next_node_index = proposal_gestalt[i][k];
 				if (gestalt_candidates->site_connecting_status[site_index][next_node_index]) {
-					average_edge_length += sqrt(pow(gestalt_candidates->site_nodes[site_index]->center_pos[0] - gestalt_candidates->site_nodes[next_node_index]->center_pos[0], 2)
+					average_edge_length[i] += sqrt(pow(gestalt_candidates->site_nodes[site_index]->center_pos[0] - gestalt_candidates->site_nodes[next_node_index]->center_pos[0], 2)
 						+ pow(gestalt_candidates->site_nodes[site_index]->center_pos[1] - gestalt_candidates->site_nodes[next_node_index]->center_pos[1], 2));
 					edge_count++;
 				}
 			}
-		if (edge_count != 0) average_edge_length /= edge_count;
-		label_cost[i] = average_edge_length + 10.3;
+		if (edge_count != 0) average_edge_length[i] /= edge_count;
+		label_cost[i] = average_edge_length[i];
 	}
-	//NormalizeVec(label_cost);
-	for (int i = 0; i < label_cost.size(); ++i) 
-		if (label_cost[i] < 0) label_cost[i] = 100;
 
 	// update data cost
 	std::vector< std::vector< float > > label_center;
@@ -82,17 +81,29 @@ void ProximityExtractor::ExtractCosts(float thres) {
 			data_cost[site_index][i] = dis + 1e-3;
 		}
 	}
-	// NormalizeVec(data_cost);
-	for (int i = 0; i < data_cost.size(); ++i)
-		for (int j = 0; j < data_cost[i].size(); ++j)
-			if (data_cost[i][j] < 0) data_cost[i][j] = 10;
 
-	// update smooth cost
 	for (int i = 0; i < label_num; ++i){
 		smooth_cost[i][i] = 0;
 
 		for (int j = i + 1; j < label_num; ++j) {
-			smooth_cost[i][j] = 1.0;
+			smooth_cost[i][j] = 0.0;
+			smooth_cost[i][j] = abs(average_edge_length[i] - average_edge_length[j]);
+			smooth_cost[j][i] = smooth_cost[i][j];
+		}
+	}
+
+	for (int i = 0; i < label_cost.size(); ++i) {
+		if (label_cost[i] < 0) label_cost[i] = this->maximum_cost;
+		label_cost[i] = label_cost[i] * scales[2] + bias[2];
+	}
+	for (int i = 0; i < data_cost.size(); ++i)
+		for (int j = 0; j < data_cost[i].size(); ++j) {
+			if (data_cost[i][j] < 0) data_cost[i][j] = this->maximum_cost;
+			data_cost[i][j] = data_cost[i][j] * scales[0] + bias[0];
+		}
+	for (int i = 0; i < label_num; ++i){
+		for (int j = i + 1; j < label_num; ++j) {
+			smooth_cost[i][j] = smooth_cost[i][j] * scales[1] + bias[1];
 			smooth_cost[j][i] = smooth_cost[i][j];
 		}
 	}

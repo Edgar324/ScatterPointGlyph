@@ -2,7 +2,12 @@
 
  
 PropertyExtractor::PropertyExtractor() {
-
+	scales[0] = 1.0;
+	scales[1] = 1.0;
+	scales[2] = 1.0;
+	bias[0] = 0.0;
+	bias[1] = 0.05;
+	bias[2] = 0.0;
 }
 
 PropertyExtractor::~PropertyExtractor() {
@@ -11,6 +16,16 @@ PropertyExtractor::~PropertyExtractor() {
 
 void PropertyExtractor::SetData(GestaltCandidateSet* candidates) {
 	gestalt_candidates = candidates;
+}
+
+void PropertyExtractor::SetParameters(float data_cost_scale, float data_cost_bias, float smooth_cost_scale, float smooth_cost_bias, float label_cost_scale, float label_cost_bias) {
+	scales[0] = data_cost_scale;
+	scales[1] = smooth_cost_scale;
+	scales[2] = label_cost_scale;
+
+	bias[0] = data_cost_bias;
+	bias[1] = smooth_cost_bias;
+	bias[2] = label_cost_bias;
 }
 
 void PropertyExtractor::ExtractCosts(float thres) {

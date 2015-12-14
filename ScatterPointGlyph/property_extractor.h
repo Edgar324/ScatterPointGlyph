@@ -14,6 +14,7 @@ public:
 	void SetData(GestaltCandidateSet* candidates);
 	virtual void ExtractCosts(float thres);
 	void ExtractFitness();
+	void SetParameters(float data_cost_scale, float data_cost_bias, float smooth_cost_scale, float smooth_cost_bias, float label_cost_scale, float label_cost_bias);
 
 	std::vector< float > label_cost;
 	std::vector< std::vector< float > > smooth_cost;
@@ -26,6 +27,9 @@ public:
 
 protected:
 	GestaltCandidateSet* gestalt_candidates;
+	const float maximum_cost = { 100.0 };
+	float scales[3];
+	float bias[3];
 
 	virtual void ExtractProposalGestalt(float thres);
 	void NormalizeVec(std::vector< float >& vec);

@@ -79,7 +79,6 @@ private:
 	void InitWidget();
 	void AddPointData2View();
 
-	void UpdateClusterView();
 	float GetMainViewDisPerPixel();
 
 private slots:
@@ -90,9 +89,8 @@ private slots:
 
 	void OnActionExtractDataTriggered();
 
-	void OnMainViewUpdated();
-
-	void OnActionExecTriggered();
+	void OnSysmodeChanged();
+	void UpdateClusterView();
 	
 	void OnClusterFinished();
 };

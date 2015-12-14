@@ -42,9 +42,6 @@
 #include "map_rendering_layer.h"
 #include "hierarchical_tree.h"
 
-//#define SAVE_TXT_FILE
-//#define WEATHREVIS
-
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), 
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL),
@@ -74,7 +71,7 @@ void ScatterPointGlyph::InitWidget() {
 	main_renderer_->RemoveAllViewProps();
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
-	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
+	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateClusterView()));
 
 	layer_control_widget_ = new LayerControlWidget;
 	rendering_layer_model_ = new RenderingLayerModel;
@@ -99,7 +96,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
-	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnActionExecTriggered()));
+	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(UpdateClusterView()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -230,15 +227,41 @@ void ScatterPointGlyph::OnActionExitTriggered() {
 	
 }
 
+void ScatterPointGlyph::OnSysmodeChanged() {
+	if (ui_.action_perception_driven->isChecked()) {
+		sys_mode_ = PERCEPTION_MODE;
+	} else if (ui_.action_hierarchical_clustering->isChecked()) {
+		sys_mode_ = HIER_MODE;
+	}
+}
+
 void ScatterPointGlyph::UpdateClusterView() {
+	if (dataset_ == NULL) {
+		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
+		return;
+	}
+
 	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
 	
 	switch (sys_mode_)
 	{
 	case ScatterPointGlyph::HIER_MODE:
+	{
+		if (cluster_tree_vec_[HIER_MODE] == NULL) {
+			cluster_tree_vec_[HIER_MODE] = new HierarchicalTree(dataset_);
+
+			connect(cluster_tree_vec_[HIER_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+	}
 		break;
 	case ScatterPointGlyph::PERCEPTION_MODE:
 	{
+		if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
+			cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
+
+			connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
 		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_vec_[PERCEPTION_MODE]);
 		if (hier_tree != NULL) hier_tree->start();
 	}
@@ -247,33 +270,6 @@ void ScatterPointGlyph::UpdateClusterView() {
 		break;
 	}
 }
-
-void ScatterPointGlyph::OnActionExecTriggered() {
-	if (dataset_ == NULL) {
-		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
-		return;
-	}
-
-	if (ui_.action_perception_driven->isChecked()) {
-		sys_mode_ = PERCEPTION_MODE;
-
-		if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
-			cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
-
-			connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
-	} else if (ui_.action_hierarchical_clustering->isChecked()) {
-		sys_mode_ = HIER_MODE;
-
-		if (cluster_tree_vec_[HIER_MODE] == NULL) {
-			cluster_tree_vec_[HIER_MODE] = new HierarchicalTree(dataset_);
-
-			connect(cluster_tree_vec_[HIER_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
-	}
-
-	this->UpdateClusterView();
-} 
 
 void ScatterPointGlyph::AddPointData2View() {
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
@@ -311,10 +307,6 @@ void ScatterPointGlyph::AddPointData2View() {
 
 	main_renderer_->ResetCamera();
 	main_view_->update();
-}
-
-void ScatterPointGlyph::OnMainViewUpdated() {
-	this->UpdateClusterView();
 }
 
 void ScatterPointGlyph::OnClusterFinished() {

@@ -188,6 +188,7 @@ void TreeCommon::VtkTriangulation() {
 	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
 	delaunay->SetInputData(polydata);
 	delaunay->SetTolerance(0.00001);
+	delaunay->SetBoundingTriangulation(false);
 	delaunay->Update();
 	vtkPolyData* triangle_out = delaunay->GetOutput();
 
