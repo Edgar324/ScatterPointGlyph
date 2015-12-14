@@ -71,7 +71,7 @@ protected:
 	std::vector< CLeaf* > leaf_nodes_;
 	std::vector< std::vector< bool > > node_connecting_status_;
 
-	float average_edge_length_;
+	float min_edge_length_;
 
 	void VtkTriangulation();
 

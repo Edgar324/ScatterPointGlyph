@@ -24,7 +24,7 @@
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
-	average_edge_length_(0) {
+	min_edge_length_(0) {
 
 	root_ = new CBranch;
 }
@@ -116,6 +116,9 @@ void TreeCommon::ConstructDirectly() {
 			node_connecting_status_[pre_two][i] = true;
 			node_connecting_status_[i][pre_two] = true;
 		}
+
+		this->min_edge_length_ = sqrt(pow(leaf_nodes_[0]->center_pos[0] - leaf_nodes_[1]->center_pos[0], 2)
+			+ pow(leaf_nodes_[0]->center_pos[1] - leaf_nodes_[1]->center_pos[1], 2));
 	}
 	else {
 		VtkTriangulation();
@@ -192,7 +195,7 @@ void TreeCommon::VtkTriangulation() {
 	node_connecting_status_.resize(site_num);
 	for (int i = 0; i < site_num; ++i) node_connecting_status_[i].resize(site_num, false);
 
-	average_edge_length_ = 0.0;
+	min_edge_length_ = 0.0;
 	int edge_count = 0;
 
 	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
@@ -213,21 +216,21 @@ void TreeCommon::VtkTriangulation() {
 		temp_dis = sqrt(pow(leaf_nodes_[id1]->center_pos[0] - leaf_nodes_[id2]->center_pos[0], 2)
 			+ pow(leaf_nodes_[id1]->center_pos[1] - leaf_nodes_[id2]->center_pos[1], 2));
 		if (temp_dis <= 0.2) {
-			average_edge_length_ += temp_dis;
+			min_edge_length_ += temp_dis;
 			edge_count++;
 		}
 		if (temp_dis < min_dis) min_dis = temp_dis;
 		temp_dis = sqrt(pow(leaf_nodes_[id1]->center_pos[0] - leaf_nodes_[id3]->center_pos[0], 2)
 			+ pow(leaf_nodes_[id1]->center_pos[1] - leaf_nodes_[id3]->center_pos[1], 2));
 		if (temp_dis <= 0.2) {
-			average_edge_length_ += temp_dis;
+			min_edge_length_ += temp_dis;
 			edge_count++;
 		}
 		if (temp_dis < min_dis) min_dis = temp_dis;
 		temp_dis = sqrt(pow(leaf_nodes_[id3]->center_pos[0] - leaf_nodes_[id2]->center_pos[0], 2)
 			+ pow(leaf_nodes_[id3]->center_pos[1] - leaf_nodes_[id2]->center_pos[1], 2));
 		if (temp_dis <= 0.2) {
-			average_edge_length_ += temp_dis;
+			min_edge_length_ += temp_dis;
 			edge_count++;
 		}
 		if (temp_dis < min_dis) min_dis = temp_dis;
@@ -236,10 +239,7 @@ void TreeCommon::VtkTriangulation() {
 			min_dis = 0;
 		}
 	}
-	average_edge_length_ /= edge_count;
-	// For temporary usage
-	//average_edge_length_ = 0.05;
-	average_edge_length_ = min_dis;
+	min_edge_length_ = min_dis;
 
 	for (int i = 0; i < node_connecting_status_.size(); ++i){
 		bool is_connecting = false;

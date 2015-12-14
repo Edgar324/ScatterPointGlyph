@@ -90,6 +90,7 @@ void GestaltCandidateSet::InitSiteData() {
 				int cluster_one = basic_node_index[i];
 				int cluster_two = basic_node_index[j];
 				cluster_connecting_status[cluster_one][cluster_two] = true;
+				cluster_connecting_status[cluster_two][cluster_one] = true;
 			}
 }
 

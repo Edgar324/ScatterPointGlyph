@@ -6,6 +6,7 @@
 
 class RenderingLayerModel;
 class QTableView;
+class QStandardItem;
 class QStandardItemModel;
 
 class DisableColumnEidtDelegate : public QStyledItemDelegate
@@ -28,17 +29,11 @@ public:
 	LayerControlWidget();
 	~LayerControlWidget();
 
-	void SetDatasetInfo(QString& name, int point_num);
 	void SetRenderingLayerModel(RenderingLayerModel* model);
 
 private:
 	RenderingLayerModel* layer_model_;
 
-	QString dataset_name_;
-	int dataset_point_number_;
-
-	QTableView* dataset_tableview_;
-	QStandardItemModel* dataset_item_model_;
 	QTableView* rendering_layer_tableview_;
 	QStandardItemModel* layer_item_model_;
 
@@ -47,6 +42,7 @@ private:
 
 private slots:
 	void OnLayerModelChanged();
+	void OnItemModelChanged(QStandardItem* item);
 };
 
 #endif

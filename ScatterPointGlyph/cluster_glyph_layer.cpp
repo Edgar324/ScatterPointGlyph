@@ -10,6 +10,7 @@ ClusterGlyphLayer::ClusterGlyphLayer()
 	: BasicGlyphLayer(), dataset_(NULL) {
 	radius_range_[0] = 0;
 	radius_range_[1] = 0.1;
+	current_cluster_count_ = -1;
 }
 
 ClusterGlyphLayer::~ClusterGlyphLayer() {
@@ -28,10 +29,12 @@ void ClusterGlyphLayer::SetRadiusRange(float maxR, float minR){
 }
 
 void ClusterGlyphLayer::InitGlyphActor() {
-	if (poly_data_ != NULL) {
-		poly_data_->Delete();
+	if (poly_data_ == NULL) {
+		poly_data_ = vtkPolyData::New();
+	} else {
+		poly_data_->Initialize();
 	}
-	poly_data_ = vtkPolyData::New();
+	
 
 	vtkPoints* points = vtkPoints::New();
 	poly_data_->SetPoints(points);
@@ -50,7 +53,8 @@ void ClusterGlyphLayer::InitGlyphActor() {
 }
 
 void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index) {
-	if (point_index.size() == 0 || dataset_ == NULL) return;
+	if (point_index.size() == 0 || dataset_ == NULL || current_cluster_count_ == cluster_count) return;
+	current_cluster_count_ = cluster_count;
 
 	InitGlyphActor();
 
@@ -64,8 +68,8 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	cluster_point_count.assign(cluster_count, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
 		int cluster_index = point_index[i];
-		x[cluster_index] += dataset_->point_pos[i][0];
-		y[cluster_index] += dataset_->point_pos[i][1];
+		x[cluster_index] += dataset_->original_point_pos[i][0];
+		y[cluster_index] += dataset_->original_point_pos[i][1];
 		cluster_point_count[cluster_index]++;
 	}
 	for (int i = 0; i < cluster_count; ++i)
@@ -89,7 +93,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	cluster_radius.resize(cluster_count, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
 		int cluster_index = point_index[i];
-		cluster_radius[cluster_index] += sqrt(pow(dataset_->point_pos[i][0] - x[cluster_index], 2) + pow(dataset_->point_pos[i][1] - y[cluster_index], 2));
+		cluster_radius[cluster_index] += sqrt(pow(dataset_->original_point_pos[i][0] - x[cluster_index], 2) + pow(dataset_->original_point_pos[i][1] - y[cluster_index], 2));
 	}
 	for (int i = 0; i < cluster_count; ++i) {
 		cluster_radius[i] /= cluster_point_count[i];
@@ -114,7 +118,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		else
 			colors->InsertNextTuple3(255, 0, 0);
 		int pre_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r, y[i], 0.01);
-		if (cluster_point_count[i] <= 1)
+		if (cluster_point_count[i] <= thresh)
 			colors->InsertNextTuple3(0, 255, 0);
 		else
 			colors->InsertNextTuple3(255, 0, 0);

@@ -20,7 +20,13 @@ public:
 	std::vector< float > weights;
 
 	std::vector< std::vector< float > > original_point_pos;
+	std::vector< std::vector< float > > original_pos_ranges;
 	std::vector< std::vector< float > > original_point_values;
+	std::vector< std::vector< float > > original_value_ranges;
+
+private:
+	void NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
+	void NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
 };
 
 #endif

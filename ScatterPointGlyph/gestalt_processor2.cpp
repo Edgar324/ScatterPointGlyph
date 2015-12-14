@@ -1,5 +1,6 @@
 #include "gestalt_processor2.h"
 #include <iostream>
+#include <algorithm>
 #include <queue>
 #include <time.h>
 
@@ -75,10 +76,11 @@ void GestaltProcessor2::GetCluster(float fitness, std::vector< int >& cluster_in
 		if (is_property_on_[i]) {
 			PropertyExtractor* extractor = property_extractors_[i];
 			for (int j = 0; j < extractor->fitness.size(); ++j)
-				if (extractor->fitness[j] > fitness && extractor->fitness[j] > best_fitness && extractor->proposal_clusters[j].size() >= 2) {
+				if (/*extractor->fitness[j] > fitness && */extractor->fitness[j] > best_fitness && extractor->proposal_clusters[j].size() >= 2) {
 					best_fitness = extractor->fitness[j];
 					property_index = i;
 					gestalt_index = j;
+					std::cout << "Max num: " << extractor->proposal_clusters[j].size() << std::endl;
 				}
 		}
 
@@ -88,6 +90,8 @@ void GestaltProcessor2::GetCluster(float fitness, std::vector< int >& cluster_in
 		for (int i = 0; i < extractor->proposal_clusters[gestalt_index].size(); ++i)
 			cluster_index.push_back(extractor->proposal_clusters[gestalt_index][i]);
 	}
+	if (cluster_index.size() != 0)
+		std::sort(cluster_index.begin(), cluster_index.end());
 }
 
 void GestaltProcessor2::run() {
@@ -96,7 +100,7 @@ void GestaltProcessor2::run() {
 
 void GestaltProcessor2::GenerateCluster() {
 	if (gestalt_candidates_ == NULL) return;
-	
+
 	gestalt_candidates_->ExtractGestaltCandidates(dis_threshold_);
 	this->ExtractLabels();
 }
@@ -104,7 +108,7 @@ void GestaltProcessor2::GenerateCluster() {
 void GestaltProcessor2::ExtractLabels() {
 	try {
 		int label_num = gestalt_candidates_->gestalt_candidates.size();
-		int site_num = gestalt_candidates_->clusters.size(); 
+		int site_num = gestalt_candidates_->site_nodes.size(); 
 
 		// Step 1: construct class
 		GCoptimizationGeneralGraph* gc = new GCoptimizationGeneralGraph(site_num, label_num);
@@ -127,8 +131,9 @@ void GestaltProcessor2::ExtractLabels() {
 					}
 				}
 				for (int i = 0; i < label_num; ++i)
-					for (int j = 0; j < label_num; ++j)
+					for (int j = 0; j < label_num; ++j) {
 						gc->setSmoothCost(i, j, (int)(extractor->smooth_cost[i][j] * 10000));
+					}
 
 				std::vector< int > temp_label_cost;
 				temp_label_cost.resize(label_num);

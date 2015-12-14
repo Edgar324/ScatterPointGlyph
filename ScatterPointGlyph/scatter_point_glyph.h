@@ -62,7 +62,7 @@ private:
 
 	ClusterGlyphLayer* cluster_glyph_layer_;
 	PointRenderingLayer* original_point_rendering_layer_;
-	PointRenderingLayer* sample_point_rendering_layer_;
+	PointRenderingLayer* cluster_point_rendering_layer_;
 	MapRenderingLayer* map_rendering_layer_;
 
 	SystemMode sys_mode_;
@@ -93,9 +93,6 @@ private slots:
 	void OnActionPerceptionDrivenTriggered();
 	
 	void OnClusterFinished();
-
-	void NormalizePosition(std::vector< std::vector< float > >& vec);
-	void NormalizeValues(std::vector< std::vector< float > >& vec);
 };
 
 #endif // SCATTER_POINT_GLYPH_H

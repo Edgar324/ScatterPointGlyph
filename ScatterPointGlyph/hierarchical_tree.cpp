@@ -8,7 +8,7 @@ HierarchicalTree::HierarchicalTree(ScatterPointDataset* data)
 	similarity_threshold_(0.3),
 	proximity_threshold_(0.1),
 	fitness_threshold_(0.5),
-	min_pixel_radius_(30),
+	min_pixel_radius_(60),
 	max_level_(-1){
 
 	this->ConstructDirectly();
@@ -41,7 +41,7 @@ void HierarchicalTree::SetRadiusParameters(float min_pixel_radius) {
 void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
 	cluster_index.clear();
 
-	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->average_edge_length_) / log(2.0) + 1);
+	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->min_edge_length_) / log(2.0) + 1);
 	if (level < 0) level = 0;
 	if (level > max_level_) level = max_level_;
 
@@ -54,7 +54,7 @@ void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::v
 }
 
 void HierarchicalTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
-	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->average_edge_length_) / log(2.0) + 1);
+	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->min_edge_length_) / log(2.0) + 1);
 	if (level < 0) level = 0;
 	if (level > max_level_) level = max_level_;
 
@@ -83,7 +83,7 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	}
 
 	if (max_level_ == -1) {
-		max_level_ = (int)(log(0.4 / average_edge_length_) / log(2.0)) + 1;
+		max_level_ = (int)(log(0.5 / min_edge_length_) / log(2.0)) + 1;
 	}
 
 	node_cluster_index_.resize(leaf_nodes_.size());
@@ -93,17 +93,17 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	int current_cluster_count = leaf_nodes_.size();
 
 	GestaltProcessor2* processor = new GestaltProcessor2;
-	processor->SetPropertyOff(GestaltProcessor2::SIMILARITY);
-	processor->SetPropertyOn(GestaltProcessor2::PROXIMITY);
+	processor->SetPropertyOn(GestaltProcessor2::SIMILARITY);
+	processor->SetPropertyOff(GestaltProcessor2::PROXIMITY);
 
 	std::vector< CNode* > cluster_nodes;
 	cluster_nodes.resize(leaf_nodes_.size());
 	for (int i = 0; i < leaf_nodes_.size(); ++i) cluster_nodes[i] = leaf_nodes_[i];
-	std::vector< std::vector< bool > > cluster_connecting_status = node_connecting_status_;
 
 	while (current_level < max_level_) {
-		float current_max_radius = this->average_edge_length_ * pow(2, current_level - 1);
+		float current_max_radius = this->min_edge_length_ * pow(2, current_level - 1);
 
+		proximity_threshold_ = 0.5 * current_max_radius;
 		processor->SetDisThreshold(current_max_radius);
 		processor->SetThreshold(GestaltProcessor2::SIMILARITY, similarity_threshold_);
 		processor->SetThreshold(GestaltProcessor2::PROXIMITY, proximity_threshold_);

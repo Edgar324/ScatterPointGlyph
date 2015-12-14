@@ -27,6 +27,10 @@ void PropertyExtractor::ExtractFitness() {
 
 	std::vector< float > label_fitness;
 	label_fitness.resize(this->proposal_clusters.size());
+	std::vector< int > label_node_count;
+	label_node_count.resize(this->proposal_clusters.size());
+	for (int i = 0; i < gestalt_candidates->basic_node_index.size(); ++i)
+		label_node_count[result_label[i]] += 1;
 
 	for (int i = 0; i < this->proposal_gestalt.size(); ++i) {
 		label_fitness.assign(label_fitness.size(), 0);
@@ -35,7 +39,7 @@ void PropertyExtractor::ExtractFitness() {
 			label_fitness[result_label[gestalt_candidates->basic_node_index[site_index]]] += 1;
 		}
 		for (int j = 0; j < label_fitness.size(); ++j) {
-			label_fitness[j] /= this->proposal_gestalt[i].size();
+			label_fitness[j] /= (this->proposal_gestalt[i].size() + label_node_count[i]);
 			if (label_fitness[j] > fitness[i]) fitness[i] = label_fitness[j];
 		}
 	}
@@ -58,7 +62,8 @@ void PropertyExtractor::NormalizeVec(std::vector< float >& vec) {
 				vec[i] = 10.0;
 	}
 	else {
-		for (int i = 0; i < vec.size(); ++i) vec[i] = 1.0;
+		for (int i = 0; i < vec.size(); ++i) 
+			if (vec[i] > 1.0)  vec[i] = 1.0;
 	}
 }
 
@@ -83,6 +88,7 @@ void PropertyExtractor::NormalizeVec(std::vector< std::vector< float > >& vec) {
 	else {
 		for (int i = 0; i < vec.size(); ++i)
 			for (int j = 0; j < vec[i].size(); ++j)
-				vec[i][j] = 1.0;
+				if (vec[i][j] > 1.0 ) vec[i][j] = 1.0;
+				else if (vec[i][j] < 0) vec[i][j] = 10;
 	}
 }

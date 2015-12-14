@@ -1,10 +1,12 @@
 #include "scatter_point_view.h"
+#include <iostream>
 #include <QtCore/QTimer>
 #include <QtGui/QWheelEvent>
+#include <QtGui/QDragMoveEvent>
 #include <vtkRenderWindow.h>
 
 ScatterPointView::ScatterPointView() 
-	: is_wheel_updated_(false) {
+	: QVTKWidget(), is_wheel_updated_(false) {
 	timer_ = new QTimer;
 	timer_->setSingleShot(true);
 
@@ -18,29 +20,20 @@ ScatterPointView::~ScatterPointView() {
 void ScatterPointView::wheelEvent(QWheelEvent* event) {
 	is_wheel_updated_ = true;
 	if (!timer_->isActive()) {
-		timer_->start(500);
+		timer_->start(200);
 	}
 
-	vtkRenderWindowInteractor* interactor = NULL;
+	QVTKWidget::wheelEvent(event);
+}
 
-	if (this->mRenWin) {
-		interactor = this->mRenWin->GetInteractor();
-	}
-
-	if (!interactor || !interactor->GetEnabled()) {
-		return;
-	}
-
-	if (event->delta() > 0)
-		interactor->InvokeEvent(vtkCommand::MouseWheelForwardEvent, event);
-	else
-		interactor->InvokeEvent(vtkCommand::MouseWheelBackwardEvent, event);
+void ScatterPointView::mouseMoveEvent(QMouseEvent* event) {
+	if (event->buttons() & Qt::MidButton) QVTKWidget::mouseMoveEvent(event);
 }
 
 void ScatterPointView::OnTimeout() {
 	if (is_wheel_updated_) {
 		is_wheel_updated_ = false;
-		timer_->start(500);
+		timer_->start(200);
 	} else {
 		emit ViewUpdated();
 	}

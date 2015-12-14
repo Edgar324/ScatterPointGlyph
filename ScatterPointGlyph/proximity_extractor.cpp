@@ -48,9 +48,11 @@ void ProximityExtractor::ExtractCosts(float thres) {
 				}
 			}
 		if (edge_count != 0) average_edge_length /= edge_count;
-		label_cost[i] = average_edge_length + 1e-3;
+		label_cost[i] = average_edge_length + 10.3;
 	}
 	//NormalizeVec(label_cost);
+	for (int i = 0; i < label_cost.size(); ++i) 
+		if (label_cost[i] < 0) label_cost[i] = 100;
 
 	// update data cost
 	std::vector< std::vector< float > > label_center;
@@ -80,7 +82,10 @@ void ProximityExtractor::ExtractCosts(float thres) {
 			data_cost[site_index][i] = dis + 1e-3;
 		}
 	}
-	//NormalizeVec(data_cost);
+	// NormalizeVec(data_cost);
+	for (int i = 0; i < data_cost.size(); ++i)
+		for (int j = 0; j < data_cost[i].size(); ++j)
+			if (data_cost[i][j] < 0) data_cost[i][j] = 10;
 
 	// update smooth cost
 	for (int i = 0; i < label_num; ++i){
@@ -100,6 +105,22 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 	this->proposal_gestalt.clear();
 	this->proposal_clusters.clear();
 
+	std::vector< std::vector< float > > min_dis_vec;
+	min_dis_vec.resize(gestalt_candidates->clusters.size());
+	for (int i = 0; i < gestalt_candidates->clusters.size(); ++i) min_dis_vec[i].resize(gestalt_candidates->clusters.size(), 1e10);
+	for (int i = 0; i < gestalt_candidates->basic_node_index.size() - 1; ++i)
+		for (int j = i + 1; j < gestalt_candidates->basic_node_index.size(); ++j) {
+			if (!gestalt_candidates->site_connecting_status[i][j]) continue;
+			int site_index = gestalt_candidates->basic_node_index[i];
+			int next_site_index = gestalt_candidates->basic_node_index[j];
+			float temp_dis = sqrt(pow(gestalt_candidates->site_nodes[i]->center_pos[0] - gestalt_candidates->site_nodes[j]->center_pos[0], 2)
+				+ pow(gestalt_candidates->site_nodes[i]->center_pos[1] - gestalt_candidates->site_nodes[j]->center_pos[1], 2));
+			if (min_dis_vec[site_index][next_site_index] > temp_dis) {
+				min_dis_vec[site_index][next_site_index] = temp_dis;
+				min_dis_vec[next_site_index][site_index] = temp_dis;
+			}
+		}
+
 	for (int i = 0; i < gestalt_num; ++i) {
 		is_selected.resize(gestalt_candidates->gestalt_cluster_index[i].size());
 		is_selected.assign(is_selected.size(), false);
@@ -116,9 +137,9 @@ void ProximityExtractor::ExtractProposalGestalt(float thres) {
 					int next_site_index = gestalt_candidates->gestalt_cluster_index[i][j];
 
 					if (gestalt_candidates->cluster_connecting_status[site_index][next_site_index]) {
-						float dis = sqrt(pow(gestalt_candidates->clusters[site_index]->center_pos[0] - gestalt_candidates->clusters[next_site_index]->center_pos[0], 2)
-							+ pow(gestalt_candidates->clusters[site_index]->center_pos[1] - gestalt_candidates->clusters[next_site_index]->center_pos[1], 2));
-						if (dis < thres) extending_queue.push(j);
+						/*float dis = sqrt(pow(gestalt_candidates->clusters[site_index]->center_pos[0] - gestalt_candidates->clusters[next_site_index]->center_pos[0], 2)
+							+ pow(gestalt_candidates->clusters[site_index]->center_pos[1] - gestalt_candidates->clusters[next_site_index]->center_pos[1], 2));*/
+						if (min_dis_vec[site_index][next_site_index] < thres) extending_queue.push(j);
 					}
 				}
 		}

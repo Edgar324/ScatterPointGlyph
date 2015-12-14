@@ -18,6 +18,7 @@ signals:
 
 protected:
 	void wheelEvent(QWheelEvent* event);
+	void mouseMoveEvent(QMouseEvent* event);
 
 private:
 	QTimer* timer_;

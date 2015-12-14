@@ -54,14 +54,14 @@ void SimilarityExtractor::ExtractCosts(float thres) {
 				value_dis += abs(gestalt_candidates->site_nodes[site_index]->average_values[k] - average_value[k]) * gestalt_candidates->var_weights[k];
 			value_var += pow(value_dis, 2);
 
-			data_cost[site_index][i] = value_dis + 1e-3;
+			data_cost[site_index][i] = value_dis + 1e-10;
 		}
 		value_var = sqrt(value_var / point_count_sum);
-		label_cost[i] = value_var + 1e-3;
+		label_cost[i] = value_var + 1e-10;
 	}
-	//NormalizeVec(label_cost);
+	NormalizeVec(label_cost);
 
-	//NormalizeVec(data_cost);
+	NormalizeVec(data_cost);
 
 	// update smooth cost
 	for (int i = 0; i < label_num; ++i){

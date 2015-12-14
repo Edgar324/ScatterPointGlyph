@@ -46,7 +46,7 @@
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), 
-	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), sample_point_rendering_layer_(NULL),
+	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL),
 	map_rendering_layer_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
 
 	ui_.setupUi(this);
@@ -71,8 +71,9 @@ void ScatterPointGlyph::InitWidget() {
 
 	main_renderer_ = vtkRenderer::New();
 	main_renderer_->RemoveAllViewProps();
-	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
+	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
+	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 
 	layer_control_widget_ = new LayerControlWidget;
 	rendering_layer_model_ = new RenderingLayerModel;
@@ -81,17 +82,20 @@ void ScatterPointGlyph::InitWidget() {
 	layer_control_panel_->setWidget(layer_control_widget_);
 	this->addDockWidget(Qt::RightDockWidgetArea, layer_control_panel_);
 	ui_.menuView->addAction(layer_control_panel_->toggleViewAction());
+	connect(rendering_layer_model_, SIGNAL(LayerPropertyChanged()), main_view_, SLOT(update()));
 
 	hier_para_widget_ = new HierParaWidget;
 	hier_para_panel_ = new QDockWidget(QString("Hierarchical Clustering Panel"), this);
 	hier_para_panel_->setWidget(hier_para_widget_);
+	hier_para_panel_->setVisible(false);
 	this->addDockWidget(Qt::RightDockWidgetArea, hier_para_panel_);
 	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
 
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
+	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
+
 	connect(ui_.action_hierarchical_clustering, SIGNAL(triggered()), this, SLOT(OnActionHierarchicalClusteringTriggered()));
 	connect(ui_.action_perception_driven, SIGNAL(triggered()), this, SLOT(OnActionPerceptionDrivenTriggered()));
-	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -108,34 +112,20 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 	vtkFloatArray* varray = vtkFloatArray::SafeDownCast(pData->GetArray(0));
 	vtkPoints* p = scatter_point_data->GetPoints();
 
-	layer_control_widget_->SetDatasetInfo(QString("Point"), p->GetNumberOfPoints());
-
 	int point_num = p->GetNumberOfPoints();
 	int numArray = pData->GetNumberOfArrays();
-	dataset_->original_point_values.resize(point_num - 1);
-	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_values[i].resize(1);
-	dataset_->original_point_pos.resize(point_num - 1);
-	for (int i = 0; i < point_num - 1; ++i) dataset_->original_point_pos[i].resize(2);
+	dataset_->original_point_values.resize(point_num);
+	for (int i = 0; i < point_num; ++i) dataset_->original_point_values[i].resize(1);
+	dataset_->original_point_pos.resize(point_num);
+	for (int i = 0; i < point_num; ++i) dataset_->original_point_pos[i].resize(2);
 
 	for (int i = 0; i < point_num; ++i){
-		if (i == 31) continue;
-		if (i > 31) {
-			dataset_->original_point_pos[i - 1][0] = p->GetPoint(i)[0];
-			dataset_->original_point_pos[i - 1][1] = p->GetPoint(i)[1];
-			dataset_->original_point_values[i - 1][0] = varray->GetValue(i);
-		}
-		else {
-			dataset_->original_point_pos[i][0] = p->GetPoint(i)[0];
-			dataset_->original_point_pos[i][1] = p->GetPoint(i)[1];
-			dataset_->original_point_values[i][0] = varray->GetValue(i);
-		}
+		dataset_->original_point_pos[i][0] = p->GetPoint(i)[0];
+		dataset_->original_point_pos[i][1] = p->GetPoint(i)[1];
+		dataset_->original_point_values[i][0] = varray->GetValue(i);
 	}
-	dataset_->weights.resize(1, 1.0);
 
 	dataset_->DirectConstruct();
-	NormalizePosition(dataset_->point_pos);
-	NormalizeValues(dataset_->point_values);
-
 	this->AddPointData2View();
 }
 
@@ -166,9 +156,8 @@ void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
 	dataset_->w = map_range.x_grid_number;
 	dataset_->h = map_range.y_grid_number;
 
-	NormalizeValues(dataset_->original_point_values);
 	dataset_->DirectConstruct();
-	NormalizePosition(dataset_->point_pos);
+	this->AddPointData2View();
 }
 
 void ScatterPointGlyph::OnActionExtractDataTriggered() {
@@ -275,10 +264,10 @@ void ScatterPointGlyph::AddPointData2View() {
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
 	original_point_poly->SetPoints(original_points);
-	for (int i = 0; i < dataset_->point_pos.size(); ++i){
+	for (int i = 0; i < dataset_->original_point_pos.size(); ++i){
 		double new_pos[3];
-		new_pos[0] = dataset_->point_pos[i][0];
-		new_pos[1] = dataset_->point_pos[i][1];
+		new_pos[0] = dataset_->original_point_pos[i][0];
+		new_pos[1] = dataset_->original_point_pos[i][1];
 		new_pos[2] = 0;
 		original_points->InsertNextPoint(new_pos);
 	}
@@ -290,45 +279,22 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (original_point_rendering_layer_ == NULL) {
 		original_point_rendering_layer_ = new PointRenderingLayer;
 		main_renderer_->AddActor(original_point_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor(), false);
 	}
 	original_point_rendering_layer_->SetData(original_vertex_data);
-	//original_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	original_point_rendering_layer_->SetPointValue(dataset_->point_values);
 
-	vtkSmartPointer< vtkPolyData > sample_data = vtkSmartPointer< vtkPolyData >::New();
-	vtkSmartPointer< vtkPoints > sample_points = vtkSmartPointer< vtkPoints >::New();
-	sample_data->SetPoints(sample_points);
-	for (int i = 0; i < dataset_->point_pos.size(); ++i){
-		double new_pos[3];
-		new_pos[0] = dataset_->point_pos[i][0];
-		new_pos[1] = dataset_->point_pos[i][1] + 1;
-		new_pos[2] = 0;
-		sample_points->InsertNextPoint(new_pos);
+	vtkSmartPointer< vtkPolyData > cluster_vert_data = vtkSmartPointer< vtkPolyData >::New();
+	cluster_vert_data->DeepCopy(original_vertex_data);
+	if (cluster_point_rendering_layer_ == NULL) {
+		cluster_point_rendering_layer_ = new PointRenderingLayer;
+		main_renderer_->AddActor(cluster_point_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Cluster Point Layer"), cluster_point_rendering_layer_->actor());
 	}
-	vtkSmartPointer< vtkVertexGlyphFilter > sample_vertex_filter = vtkSmartPointer< vtkVertexGlyphFilter >::New();
-	sample_vertex_filter->SetInputData(sample_data);
-	sample_vertex_filter->Update();
-	vtkSmartPointer< vtkPolyData > sample_vert_data = vtkSmartPointer< vtkPolyData >::New();
-	sample_vert_data->ShallowCopy(sample_vertex_filter->GetOutput());
-
-	if (sample_point_rendering_layer_ == NULL) {
-		sample_point_rendering_layer_ = new PointRenderingLayer;
-		main_renderer_->AddActor(sample_point_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Sample Point Layer"), sample_point_rendering_layer_->actor());
-	}
-	sample_point_rendering_layer_->SetData(sample_vert_data);
-	//sample_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	cluster_point_rendering_layer_->SetData(cluster_vert_data);
+	cluster_point_rendering_layer_->SetPointValue(dataset_->point_values);
 
 	main_renderer_->ResetCamera();
-
-	if (cluster_glyph_layer_ == NULL) {
-		cluster_glyph_layer_ = new ClusterGlyphLayer;
-		main_renderer_->AddActor(cluster_glyph_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Hierarchical Cluster Glyph"), cluster_glyph_layer_->actor());
-	}
-
-	cluster_glyph_layer_->SetData(dataset_);
-
 	main_view_->update();
 }
 
@@ -337,17 +303,23 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
-	int cluter_num;
-	std::vector< int > cluster_index;
+	if (cluster_glyph_layer_ == NULL) {
+		cluster_glyph_layer_ = new ClusterGlyphLayer;
+		main_renderer_->AddActor(cluster_glyph_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Hierarchical Cluster Glyph"), cluster_glyph_layer_->actor());
+		cluster_glyph_layer_->SetData(dataset_);
+	}
 
 	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		int cluter_num;
+		std::vector< int > cluster_index;
+
 		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_, cluter_num, cluster_index);
-		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 15, dis_per_pixel_ * 15);
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
+		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
 		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
 
-		sample_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
-		original_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
 	}
 
 	main_view_->update();
@@ -363,47 +335,4 @@ float ScatterPointGlyph::GetMainViewDisPerPixel() {
 	double point_two[4];
 	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
 	return (1.0 / abs(point_one[0] - point_two[0]));
-}
-
-void ScatterPointGlyph::NormalizeValues(std::vector< std::vector< float > >& vec){
-	for (int i = 0; i < vec[0].size(); ++i){
-		float minValue = 1e10;
-		float maxValue = -1e10;
-
-		for (int j = 0; j < vec.size(); ++j){
-			if (minValue > vec[j][i]) minValue = vec[j][i];
-			if (maxValue < vec[j][i]) maxValue = vec[j][i];
-		}
-
-		if (maxValue - minValue != 0) {
-			for (int j = 0; j < vec.size(); ++j)
-				vec[j][i] = (vec[j][i] - minValue) / (maxValue - minValue);
-		}
-		else {
-			for (int j = 0; j < vec.size(); ++j) vec[j][i] = 0.5;
-		}
-	}
-}
-
-void ScatterPointGlyph::NormalizePosition(std::vector< std::vector< float > >& vec) {
-	float max_range = -1e10;
-	std::vector< std::vector< float > > ranges;
-	ranges.resize(vec[0].size());
-	for (int i = 0; i < vec[0].size(); ++i){
-		float minValue = 1e10;
-		float maxValue = -1e10;
-
-		for (int j = 0; j < vec.size(); ++j){
-			if (minValue > vec[j][i]) minValue = vec[j][i];
-			if (maxValue < vec[j][i]) maxValue = vec[j][i];
-		}
-		if (maxValue - minValue > max_range) max_range = maxValue - minValue;
-
-		ranges[i].push_back(minValue);
-		ranges[i].push_back(maxValue);
-	}
-	for (int i = 0; i < vec[0].size(); ++i){
-		for (int j = 0; j < vec.size(); ++j)
-			vec[j][i] = (vec[j][i] - (ranges[i][0] + ranges[i][1]) / 2) / max_range + 0.5;
-	}
 }

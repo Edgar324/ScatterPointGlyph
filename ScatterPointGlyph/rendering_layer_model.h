@@ -36,13 +36,18 @@ public:
 	RenderingLayerModel();
 	~RenderingLayerModel();
 
-	int AddLayer(QString& name, vtkActor* layer_actor);
+	int AddLayer(QString& name, vtkActor* layer_actor, bool is_visible = true);
 	bool RemoveLayer(int id);
 	
 	void GetAllLayers(std::vector< RenderingLayer* >& layers);
+	RenderingLayer* GetLayer(int index);
+
+	void SetLayerVisibility(int index, bool visibility);
+	void SetLayerName(int index, QString name);
 
 signals:
 	void ModelChanged();
+	void LayerPropertyChanged();
 
 private:
 	int max_id_;

@@ -21,6 +21,7 @@ public:
 private:
 	ScatterPointDataset* dataset_;
 	float radius_range_[2];
+	int current_cluster_count_;
 
 	void InitGlyphActor();
 };

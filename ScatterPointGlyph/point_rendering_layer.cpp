@@ -18,10 +18,10 @@ void PointRenderingLayer::SetData(vtkPolyData* data) {
 	UpdatePointGlyph();
 }
 
-void PointRenderingLayer::SetPointValue(std::vector< float >& values){
+void PointRenderingLayer::SetPointValue(std::vector< std::vector< float > >& values){
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < values.size(); ++i) {
-		int grey = (int)(values[i] * 255);
+		int grey = (int)(values[i][0] * 255);
 		color_array->SetTuple3(i, grey, grey, grey);
 	}
 }
