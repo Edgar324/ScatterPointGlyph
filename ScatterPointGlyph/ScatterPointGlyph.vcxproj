@@ -244,7 +244,6 @@
     <ClCompile Include="linked_tree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_layer.cpp" />
-    <ClCompile Include="perception_solver.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
     <ClCompile Include="property_extractor.cpp" />
     <ClCompile Include="proximity_extractor.cpp" />
@@ -477,7 +476,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include"</Command>
     </CustomBuild>
     <ClInclude Include="line_extractor.h" />
-    <ClInclude Include="perception_solver.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.qrc">

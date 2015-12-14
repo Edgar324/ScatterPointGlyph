@@ -14,6 +14,7 @@
 class QMenu;
 class QVTKWidget;
 class QDockWidget;
+class QActionGroup;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
@@ -53,6 +54,8 @@ private:
 	ScatterPointView* main_view_;
 	vtkRenderer* main_renderer_;
 
+	QActionGroup* sys_mode_action_group_;
+
 	QDockWidget* layer_control_panel_;
 	LayerControlWidget* layer_control_widget_;
 	RenderingLayerModel* rendering_layer_model_;
@@ -89,8 +92,7 @@ private slots:
 
 	void OnMainViewUpdated();
 
-	void OnActionHierarchicalClusteringTriggered();
-	void OnActionPerceptionDrivenTriggered();
+	void OnActionExecTriggered();
 	
 	void OnClusterFinished();
 };

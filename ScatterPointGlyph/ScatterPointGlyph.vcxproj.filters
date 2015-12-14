@@ -86,9 +86,6 @@
     <ClCompile Include="GeneratedFiles\qrc_scatter_point_glyph.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="perception_solver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_layer_control_widget.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -173,9 +170,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor2.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="scatter_point_dataset.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_cluster_solver.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -242,6 +236,9 @@
     <ClCompile Include="tree_common.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="scatter_point_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -291,9 +288,6 @@
     <ClInclude Include="GeneratedFiles\ui_perception_para_dialog.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="perception_solver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_hier_para_widget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -320,9 +314,6 @@
     </ClInclude>
     <ClInclude Include="property_extractor.h">
       <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="scatter_point_dataset.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gestalt_candidate_set.h">
       <Filter>Header Files</Filter>
@@ -383,6 +374,9 @@
     </ClInclude>
     <ClInclude Include="tree_common.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="scatter_point_dataset.h">
+      <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

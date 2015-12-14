@@ -1,4 +1,10 @@
 <RCC>
-    <qresource prefix="ScatterPointGlyph">
-    </qresource>
+  <qresource prefix="ScatterPointGlyph">
+    <file>images/exec.png</file>
+    <file>images/hier.png</file>
+    <file>images/perception.png</file>
+    <file>images/open.png</file>
+    <file>images/scatter-1.png</file>
+    <file>images/calibrated_result_t.png</file>
+  </qresource>
 </RCC>

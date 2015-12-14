@@ -26,6 +26,7 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QDockWidget>
+#include <QtWidgets/QActionGroup>
 
 #include "layer_control_widget.h"
 #include "rendering_layer_model.h"
@@ -91,11 +92,14 @@ void ScatterPointGlyph::InitWidget() {
 	this->addDockWidget(Qt::RightDockWidgetArea, hier_para_panel_);
 	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
 
+	sys_mode_action_group_ = new QActionGroup(this);
+	sys_mode_action_group_->addAction(ui_.action_perception_driven);
+	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
+	sys_mode_action_group_->setExclusive(true);
+
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
-
-	connect(ui_.action_hierarchical_clustering, SIGNAL(triggered()), this, SLOT(OnActionHierarchicalClusteringTriggered()));
-	connect(ui_.action_perception_driven, SIGNAL(triggered()), this, SLOT(OnActionPerceptionDrivenTriggered()));
+	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnActionExecTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -244,17 +248,28 @@ void ScatterPointGlyph::UpdateClusterView() {
 	}
 }
 
-void ScatterPointGlyph::OnActionHierarchicalClusteringTriggered() {
+void ScatterPointGlyph::OnActionExecTriggered() {
+	if (dataset_ == NULL) {
+		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
+		return;
+	}
 
-}
+	if (ui_.action_perception_driven->isChecked()) {
+		sys_mode_ = PERCEPTION_MODE;
 
-void ScatterPointGlyph::OnActionPerceptionDrivenTriggered() {
-	sys_mode_ = PERCEPTION_MODE;
-	
-	if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
-		cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
+		if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
+			cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
 
-		connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+	} else if (ui_.action_hierarchical_clustering->isChecked()) {
+		sys_mode_ = HIER_MODE;
+
+		if (cluster_tree_vec_[HIER_MODE] == NULL) {
+			cluster_tree_vec_[HIER_MODE] = new HierarchicalTree(dataset_);
+
+			connect(cluster_tree_vec_[HIER_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
 	}
 
 	this->UpdateClusterView();

@@ -31,6 +31,7 @@
      <property name="title">
       <string>Open</string>
      </property>
+     <addaction name="actionOpen_File"/>
      <addaction name="actionRaw_Grid_Data"/>
      <addaction name="actionVTK_Unstructured_Grid_Data"/>
     </widget>
@@ -43,13 +44,14 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="action_hierarchical_clustering"/>
-    <addaction name="action_perception_driven"/>
+    <addaction name="actionExec"/>
    </widget>
    <widget class="QMenu" name="menuSetting">
     <property name="title">
      <string>Setting</string>
     </property>
+    <addaction name="action_perception_driven"/>
+    <addaction name="action_hierarchical_clustering"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -74,6 +76,14 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionOpen_File"/>
+   <addaction name="actionVTK_Unstructured_Grid_Data"/>
+   <addaction name="actionRaw_Grid_Data"/>
+   <addaction name="separator"/>
+   <addaction name="action_perception_driven"/>
+   <addaction name="action_hierarchical_clustering"/>
+   <addaction name="separator"/>
+   <addaction name="actionExec"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_close">
@@ -87,11 +97,28 @@
    </property>
   </action>
   <action name="action_hierarchical_clustering">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/hier.png</normaloff>:/ScatterPointGlyph/images/hier.png</iconset>
+   </property>
    <property name="text">
     <string>Hierarchical Clustering</string>
    </property>
   </action>
   <action name="action_perception_driven">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/perception.png</normaloff>:/ScatterPointGlyph/images/perception.png</iconset>
+   </property>
    <property name="text">
     <string>Perception Driven</string>
    </property>
@@ -105,13 +132,39 @@
    </property>
   </action>
   <action name="actionRaw_Grid_Data">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/calibrated_result_t.png</normaloff>:/ScatterPointGlyph/images/calibrated_result_t.png</iconset>
+   </property>
    <property name="text">
     <string>Raw Grid Data</string>
    </property>
   </action>
   <action name="actionVTK_Unstructured_Grid_Data">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/scatter-1.png</normaloff>:/ScatterPointGlyph/images/scatter-1.png</iconset>
+   </property>
    <property name="text">
     <string>VTK Unstructured Grid Data</string>
+   </property>
+  </action>
+  <action name="actionOpen_File">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/open.png</normaloff>:/ScatterPointGlyph/images/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open File</string>
+   </property>
+  </action>
+  <action name="actionExec">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/exec.png</normaloff>:/ScatterPointGlyph/images/exec.png</iconset>
+   </property>
+   <property name="text">
+    <string>Exec</string>
    </property>
   </action>
  </widget>
