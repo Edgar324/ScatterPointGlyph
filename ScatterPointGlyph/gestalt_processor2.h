@@ -35,6 +35,8 @@ public:
 	void SetThreshold(GestaltProperty property, float thresh);
 	void SetDisThreshold(float dis_thresh);
 
+	void GetResultLabel(std::vector< int >& result);
+
 	virtual void GenerateCluster();
 	virtual void GetCluster(int& cluster_count, std::vector< int >& cluster_index);
 	virtual void GetCluster(float fitness, std::vector< int >& cluster_index);
@@ -49,7 +51,10 @@ private:
 
 	std::vector< bool > is_property_on_;
 	std::vector< float > property_thresh_;
+	std::vector< float > property_weight_;
 	std::vector< PropertyExtractor* > property_extractors_;
+
+	std::vector< int > result_label_;
 
 	void ExtractLabels();
 };

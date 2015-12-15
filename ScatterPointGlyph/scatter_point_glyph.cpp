@@ -41,9 +41,11 @@
 #include "wrf_data_manager.h"
 #include "map_rendering_layer.h"
 #include "hierarchical_tree.h"
+#include "immediate_tree.h"
+#include "immediate_gestalt_tree.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), dataset_(NULL), sys_mode_(PERCEPTION_MODE), 
+	: QMainWindow(parent), dataset_(NULL), sys_mode_(IMMEDIATE_GESTALT_MODE),
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL),
 	map_rendering_layer_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
 
@@ -53,7 +55,7 @@ ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 
 	this->InitWidget();
 
-	cluster_tree_vec_.resize(2, NULL);
+	cluster_tree_vec_.resize(4, NULL);
 }
 
 ScatterPointGlyph::~ScatterPointGlyph() {
@@ -92,6 +94,7 @@ void ScatterPointGlyph::InitWidget() {
 	sys_mode_action_group_ = new QActionGroup(this);
 	sys_mode_action_group_->addAction(ui_.action_perception_driven);
 	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
+	sys_mode_action_group_->addAction(ui_.actionImmediate_Gestalts);
 	sys_mode_action_group_->setExclusive(true);
 
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
@@ -232,6 +235,8 @@ void ScatterPointGlyph::OnSysmodeChanged() {
 		sys_mode_ = PERCEPTION_MODE;
 	} else if (ui_.action_hierarchical_clustering->isChecked()) {
 		sys_mode_ = HIER_MODE;
+	} else if (ui_.actionImmediate_Gestalts->isChecked()) {
+		sys_mode_ = IMMEDIATE_PERCEPTION_MODE;
 	}
 }
 
@@ -266,6 +271,44 @@ void ScatterPointGlyph::UpdateClusterView() {
 		if (hier_tree != NULL) hier_tree->start();
 	}
 		break;
+	case ScatterPointGlyph::IMMEDIATE_PERCEPTION_MODE:
+	{
+		if (cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE] == NULL) {
+			cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE] = new ImmediateTree(dataset_);
+
+			connect(cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		ImmediateTree* immediate_tree = dynamic_cast< ImmediateTree* >(cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE]);
+		if (immediate_tree != NULL) {
+			float left, right, bottom, top;
+			this->GetSceneRange(left, right, bottom, top);
+			dataset_->Sample(left, right, bottom, top);
+			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (80 * 80)));
+			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
+			immediate_tree->start();
+		}
+	}
+		break;
+	case ScatterPointGlyph::IMMEDIATE_GESTALT_MODE:
+	{
+		if (cluster_tree_vec_[IMMEDIATE_GESTALT_MODE] == NULL) {
+			cluster_tree_vec_[IMMEDIATE_GESTALT_MODE] = new ImmediateGestaltTree(dataset_);
+
+			connect(cluster_tree_vec_[IMMEDIATE_GESTALT_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		ImmediateGestaltTree* immediate_tree = dynamic_cast< ImmediateGestaltTree* >(cluster_tree_vec_[IMMEDIATE_GESTALT_MODE]);
+		if (immediate_tree != NULL) {
+			float left, right, bottom, top;
+			this->GetSceneRange(left, right, bottom, top);
+			dataset_->Sample(left, right, bottom, top);
+			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (80 * 80)));
+			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
+			immediate_tree->start();
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -329,6 +372,30 @@ void ScatterPointGlyph::OnClusterFinished() {
 		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
 	}
 
+	if (sys_mode_ == IMMEDIATE_PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		int cluter_num;
+		std::vector< int > cluster_index;
+
+		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
+		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
+		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
+
+		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+	}
+
+	if (sys_mode_ == IMMEDIATE_GESTALT_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		int cluter_num;
+		std::vector< int > cluster_index;
+
+		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_GESTALT_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
+		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
+		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
+
+		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+	}
+
 	main_view_->update();
 }
 
@@ -342,4 +409,17 @@ float ScatterPointGlyph::GetMainViewDisPerPixel() {
 	double point_two[4];
 	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
 	return (1.0 / abs(point_one[0] - point_two[0]));
+}
+
+void ScatterPointGlyph::GetSceneRange(float& left, float& right, float& bottom, float& top) {
+	double viewport[4];
+	this->main_renderer_->GetViewport(viewport);
+	double point_one[4];
+	vtkInteractorObserver::ComputeDisplayToWorld(this->main_renderer_, viewport[0] * this->main_view_->width(), viewport[1] * this->main_view_->height(), 0, point_one);
+	double point_two[4];
+	vtkInteractorObserver::ComputeDisplayToWorld(this->main_renderer_, viewport[2] * this->main_view_->width(), viewport[3] * this->main_view_->height(), 0, point_two);
+	left = point_one[0];
+	right = point_two[0];
+	bottom = point_one[1];
+	top = point_two[1];
 }

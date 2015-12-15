@@ -44,6 +44,8 @@ public:
 	enum SystemMode {
 		HIER_MODE = 0x0,
 		PERCEPTION_MODE,
+		IMMEDIATE_PERCEPTION_MODE,
+		IMMEDIATE_GESTALT_MODE
 	};
 
 protected:
@@ -80,6 +82,7 @@ private:
 	void AddPointData2View();
 
 	float GetMainViewDisPerPixel();
+	void GetSceneRange(float& left, float& right, float& bottom, float& top);
 
 private slots:
 	void OnActionOpenVtkFileTriggered();

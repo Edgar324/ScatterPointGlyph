@@ -28,6 +28,10 @@ GestaltProcessor2::GestaltProcessor2()
 	property_thresh_[0] = 0.1;
 	property_thresh_[1] = 0.3;
 
+	property_weight_.resize(2);
+	property_weight_[0] = 0.7;
+	property_weight_[1] = 0.3;
+
 	gestalt_candidates_ = new GestaltCandidateSet;
 
 	final_label_count_ = 0;
@@ -94,6 +98,10 @@ void GestaltProcessor2::GetCluster(float fitness, std::vector< int >& cluster_in
 		std::sort(cluster_index.begin(), cluster_index.end());
 }
 
+void GestaltProcessor2::GetResultLabel(std::vector< int >& result) {
+	result = result_label_;
+}
+
 void GestaltProcessor2::run() {
 	this->GenerateCluster();
 }
@@ -129,7 +137,6 @@ void GestaltProcessor2::ExtractLabels() {
 		std::vector< std::vector< float > > data_cost;
 		std::vector< std::vector< float > > smooth_cost;
 		std::vector< float > label_cost;
-		std::vector< int > result_label;
 
 		label_cost.resize(label_num);
 		label_cost.assign(label_num, 0);
@@ -151,15 +158,15 @@ void GestaltProcessor2::ExtractLabels() {
 				PropertyExtractor* extractor = property_extractors_[p];
 				for (int i = 0; i < site_num; ++i) {
 					for (int j = 0; j < label_num; ++j) {
-						data_cost[i][j] += extractor->data_cost[i][j];
+						data_cost[i][j] += extractor->data_cost[i][j] * property_weight_[p];
 					}
 				}
 				for (int i = 0; i < label_num; ++i)
 					for (int j = 0; j < label_num; ++j) {
-						smooth_cost[i][j] += extractor->smooth_cost[i][j];
+						smooth_cost[i][j] += extractor->smooth_cost[i][j] * property_weight_[p];
 					}
 				for (int i = 0; i < label_num; ++i)
-					label_cost[i] += extractor->label_cost[i];
+					label_cost[i] += extractor->label_cost[i] * property_weight_[p];
 			}
 
 		for (int i = 0; i < site_num; ++i) {
@@ -175,19 +182,20 @@ void GestaltProcessor2::ExtractLabels() {
 		std::vector< int > temp_label_cost;
 		temp_label_cost.resize(label_num);
 		for (int i = 0; i < label_num; ++i) temp_label_cost[i] = (int)(label_cost[i] * 10000);
+		//for (int i = 0; i < label_num; ++i) temp_label_cost[i] = 0;
 		gc->setLabelCost(temp_label_cost.data());
 
 		//std::cout << "Property: " << p << "    Before optimization energy is " << gc->compute_energy() << std::endl;
 		gc->expansion(2);// run expansion for 2 iterations. For swap use gc->swap(num_iterations);
 		//std::cout << "Property: " << p << "    After optimization energy is " << gc->compute_energy() << std::endl;
 
-		result_label.resize(site_num);
-		for (int i = 0; i < site_num; ++i) result_label[i] = gc->whatLabel(i);
+		result_label_.resize(site_num);
+		for (int i = 0; i < site_num; ++i) result_label_[i] = gc->whatLabel(i);
 
 		for (int p = 0; p < is_property_on_.size(); ++p)
 			if (is_property_on_[p]) {
 				PropertyExtractor* extractor = property_extractors_[p];
-				extractor->result_label = result_label;
+				extractor->result_label = result_label_;
 				extractor->ExtractFitness();
 			}
 

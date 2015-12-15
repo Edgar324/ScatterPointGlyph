@@ -53,6 +53,52 @@ void TreeCommon::ConstructOnKmeans(int basic_cnum) {
 
 }
 
+void TreeCommon::ConstructOnRandomSample(int sample_num) {
+	srand((unsigned int)time(0));
+	std::vector< bool > is_used;
+	is_used.resize(dataset_->point_pos.size(), false);
+
+	float temp_min = 1e10;
+	for (int i = 0; i < dataset_->point_pos.size(); ++i)
+		if (!is_used[i]) {
+			is_used[i] = true;
+			CLeaf* temp_leaf = new CLeaf();
+			std::vector< int > neighbour_list;
+			neighbour_list.push_back(i);
+			for (int j = i + 1; j < dataset_->point_pos.size(); ++j){
+				float dis = sqrt(pow(dataset_->point_pos[j][0] - dataset_->point_pos[i][0], 2) + pow(dataset_->point_pos[j][1] - dataset_->point_pos[i][1], 2));
+				if (dis < 1e-5) {
+					neighbour_list.push_back(j);
+					is_used[j] = true;
+				}
+				if (dis < temp_min) temp_min = dis;
+			}
+			temp_leaf->linked_points = neighbour_list;
+
+			temp_leaf->center_pos.resize(2);
+			temp_leaf->center_pos[0] = 0;
+			temp_leaf->center_pos[1] = 0;
+			temp_leaf->average_values.resize(dataset_->weights.size());
+			for (int j = 0; j < dataset_->weights.size(); ++j)
+				temp_leaf->average_values[j] = 0;
+			for (int j = 0; j < neighbour_list.size(); ++j) {
+				temp_leaf->center_pos[0] += dataset_->point_pos[neighbour_list[j]][0];
+				temp_leaf->center_pos[1] += dataset_->point_pos[neighbour_list[j]][1];
+				for (int k = 0; k < dataset_->weights.size(); ++k)
+					temp_leaf->average_values[k] += dataset_->point_values[neighbour_list[j]][k];
+			}
+			temp_leaf->center_pos[0] /= neighbour_list.size();
+			temp_leaf->center_pos[1] /= neighbour_list.size();
+			for (int j = 0; j < dataset_->weights.size(); ++j)
+				temp_leaf->average_values[j] /= neighbour_list.size();
+
+			leaf_nodes_.push_back(temp_leaf);
+			temp_leaf->seq_index = i;
+			temp_leaf->set_level(0);
+		}
+	VtkTriangulation();
+}
+
 void TreeCommon::ConstructDirectly() {
 	float min_dis_threshold = 1e-5;
 	std::vector< bool > is_used;
@@ -106,11 +152,17 @@ void TreeCommon::ConstructDirectly() {
 			node_connecting_status_[i].assign(node_connecting_status_[i].size(), false);
 		}
 		for (int i = 0; i < dataset_->point_pos.size(); ++i) {
-			int x = i % dataset_->w;
-			int y = i / dataset_->w;
+			int x = dataset_->sample_index[i] % dataset_->w;
+			int y = dataset_->sample_index[i] / dataset_->w;
 			if (x == dataset_->w - 1 || y == dataset_->h - 1) continue;
-			int pre_one = y * dataset_->w + x + 1;
-			int pre_two = (y + 1) * dataset_->w + x;
+			int pre_one = -1;
+			if (dataset_->node_sample_map.find(y * dataset_->w + x + 1) != dataset_->node_sample_map.end())
+				pre_one = dataset_->node_sample_map[y * dataset_->w + x + 1];
+			if (pre_one == -1) continue;
+			int pre_two = -1;
+			if (dataset_->node_sample_map.find((y + 1) * dataset_->w + x) != dataset_->node_sample_map.end())
+				pre_two = dataset_->node_sample_map[(y + 1) * dataset_->w + x];
+			if (pre_two == -1) continue;
 			node_connecting_status_[pre_one][i] = true;
 			node_connecting_status_[i][pre_one] = true;
 			node_connecting_status_[pre_two][i] = true;

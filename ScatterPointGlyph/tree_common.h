@@ -59,6 +59,7 @@ public:
 
 	void ConstructOnOctree(float thre);
 	void ConstructOnKmeans(int basic_cnum);
+	void ConstructOnRandomSample(int sample_num);
 	void ConstructDirectly();
 
 	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);

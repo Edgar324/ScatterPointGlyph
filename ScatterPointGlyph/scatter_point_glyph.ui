@@ -51,6 +51,7 @@
      <string>Setting</string>
     </property>
     <addaction name="action_perception_driven"/>
+    <addaction name="actionImmediate_Gestalts"/>
     <addaction name="action_hierarchical_clustering"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -81,6 +82,7 @@
    <addaction name="actionRaw_Grid_Data"/>
    <addaction name="separator"/>
    <addaction name="action_perception_driven"/>
+   <addaction name="actionImmediate_Gestalts"/>
    <addaction name="action_hierarchical_clustering"/>
    <addaction name="separator"/>
    <addaction name="actionExec"/>
@@ -120,7 +122,7 @@
      <normaloff>:/ScatterPointGlyph/images/perception.png</normaloff>:/ScatterPointGlyph/images/perception.png</iconset>
    </property>
    <property name="text">
-    <string>Perception Driven</string>
+    <string>Gestalt Driven</string>
    </property>
   </action>
   <action name="action_layer_panel">
@@ -165,6 +167,14 @@
    </property>
    <property name="text">
     <string>Exec</string>
+   </property>
+  </action>
+  <action name="actionImmediate_Gestalts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Immediate Gestalts</string>
    </property>
   </action>
  </widget>

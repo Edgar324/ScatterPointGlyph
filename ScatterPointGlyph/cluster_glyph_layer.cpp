@@ -68,6 +68,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	cluster_point_count.assign(cluster_count, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
 		int cluster_index = point_index[i];
+		if (cluster_index < 0) continue;
 		x[cluster_index] += dataset_->original_point_pos[i][0];
 		y[cluster_index] += dataset_->original_point_pos[i][1];
 		cluster_point_count[cluster_index]++;
@@ -93,6 +94,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	cluster_radius.resize(cluster_count, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
 		int cluster_index = point_index[i];
+		if (cluster_index < 0) continue;
 		cluster_radius[cluster_index] += sqrt(pow(dataset_->original_point_pos[i][0] - x[cluster_index], 2) + pow(dataset_->original_point_pos[i][1] - y[cluster_index], 2));
 	}
 	for (int i = 0; i < cluster_count; ++i) {

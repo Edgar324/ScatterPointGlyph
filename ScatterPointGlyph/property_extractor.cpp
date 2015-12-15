@@ -2,12 +2,12 @@
 
  
 PropertyExtractor::PropertyExtractor() {
-	scales[0] = 1.0;
+	scales[0] = 0.1;
 	scales[1] = 1.0;
 	scales[2] = 1.0;
 	bias[0] = 0.0;
 	bias[1] = 0.05;
-	bias[2] = 0.0;
+	bias[2] = 0.2;
 }
 
 PropertyExtractor::~PropertyExtractor() {

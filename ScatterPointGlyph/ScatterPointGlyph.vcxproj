@@ -239,6 +239,8 @@
     <ClCompile Include="hierarchical_tree.cpp" />
     <ClCompile Include="hier_para_widget.cpp" />
     <ClCompile Include="hier_solver.cpp" />
+    <ClCompile Include="immediate_gestalt_tree.cpp" />
+    <ClCompile Include="immediate_tree.cpp" />
     <ClCompile Include="layer_control_widget.cpp" />
     <ClCompile Include="line_extractor.cpp" />
     <ClCompile Include="linked_tree.cpp" />
@@ -301,6 +303,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="basic_glyph_layer.h" />
+    <ClInclude Include="immediate_gestalt_tree.h" />
+    <ClInclude Include="immediate_tree.h" />
     <ClInclude Include="tree_common.h" />
     <CustomBuild Include="cluster_solver.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

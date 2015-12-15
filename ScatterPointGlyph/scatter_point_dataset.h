@@ -2,6 +2,7 @@
 #define SCATTER_POINT_DATASET_H_
 
 #include <vector>
+#include <map>
 
 class ScatterPointDataset
 {
@@ -9,7 +10,7 @@ public:
 	ScatterPointDataset();
 	~ScatterPointDataset();
 
-	void Sample(int point_num, float left, float right, float bottom, float top);
+	void Sample(float left, float right, float bottom, float top);
 	void DirectConstruct();
 
 	bool is_structured_data;
@@ -18,6 +19,9 @@ public:
 	std::vector< std::vector< float > > point_pos;
 	std::vector< std::vector< float > > point_values;
 	std::vector< float > weights;
+
+	std::vector< int > sample_index;
+	std::map< int, int > node_sample_map;
 
 	std::vector< std::vector< float > > original_point_pos;
 	std::vector< std::vector< float > > original_pos_ranges;
