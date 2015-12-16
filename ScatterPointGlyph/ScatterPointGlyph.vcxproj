@@ -246,6 +246,7 @@
     <ClCompile Include="linked_tree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_layer.cpp" />
+    <ClCompile Include="multi_label_processor.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
     <ClCompile Include="property_extractor.cpp" />
     <ClCompile Include="proximity_extractor.cpp" />
@@ -260,6 +261,7 @@
     <ClCompile Include="scatter_point_view.cpp" />
     <ClCompile Include="similarity_extractor.cpp" />
     <ClCompile Include="tree_common.cpp" />
+    <ClCompile Include="uncertainty_tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -305,7 +307,9 @@
     <ClInclude Include="basic_glyph_layer.h" />
     <ClInclude Include="immediate_gestalt_tree.h" />
     <ClInclude Include="immediate_tree.h" />
+    <ClInclude Include="multi_label_processor.h" />
     <ClInclude Include="tree_common.h" />
+    <ClInclude Include="uncertainty_tree.h" />
     <CustomBuild Include="cluster_solver.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing cluster_solver.h...</Message>

@@ -43,10 +43,11 @@
 #include "hierarchical_tree.h"
 #include "immediate_tree.h"
 #include "immediate_gestalt_tree.h"
+#include "uncertainty_tree.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), dataset_(NULL), sys_mode_(IMMEDIATE_GESTALT_MODE),
-	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL),
+	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
+	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL), un_rendering_layer_(NULL), 
 	map_rendering_layer_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
 
 	ui_.setupUi(this);
@@ -55,7 +56,7 @@ ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 
 	this->InitWidget();
 
-	cluster_tree_vec_.resize(4, NULL);
+	cluster_tree_vec_.resize(5, NULL);
 }
 
 ScatterPointGlyph::~ScatterPointGlyph() {
@@ -105,7 +106,7 @@ void ScatterPointGlyph::InitWidget() {
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
 
-	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+	/*vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
 	reader->SetFileName("./TestData/simple001.vtk");
 	reader->SetReadAllScalars(1);
 	reader->SetReadAllVectors(1);
@@ -127,6 +128,45 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 		dataset_->original_point_pos[i][0] = p->GetPoint(i)[0];
 		dataset_->original_point_pos[i][1] = p->GetPoint(i)[1];
 		dataset_->original_point_values[i][0] = varray->GetValue(i);
+	}*/
+
+	vtkSmartPointer<vtkGenericDataObjectReader> reader = vtkSmartPointer<vtkGenericDataObjectReader>::New();
+	reader->SetFileName("./TestData/timestep0_0003600.vtk");
+	reader->SetReadAllScalars(1);
+	reader->SetReadAllVectors(1);
+	reader->Update();
+	vtkDataObject* data = reader->GetOutput();
+	vtkUnstructuredGrid* scatter_point_data = vtkUnstructuredGrid::SafeDownCast(data);
+
+	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer< vtkPolyData >::New();
+	polydata->SetPoints(scatter_point_data->GetPoints());
+
+	vtkIntArray* id_array = vtkIntArray::SafeDownCast(scatter_point_data->GetPointData()->GetArray(0));
+	vtkFloatArray* speed_array = vtkFloatArray::SafeDownCast(scatter_point_data->GetPointData()->GetArray(1));
+	vtkFloatArray* xparray = vtkFloatArray::SafeDownCast(scatter_point_data->GetPointData()->GetArray(2));
+	vtkFloatArray* yparray = vtkFloatArray::SafeDownCast(scatter_point_data->GetPointData()->GetArray(3));
+
+	float x_scale1 = 0.35, x_scale2 = 0.48;
+	float y_scale1 = 0.65, y_scale2 = 0.77;
+	double bounds[6];
+	scatter_point_data->GetBounds(bounds);
+
+	for (int i = 0; i < scatter_point_data->GetPoints()->GetNumberOfPoints(); ++i) {
+		float x = scatter_point_data->GetPoint(i)[0];
+		float y = scatter_point_data->GetPoint(i)[1];
+		if (x > bounds[0] + (bounds[1] - bounds[0]) * x_scale1 && x < bounds[0] + (bounds[1] - bounds[0]) * x_scale2
+			&& y > bounds[2] + (bounds[3] - bounds[2]) * y_scale1 && y < bounds[2] + (bounds[3] - bounds[2]) * y_scale2) {
+			std::vector< float > pos;
+			std::vector< float > value;
+			pos.push_back(x);
+			pos.push_back(y);
+			value.push_back(speed_array->GetValue(i));
+			value.push_back(xparray->GetValue(i));
+			value.push_back(yparray->GetValue(i));
+
+			dataset_->original_point_pos.push_back(pos);
+			dataset_->original_point_values.push_back(value);
+		}
 	}
 
 	dataset_->DirectConstruct();
@@ -303,18 +343,38 @@ void ScatterPointGlyph::UpdateClusterView() {
 			float left, right, bottom, top;
 			this->GetSceneRange(left, right, bottom, top);
 			dataset_->Sample(left, right, bottom, top);
-			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (80 * 80)));
+			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (160 * 160)));
 			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
 			immediate_tree->start();
 		}
 	}
-	break;
+		break;
+	case ScatterPointGlyph::UNCERTAINTY_MODE:
+	{
+		if (cluster_tree_vec_[UNCERTAINTY_MODE] == NULL) {
+			cluster_tree_vec_[UNCERTAINTY_MODE] = new UncertaintyTree(dataset_);
+
+			connect(cluster_tree_vec_[UNCERTAINTY_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
+		if (un_tree != NULL) {
+			float left, right, bottom, top;
+			this->GetSceneRange(left, right, bottom, top);
+			dataset_->Sample(left, right, bottom, top);
+			un_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (160 * 160)));
+			un_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
+			un_tree->start();
+		}
+	}
+		break;
 	default:
 		break;
 	}
 }
 
 void ScatterPointGlyph::AddPointData2View() {
+	std::vector< float > represent_value;
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
 	original_point_poly->SetPoints(original_points);
@@ -324,7 +384,9 @@ void ScatterPointGlyph::AddPointData2View() {
 		new_pos[1] = dataset_->original_point_pos[i][1];
 		new_pos[2] = 0;
 		original_points->InsertNextPoint(new_pos);
+		represent_value.push_back(dataset_->point_values[i][0]);
 	}
+
 	vtkSmartPointer< vtkVertexGlyphFilter > original_vertex_filter = vtkSmartPointer< vtkVertexGlyphFilter >::New();
 	original_vertex_filter->SetInputData(original_point_poly);
 	original_vertex_filter->Update();
@@ -336,7 +398,7 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor(), false);
 	}
 	original_point_rendering_layer_->SetData(original_vertex_data);
-	original_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	original_point_rendering_layer_->SetPointValue(represent_value);
 
 	vtkSmartPointer< vtkPolyData > cluster_vert_data = vtkSmartPointer< vtkPolyData >::New();
 	cluster_vert_data->DeepCopy(original_vertex_data);
@@ -346,7 +408,16 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Cluster Point Layer"), cluster_point_rendering_layer_->actor());
 	}
 	cluster_point_rendering_layer_->SetData(cluster_vert_data);
-	cluster_point_rendering_layer_->SetPointValue(dataset_->point_values);
+	cluster_point_rendering_layer_->SetPointValue(represent_value);
+
+	vtkSmartPointer< vtkPolyData > un_vert_data = vtkSmartPointer< vtkPolyData >::New();
+	un_vert_data->DeepCopy(original_vertex_data);
+	if (un_rendering_layer_ == NULL) {
+		un_rendering_layer_ = new PointRenderingLayer;
+		main_renderer_->AddActor(un_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Uncertainty Map"), un_rendering_layer_->actor());
+	}
+	un_rendering_layer_->SetData(un_vert_data);
 
 	main_renderer_->ResetCamera();
 	main_view_->update();
@@ -394,6 +465,19 @@ void ScatterPointGlyph::OnClusterFinished() {
 		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
 
 		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+	}
+
+	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		int cluter_num;
+		std::vector< int > cluster_index;
+
+		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
+		un_tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
+		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 30, dis_per_pixel_ * 30);
+		cluster_glyph_layer_->SetClusterIndex(cluter_num, cluster_index);
+
+		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
+		un_rendering_layer_->SetPointValue(un_tree->GetUncertainty());
 	}
 
 	main_view_->update();

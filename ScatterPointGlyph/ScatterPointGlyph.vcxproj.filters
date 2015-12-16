@@ -245,6 +245,9 @@
     <ClCompile Include="immediate_gestalt_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="multi_label_processor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -389,6 +392,9 @@
     </ClInclude>
     <ClInclude Include="immediate_gestalt_tree.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="multi_label_processor.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

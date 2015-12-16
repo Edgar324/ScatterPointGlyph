@@ -63,6 +63,10 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	x.assign(cluster_count, 0);
 	y.resize(cluster_count);
 	y.assign(cluster_count, 0);
+	std::vector< std::vector< float > > average_values;
+	average_values.resize(cluster_count);
+	for (int i = 0; i < cluster_count; ++i) average_values[i].resize(dataset_->weights.size(), 0);
+
 	std::vector< int > cluster_point_count;
 	cluster_point_count.resize(cluster_count);
 	cluster_point_count.assign(cluster_count, 0);
@@ -71,12 +75,16 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		if (cluster_index < 0) continue;
 		x[cluster_index] += dataset_->original_point_pos[i][0];
 		y[cluster_index] += dataset_->original_point_pos[i][1];
+		for (int j = 0; j < dataset_->weights.size(); ++j)
+			average_values[cluster_index][j] += (dataset_->original_point_values[i][j] - dataset_->original_value_ranges[j][0]) / (dataset_->original_value_ranges[j][1] - dataset_->original_value_ranges[j][0]);
 		cluster_point_count[cluster_index]++;
 	}
 	for (int i = 0; i < cluster_count; ++i)
 		if (cluster_point_count[i] != 0) {
 			x[i] /= cluster_point_count[i];
 			y[i] /= cluster_point_count[i];
+			for (int j = 0; j < dataset_->weights.size(); ++j)
+				average_values[i][j] /= cluster_point_count[i];
 		} else {
 			std::cout << "Empty cluster detected." << std::endl;
 			return;
@@ -108,6 +116,10 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		if (cluster_point_count[i] < min_point_count) min_point_count = cluster_point_count[i];
 	}
 
+	int red[] = { 166, 223, 128 };
+	int green[] = { 97, 194, 205 };
+	int blue[] = { 26, 125, 193 };
+
 	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 
 	for (int i = 0; i < cluster_count; ++i) {
@@ -115,23 +127,24 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		float r = radius_range_[0];
 		if (cluster_point_count[i] <= thresh) r = 0.5 * radius_range_[0];
 		int center_id = poly_data_->GetPoints()->InsertNextPoint(x[i], y[i], 0.01);
-		if (cluster_point_count[i] <= thresh)
+		/*if (cluster_point_count[i] <= thresh)
 			colors->InsertNextTuple3(0, 255, 0);
-		else
-			colors->InsertNextTuple3(255, 0, 0);
-		int pre_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r, y[i], 0.01);
-		if (cluster_point_count[i] <= thresh)
+		else*/
+		colors->InsertNextTuple3(red[0], green[0], blue[0]);
+		int pre_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r * average_values[i][0], y[i], 0.01);
+		/*if (cluster_point_count[i] <= thresh)
 			colors->InsertNextTuple3(0, 255, 0);
-		else
-			colors->InsertNextTuple3(255, 0, 0);
+		else*/
+		colors->InsertNextTuple3(red[0], green[0], blue[0]);
 		vtkIdType cell_ids[3];
-		for (int j = 1; j <= 20; ++j) {
-			float end_arc = 2 * 3.14159 * j / 20;
-			int current_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r * cos(end_arc), y[i] + r * sin(end_arc), 0.01);
-			if (cluster_point_count[i] <= thresh)
+		for (int j = 1; j <= 20 * dataset_->weights.size(); ++j) {
+			int var_index = (j - 1) / 20;
+			float end_arc = 2 * 3.14159 * j / (20 * dataset_->weights.size());
+			int current_id = poly_data_->GetPoints()->InsertNextPoint(x[i] + r * cos(end_arc) * average_values[i][var_index], y[i] + r * sin(end_arc) * average_values[i][var_index], 0.01);
+			/*if (cluster_point_count[i] <= thresh)
 				colors->InsertNextTuple3(0, 255, 0);
-			else
-				colors->InsertNextTuple3(255, 0, 0);
+			else*/
+			colors->InsertNextTuple3(red[var_index], green[var_index], blue[var_index]);
 			cell_ids[0] = center_id;
 			cell_ids[1] = pre_id;
 			cell_ids[2] = current_id;

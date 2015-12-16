@@ -45,7 +45,8 @@ public:
 		HIER_MODE = 0x0,
 		PERCEPTION_MODE,
 		IMMEDIATE_PERCEPTION_MODE,
-		IMMEDIATE_GESTALT_MODE
+		IMMEDIATE_GESTALT_MODE,
+		UNCERTAINTY_MODE
 	};
 
 protected:
@@ -68,6 +69,7 @@ private:
 	ClusterGlyphLayer* cluster_glyph_layer_;
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* cluster_point_rendering_layer_;
+	PointRenderingLayer* un_rendering_layer_;
 	MapRenderingLayer* map_rendering_layer_;
 
 	SystemMode sys_mode_;
