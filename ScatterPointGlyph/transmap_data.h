@@ -2,6 +2,7 @@
 #define TRANSMAP_DATA_H_
 
 #include <vector>
+#include "tree_common.h"
 
 class ScatterPointDataset;
 
@@ -11,22 +12,25 @@ public:
 	TransMapData();
 	~TransMapData();
 
+	// data that must be initialized
 	ScatterPointDataset* dataset;
-
-	int node_num, var_num;
-
-	std::vector< std::vector< float > > node_center;
-	std::vector< std::vector< float > > node_average_value;
-	std::vector< std::vector< bool > > node_connecting_status;
-
-	std::vector< int > overall_cluster_index;
-	std::vector< int > overall_reprentative_color;
-
-	std::vector< std::vector< int > > var_cluster_index;
-	// 3 * var_cluster_index.size()
+	int cluster_num, var_num;
+	std::vector< int > cluster_index;
+	std::vector< int > cluster_point_count;
+	std::vector< int > cluster_reprentative_color;
 	std::vector< int > var_repsentative_color;
+	int min_point_num;
 
+	std::vector< CNode* > level_one_nodes;
+	std::vector< int > level_one_colors;
+	std::vector< CNode* > level_zero_nodes;
+	std::vector< int > level_zero_colors;
+	std::vector< std::vector< bool > > node_connecting_status;
+	std::map< int, CNode* > cluster_node_map;
+
+	// construct the first level nodes and sub-level nodes
 	void ProcessData();
+	void UpdateConnectingStatus();
 };
 
 #endif

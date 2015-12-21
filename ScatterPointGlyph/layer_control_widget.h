@@ -30,6 +30,7 @@ public:
 	~LayerControlWidget();
 
 	void SetRenderingLayerModel(RenderingLayerModel* model);
+	void UpdateWidget();
 
 private:
 	RenderingLayerModel* layer_model_;
@@ -38,7 +39,6 @@ private:
 	QStandardItemModel* layer_item_model_;
 
 	void InitWidget();
-	void UpdateWidget();
 
 private slots:
 	void OnLayerModelChanged();

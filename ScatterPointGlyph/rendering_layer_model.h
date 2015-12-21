@@ -7,7 +7,7 @@
 #include <QtCore/QString>
 #include <QtCore/QObject>
 
-class vtkActor;
+class vtk3DWidget;
 
 class RenderingLayer
 {
@@ -15,12 +15,12 @@ public:
 	RenderingLayer(int id) {
 		layer_id_ = id;
 		name = "";
-		layer_actor = NULL;
+		layer_widget = NULL;
 	}
 	~RenderingLayer() {}
 
 	QString name;
-	vtkActor* layer_actor;
+	vtk3DWidget* layer_widget;
 
 	int layer_id() { return layer_id_; }
 
@@ -36,7 +36,7 @@ public:
 	RenderingLayerModel();
 	~RenderingLayerModel();
 
-	int AddLayer(QString& name, vtkActor* layer_actor, bool is_visible = true);
+	int AddLayer(QString& name, vtk3DWidget* layer_actor, bool is_visible = true);
 	bool RemoveLayer(int id);
 	
 	void GetAllLayers(std::vector< RenderingLayer* >& layers);

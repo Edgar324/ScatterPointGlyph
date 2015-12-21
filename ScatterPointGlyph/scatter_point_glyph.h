@@ -72,7 +72,6 @@ private:
 	QDockWidget* hier_para_panel_;
 	HierParaWidget* hier_para_widget_;
 
-	ClusterGlyphLayer* cluster_glyph_layer_;
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* cluster_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
@@ -87,11 +86,12 @@ private:
 	WrfDataManager* data_manager_;
 	ScatterPointDataset* dataset_;
 
-	int cluter_num;
+	int cluster_num;
 	std::vector< int > cluster_index;
 
 	void InitWidget();
 	void AddPointData2View();
+	void UpdateParallelCoordinate();
 
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);

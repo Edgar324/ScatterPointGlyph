@@ -266,6 +266,9 @@
     <ClCompile Include="transmap_data.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
     </ClCompile>
+    <ClCompile Include="color_mapping_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -309,6 +312,9 @@
     </CustomBuild>
     <CustomBuild Include="parallel_coordinate.h">
       <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="transmap.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -420,11 +426,11 @@
     <ClInclude Include="uncertainty_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="transmap.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
     <ClInclude Include="transmap_data.h">
       <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="color_mapping_generator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

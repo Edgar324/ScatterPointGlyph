@@ -11,7 +11,7 @@ class CNode
 {
 public:
 	CNode();
-	~CNode();
+	virtual ~CNode();
 
 	enum NodeType {
 		LEAF = 0x0,
@@ -26,7 +26,6 @@ public:
 
 	int level() { return level_; }
 	void set_level(int l) { level_ = l; }
-	int seq_index;
 
 protected:
 	NodeType type_;
@@ -49,6 +48,9 @@ public:
 	~CBranch();
 
 	std::vector< CNode* > linked_nodes;
+
+	CNode* FindNearestNode(float x, float y);
+	CNode* FindNearestValue(std::vector< float >& values);
 };
 
 class TreeCommon : public QThread

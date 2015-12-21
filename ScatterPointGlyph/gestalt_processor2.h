@@ -7,7 +7,6 @@
 
 class ScatterPointDataset;
 class GestaltCandidateSet;
-class LinkedTree;
 class PropertyExtractor;
 
 class GestaltProcessor2 : public ClusterSolver

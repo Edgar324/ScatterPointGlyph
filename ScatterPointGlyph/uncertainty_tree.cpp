@@ -92,7 +92,7 @@ void UncertaintyTree::run() {
 		edge_weights_[i].resize(leaf_nodes_.size(), 0.5);
 	leaf_node_un_.resize(leaf_nodes_.size(), 0.5);
 
-	if (dataset_->weights.size() > 1 ) this->GenerateUncertainty();
+	//if (dataset_->weights.size() > 1 ) this->GenerateUncertainty();
 	this->GenerateCluster();
 	is_threshold_updated_ = false;
 }

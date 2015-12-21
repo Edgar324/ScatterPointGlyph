@@ -4,7 +4,7 @@
 #include <QtGui/QStandardItemModel>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QGroupBox>
-#include <vtkActor.h>
+#include <vtk3DWidget.h>
 #include "rendering_layer_model.h"
 
 LayerControlWidget::LayerControlWidget()
@@ -61,7 +61,7 @@ void LayerControlWidget::UpdateWidget() {
 		layer_item_model_->setRowCount(layers.size());
 		for (size_t i = 0; i < layers.size(); ++i) {
 			layer_item_model_->setData(layer_item_model_->index(i, 0), layers[i]->layer_id(), Qt::DisplayRole);
-			layer_item_model_->setData(layer_item_model_->index(i, 1), layers[i]->layer_actor->GetVisibility() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
+			layer_item_model_->setData(layer_item_model_->index(i, 1), layers[i]->layer_widget->GetEnabled() ? Qt::Checked : Qt::Unchecked, Qt::CheckStateRole);
 			layer_item_model_->setData(layer_item_model_->index(i, 2), layers[i]->name, Qt::DisplayRole);
 			layer_item_model_->item(i, 1)->setCheckable(true);
 			layer_item_model_->item(i, 2)->setTextAlignment(Qt::AlignCenter);

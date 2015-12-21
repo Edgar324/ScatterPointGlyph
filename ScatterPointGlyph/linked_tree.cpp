@@ -18,30 +18,6 @@
 #include <vtkVertexGlyphFilter.h>
 #include "scatter_point_dataset.h"
 
-CNode::CNode() : type_(UNKNOWN), level_(-1), seq_index(-1) {
-
-}
-
-CNode::~CNode() {
-
-}
-
-CLeaf::CLeaf() : CNode() {
-	type_ = CNode::LEAF;
-}
-
-CLeaf::~CLeaf() {
-
-}
-
-CBranch::CBranch() : CNode() {
-	type_ = CNode::BRANCH;
-}
-
-CBranch::~CBranch() {
-
-}
-
 LinkedTree::LinkedTree(ScatterPointDataset* data) 
 	: dataset_(data) {
 
@@ -213,7 +189,6 @@ void LinkedTree::ConstructDirectly(int level_num) {
 		temp_leaf->center_pos = dataset_->point_pos[i];
 		temp_leaf->linked_points.push_back(i);
 		tree_nodes[0][i] = temp_leaf;
-		tree_nodes[0][i]->seq_index = i;
 	}
 
 	if (dataset_->is_structured_data) {
@@ -296,7 +271,6 @@ void LinkedTree::UpdateConnectingStatus() {
 			CBranch* node_two = dynamic_cast< CBranch* >(tree_nodes[top_level][j]);
 			for (int si = 0; si < node_one->linked_nodes.size(); ++si)
 				for (int sj = 0; sj < node_two->linked_nodes.size(); ++sj) {
-					temp_status[i][j] = temp_status[i][j] || site_connecting_status[node_one->linked_nodes[si]->seq_index][node_two->linked_nodes[sj]->seq_index];
 				}
 			temp_status[j][i] = temp_status[i][j];
 		}

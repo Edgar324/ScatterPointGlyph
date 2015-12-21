@@ -1,22 +1,23 @@
 #include "rendering_layer_model.h"
 #include <vtkActor.h>
+#include <vtk3DWidget.h>
 
 RenderingLayerModel::RenderingLayerModel() 
 	: max_id_(-1) {
-
+	
 }
 
 RenderingLayerModel::~RenderingLayerModel() {
 
 }
 
-int RenderingLayerModel::AddLayer(QString& name, vtkActor* layer_actor, bool is_visible) {
+int RenderingLayerModel::AddLayer(QString& name, vtk3DWidget* layer_actor, bool is_visible) {
 	max_id_++;
 
 	RenderingLayer* layer = new RenderingLayer(max_id_);
 	layer->name = name;
-	layer->layer_actor = layer_actor;
-	layer->layer_actor->SetVisibility(is_visible);
+	layer->layer_widget = layer_actor;
+	layer->layer_widget->SetEnabled(is_visible);
 
 	rendering_layer_list_.push_back(layer);
 
@@ -64,7 +65,7 @@ RenderingLayer* RenderingLayerModel::GetLayer(int index) {
 void RenderingLayerModel::SetLayerVisibility(int index, bool visibility) {
 	RenderingLayer* layer = this->GetLayer(index);
 	if (layer != NULL) {
-		layer->layer_actor->SetVisibility(visibility);
+		layer->layer_widget->SetEnabled(visibility);
 		emit LayerPropertyChanged();
 	}
 }

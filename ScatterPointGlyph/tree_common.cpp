@@ -22,6 +22,38 @@
 
 #include "scatter_point_dataset.h"
 
+CNode::CNode() : type_(UNKNOWN), level_(-1) {
+
+}
+
+CNode::~CNode() {
+
+}
+
+CLeaf::CLeaf() : CNode() {
+	type_ = CNode::LEAF;
+}
+
+CLeaf::~CLeaf() {
+
+}
+
+CBranch::CBranch() : CNode() {
+	type_ = CNode::BRANCH;
+}
+
+CBranch::~CBranch() {
+
+}
+
+CNode* CBranch::FindNearestNode(float x, float y) {
+	return NULL;
+}
+
+CNode* CBranch::FindNearestValue(std::vector< float >& values) {
+	return NULL;
+}
+
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
 	min_edge_length_(0) {
@@ -93,7 +125,6 @@ void TreeCommon::ConstructOnRandomSample(int sample_num) {
 				temp_leaf->average_values[j] /= neighbour_list.size();
 
 			leaf_nodes_.push_back(temp_leaf);
-			temp_leaf->seq_index = i;
 			temp_leaf->set_level(0);
 		}
 	VtkTriangulation();
@@ -141,7 +172,6 @@ void TreeCommon::ConstructDirectly() {
 				temp_leaf->average_values[j] /= neighbour_list.size();
 
 			leaf_nodes_.push_back(temp_leaf);
-			temp_leaf->seq_index = i;
 			temp_leaf->set_level(0);
 		}
 
