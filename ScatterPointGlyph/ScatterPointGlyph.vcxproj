@@ -147,6 +147,7 @@
     <ClCompile Include="data\wrf_nc_lambcc_projection_data.cpp" />
     <ClCompile Include="data\wrf_nc_square_projection_data.cpp" />
     <ClCompile Include="data\wrf_utility.cpp" />
+    <ClCompile Include="field_rendering_layer.cpp" />
     <ClCompile Include="gco-v3.0\GCoptimization.cpp" />
     <ClCompile Include="gco-v3.0\graph.cpp" />
     <ClCompile Include="gco-v3.0\LinkedBlockList.cpp" />
@@ -318,6 +319,7 @@
   <ItemGroup>
     <ClInclude Include="basic_glyph_layer.h" />
     <ClInclude Include="color_mapping_generator.h" />
+    <ClInclude Include="field_rendering_layer.h" />
     <ClInclude Include="immediate_gestalt_tree.h" />
     <ClInclude Include="immediate_tree.h" />
     <ClInclude Include="multi_label_processor.h" />

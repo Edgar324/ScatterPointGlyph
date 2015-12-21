@@ -269,6 +269,9 @@
     <ClCompile Include="color_mapping_generator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="field_rendering_layer.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -431,6 +434,9 @@
     </ClInclude>
     <ClInclude Include="color_mapping_generator.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="field_rendering_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
