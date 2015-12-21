@@ -1,1 +1,1 @@
-PATH=$(QTDIR)\bin%3b$(VTKDIR)\bin\$(Configuration)%3b$(MRPTDIR)\bin;$(NETCDFDIR)\bin;$(PATH)
+PATH=$(QTDIR)\bin%3b$(VTKDIR)\bin\$(Configuration)%3b$(MRPTDIR)\bin;$(NETCDFDIR)\bin;$(GLEWDIR)\bin\Release\$(Platform);$(PATH)

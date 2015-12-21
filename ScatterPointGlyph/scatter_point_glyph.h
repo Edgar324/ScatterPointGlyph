@@ -32,6 +32,9 @@ class ClusterSolver;
 class ScatterPointView;
 class WrfDataManager;
 class TreeCommon;
+class ParallelCoordinate;
+class ParallelDataset;
+class TransMap;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -57,6 +60,9 @@ private:
 	ScatterPointView* main_view_;
 	vtkRenderer* main_renderer_;
 
+	ParallelCoordinate* parallel_coordinate_;
+	ParallelDataset* parallel_dataset_;
+
 	QActionGroup* sys_mode_action_group_;
 
 	QDockWidget* layer_control_panel_;
@@ -71,6 +77,7 @@ private:
 	PointRenderingLayer* cluster_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
 	MapRenderingLayer* map_rendering_layer_;
+	TransMap* trans_map_;
 
 	SystemMode sys_mode_;
 	std::vector< TreeCommon* > cluster_tree_vec_;
@@ -79,6 +86,9 @@ private:
 
 	WrfDataManager* data_manager_;
 	ScatterPointDataset* dataset_;
+
+	int cluter_num;
+	std::vector< int > cluster_index;
 
 	void InitWidget();
 	void AddPointData2View();
@@ -89,6 +99,7 @@ private:
 private slots:
 	void OnActionOpenVtkFileTriggered();
 	void OnActionOpenRawGridFileTriggered();
+	void OnActionOpenScatterFileTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
 
@@ -98,6 +109,8 @@ private slots:
 	void UpdateClusterView();
 	
 	void OnClusterFinished();
+
+	void OnGlyphSelected(int x, int y);
 };
 
 #endif // SCATTER_POINT_GLYPH_H

@@ -25,7 +25,7 @@ void MultiLabelProcessor::SetData(std::vector< std::vector< float > >& pos, std:
 	this->edge_weights_.resize(edges.size());
 	for (int i = 0; i < edges.size(); ++i) {
 		this->edge_weights_[i].resize(edges[i].size());
-		this->edge_weights_[i].assign(edges_[i].size(), 1);
+		this->edge_weights_[i].assign(edges_[i].size(), 0);
 	}
 }
 
@@ -59,7 +59,10 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 				point_edge_num[i]++;
 				point_edge_num[j]++;
 			}
-	for (int i = 0; i < point_num_; ++i) point_un_[i] /= point_edge_num[i];
+	for (int i = 0; i < point_num_; ++i) {
+		if (point_edge_num[i] != 0) point_un_[i] /= point_edge_num[i];
+		else point_un_[i] = 1.0;
+	}
 
 	ExtractEstimatedModels();
 
@@ -112,18 +115,18 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			int site_index = estimated_models_[i][j];
 			float value_dis = 0;
 			for (int k = 0; k < var_weights_.size(); ++k)
-				value_dis += abs(point_value_[site_index][k] - average_values[i][k]) * var_weights_[k];
-			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2)) / max_radius_;
+				value_dis += abs(point_value_[site_index][k] - average_values[i][k]) * var_weights_[k] * 1;
+			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2))/* / max_radius_*/;
 			//if (pos_dis > 1.0) pos_dis = 1.0 + (pos_dis - 1.0) * 5;
 
 			data_cost_[site_index][i] = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
-			data_cost_[site_index][i] *= average_un[i];
+			//data_cost_[site_index][i] *= average_un[i];
 			//data_cost_[site_index][i] *= 10;
 
 			value_var += pow(value_dis, 2);
 		}
-		value_var = sqrt(value_var / model_size);
-		label_cost_[i] = value_var * 10;
+		value_var = sqrt(value_var / model_size) + 0.01;
+		label_cost_[i] = (value_var + average_un[i]) * 500;
 	}
 
 	for (int i = 0; i < label_num; ++i){
@@ -133,7 +136,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			smooth_cost_[i][j] = 0;
 			for (int k = 0; k < var_weights_.size(); ++k)
 				smooth_cost_[i][j] += abs(average_values[i][k] - average_values[j][k]) * var_weights_[k];
-			smooth_cost_[i][j] += 0.001;
+			smooth_cost_[i][j] += 0.1;
 			smooth_cost_[j][i] = smooth_cost_[i][j];
 		}
 	}
@@ -203,7 +206,8 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 			float min_dist = 1e20;
 			int min_index = -1;
 			for (int k = 0; k < point_num_; ++k)
-				if (!is_reached[k] && node_distance[k] < min_dist && node_distance[k] < max_radius_) {
+				if (!is_reached[k] && node_distance[k] < min_dist && node_distance[k] < max_radius_ 
+					&& abs(point_value_[k][0] - point_value_[sample_center_index[i]][0]) <= 0.3 * point_value_[sample_center_index[i]][0] + 0.2) {
 					min_dist = node_distance[k];
 					min_index = k;
 				}

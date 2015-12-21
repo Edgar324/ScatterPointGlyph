@@ -63,7 +63,7 @@ std::vector< float >& UncertaintyTree::GetUncertainty() {
 	for (int i = 0; i < level_node.size(); ++i) {
 		std::vector< int > point_vec;
 		this->Traverse(level_node[i], point_vec);
-		for (int j = 0; j < point_vec.size(); ++j) un_value_[dataset_->sample_index[point_vec[j]]] = 1.0 - leaf_node_un_[point_vec[j]];
+		for (int j = 0; j < point_vec.size(); ++j) un_value_[dataset_->sample_index[point_vec[j]]] = leaf_node_un_[point_vec[j]];
 	}
 
 	return un_value_;
@@ -77,6 +77,15 @@ void UncertaintyTree::run() {
 	}
 
 	this->ConstructDirectly();
+	for (int i = 0; i < leaf_nodes_.size() - 1; ++i)
+		for (int j = i + 1; j < leaf_nodes_.size(); ++j) 
+			if (node_connecting_status_[i][j]) {
+				float dis = sqrt(pow(leaf_nodes_[i]->center_pos[0] - leaf_nodes_[j]->center_pos[0], 2) + pow(leaf_nodes_[i]->center_pos[1] - leaf_nodes_[j]->center_pos[1], 2));
+				if (dis > 0.5 * max_radius_threshold_) {
+					node_connecting_status_[i][j] = false;
+					node_connecting_status_[j][i] = false;
+				}
+			}
 
 	edge_weights_.resize(leaf_nodes_.size());
 	for (int i = 0; i < leaf_nodes_.size(); ++i)
@@ -134,7 +143,8 @@ void UncertaintyTree::GenerateUncertainty() {
 				point_edge_num[i]++;
 				point_edge_num[j]++;
 			}
-	for (int i = 0; i < leaf_nodes_.size(); ++i) leaf_node_un_[i] /= point_edge_num[i];
+	for (int i = 0; i < leaf_nodes_.size(); ++i) 
+		if (point_edge_num[i] != 0) leaf_node_un_[i] /= point_edge_num[i];
 }
 
 void UncertaintyTree::GenerateCluster() {

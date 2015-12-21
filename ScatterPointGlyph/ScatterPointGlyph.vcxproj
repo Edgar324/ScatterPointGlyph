@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;$(GLEWDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -100,9 +100,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;$(GLEWDIR)\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132-dbg.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkInteractionWidgets-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132-dbg.lib;qtmaind.lib;Qt5Cored.lib;Qt5Guid.lib;Qt5OpenGLd.lib;opengl32.lib;glu32.lib;Qt5Widgetsd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,7 +124,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(MRPTDIR)\libs\base\include;$(MRPTDIR)\include\mrpt\mrpt-config;$(NETCDFDIR)\include;.\scagnostics;.\data;$(GLEWDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -133,9 +133,9 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(QTDIR)\lib;$(VTKDIR)\lib\$(Configuration);$(MRPTDIR)\lib;$(NETCDFDIR)\lib;$(GLEWDIR)\lib\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32.lib;netcdf.lib;vtkCommonCore-6.3.lib;vtkCommonMath-6.3.lib;vtkCommonDataModel-6.3.lib;vtkFiltersCore-6.3.lib;vtkFiltersGeneral-6.3.lib;vtkFiltersSources-6.3.lib;vtkCommonExecutionModel-6.3.lib;vtkCommonMisc-6.3.lib;vtkIOCore-6.3.lib;vtkIOLegacy-6.3.lib;vtkGUISupportQt-6.3.lib;vtkRenderingCore-6.3.lib;vtkRenderingOpenGL-6.3.lib;vtkRenderingFreeType-6.3.lib;vtkInteractionStyle-6.3.lib;vtkInteractionWidgets-6.3.lib;vtkRenderingVolumeOpenGL-6.3.lib;libmrpt-base132.lib;qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -171,6 +171,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_layer_control_widget.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_parallel_coordinate.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
@@ -220,6 +224,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_parallel_coordinate.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_rendering_layer_model.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -247,6 +255,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_layer.cpp" />
     <ClCompile Include="multi_label_processor.cpp" />
+    <ClCompile Include="parallel_coordinate.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
     <ClCompile Include="property_extractor.cpp" />
     <ClCompile Include="proximity_extractor.cpp" />
@@ -260,6 +269,8 @@
     <ClCompile Include="scatter_point_glyph.cpp" />
     <ClCompile Include="scatter_point_view.cpp" />
     <ClCompile Include="similarity_extractor.cpp" />
+    <ClCompile Include="transmap.cpp" />
+    <ClCompile Include="transmap_data.cpp" />
     <ClCompile Include="tree_common.cpp" />
     <ClCompile Include="uncertainty_tree.cpp" />
   </ItemGroup>
@@ -308,6 +319,26 @@
     <ClInclude Include="immediate_gestalt_tree.h" />
     <ClInclude Include="immediate_tree.h" />
     <ClInclude Include="multi_label_processor.h" />
+    <CustomBuild Include="parallel_coordinate.h">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing parallel_coordinate.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Moc%27ing parallel_coordinate.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DDEBUG_ON -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config" "-I$(NETCDFDIR)\include" "-I.\scagnostics" "-I.\data"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Moc%27ing parallel_coordinate.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Moc%27ing parallel_coordinate.h...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config" "-I$(NETCDFDIR)\include" "-I.\scagnostics" "-I.\data"</Command>
+    </CustomBuild>
+    <ClInclude Include="transmap.h" />
+    <ClInclude Include="transmap_data.h" />
     <ClInclude Include="tree_common.h" />
     <ClInclude Include="uncertainty_tree.h" />
     <CustomBuild Include="cluster_solver.h">

@@ -15,9 +15,11 @@ public:
 
 signals:
 	void ViewUpdated();
+	void GlyphSelected(int x, int y);
 
 protected:
 	void wheelEvent(QWheelEvent* event);
+	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
 
 private:

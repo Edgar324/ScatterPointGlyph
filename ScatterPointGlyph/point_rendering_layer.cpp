@@ -21,7 +21,7 @@ void PointRenderingLayer::SetData(vtkPolyData* data) {
 void PointRenderingLayer::SetPointValue(std::vector< float >& values){
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < values.size(); ++i) {
-		int grey = (int)(values[i] * 255);
+		int grey = (int)((1.0 - values[i]) * 255);
 		color_array->SetTuple3(i, grey, grey, grey);
 	}
 	color_array->Modified();
@@ -41,13 +41,13 @@ void PointRenderingLayer::SetHighlightPointIndex(std::vector< int >& index) {
 }
 
 void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index) {
-	std::vector< int > rgb;
-	rgb.resize(3 * cluster_count);
+	srand((unsigned int)time(0));
+	cluster_color_.resize(3 * cluster_count);
 	for (int i = 0; i < cluster_count; ++i) {
 		
-		rgb[3 * i] = 255 * rand() / RAND_MAX;
-		rgb[3 * i + 1] = 255 * rand() / RAND_MAX;
-		rgb[3 * i + 2] = 255 * rand() / RAND_MAX;
+		cluster_color_[3 * i] = 255 * rand() / RAND_MAX;
+		cluster_color_[3 * i + 1] = 255 * rand() / RAND_MAX;
+		cluster_color_[3 * i + 2] = 255 * rand() / RAND_MAX;
 	}
 
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
@@ -56,7 +56,7 @@ void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >&
 		if (cindex < 0)
 			color_array->SetTuple3(i, 0, 0, 0);
 		else
-			color_array->SetTuple3(i, rgb[cindex], rgb[cindex + 1], rgb[cindex + 2]);
+			color_array->SetTuple3(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2]);
 	}
 	color_array->Modified();
 }

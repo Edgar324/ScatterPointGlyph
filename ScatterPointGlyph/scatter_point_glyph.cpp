@@ -22,6 +22,7 @@
 #include <vtkCamera.h>
 #include <vtkMatrix4x4.h>
 #include <vtkInteractorObserver.h>
+#include <vtkDelaunay2D.h>
 
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QMessageBox>
@@ -44,11 +45,14 @@
 #include "immediate_tree.h"
 #include "immediate_gestalt_tree.h"
 #include "uncertainty_tree.h"
+#include "parallel_coordinate.h"
+#include "transmap.h"
+#include "transmap_data.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
 	cluster_glyph_layer_(NULL), original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL), un_rendering_layer_(NULL), 
-	map_rendering_layer_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
+	map_rendering_layer_(NULL), parallel_dataset_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
 
 	ui_.setupUi(this);
 
@@ -66,15 +70,21 @@ ScatterPointGlyph::~ScatterPointGlyph() {
 void ScatterPointGlyph::InitWidget() {
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
-	QHBoxLayout* central_widget_layout = new QHBoxLayout;
+	parallel_coordinate_ = new ParallelCoordinate;
+	QVBoxLayout* central_widget_layout = new QVBoxLayout;
 	central_widget_layout->addWidget(main_view_);
+	central_widget_layout->addWidget(parallel_coordinate_);
 	ui_.centralWidget->setLayout(central_widget_layout);
+
+	trans_map_ = TransMap::New();
+	trans_map_->SetInteractor(main_view_->GetInteractor());
 
 	main_renderer_ = vtkRenderer::New();
 	main_renderer_->RemoveAllViewProps();
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateClusterView()));
+	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 
 	layer_control_widget_ = new LayerControlWidget;
 	rendering_layer_model_ = new RenderingLayerModel;
@@ -98,7 +108,7 @@ void ScatterPointGlyph::InitWidget() {
 	sys_mode_action_group_->addAction(ui_.actionImmediate_Gestalts);
 	sys_mode_action_group_->setExclusive(true);
 
-	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenVtkFileTriggered()));
+	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
 	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(UpdateClusterView()));
 }
@@ -177,15 +187,21 @@ void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
 	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
 
 	data_manager_->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("E:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
-	std::vector< WrfGridValueMap* > maps;
+	data_manager_->LoadEnsembleData(WRF_MSLP, std::string("E:/Data/ens_l/pres_msl_latlon_all_20150401_20150430_liaoawNRCR.nc"));
+	data_manager_->LoadEnsembleData(WRF_T2M, std::string("E:/Data/ens_l/tmp_2m_latlon_all_20150401_20150430_liaoSwbPtU.nc"));
+	data_manager_->LoadEnsembleData(WRF_PRECIPITABLE_WATER, std::string("E:/Data/ens_l/pwat_eatm_latlon_all_20150401_20150430_liao5WubTq.nc"));
+	std::vector< std::vector< WrfGridValueMap* > > maps;
+	maps.resize(4);
 	QDateTime temp_datetime = QDateTime(QDate(2015, 4, 5), QTime(0, 0));
-	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_ACCUMULATED_PRECIPITATION, 24, maps);
+	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_ACCUMULATED_PRECIPITATION, 24, maps[0]);
+	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_MSLP, 24, maps[1]);
+	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_T2M, 24, maps[2]);
+	data_manager_->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_PRECIPITABLE_WATER, 24, maps[3]);
 	MapRange map_range;
 	data_manager_->GetModelMapRange(WRF_NCEP_ENSEMBLES, map_range);
 
 	int point_num = map_range.x_grid_number * map_range.y_grid_number;
 	dataset_->original_point_values.resize(point_num);
-	for (int i = 0; i < point_num; ++i) dataset_->original_point_values[i].resize(1);
 	dataset_->original_point_pos.resize(point_num);
 	for (int i = 0; i < point_num; ++i) dataset_->original_point_pos[i].resize(2);
 
@@ -194,11 +210,36 @@ void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
 		int h = i / map_range.x_grid_number;
 		dataset_->original_point_pos[i][0] = map_range.start_x + map_range.x_grid_space * w;
 		dataset_->original_point_pos[i][1] = map_range.start_y + map_range.y_grid_space * h;
-		dataset_->original_point_values[i][0] = maps[0]->values[i];
+
+		dataset_->original_point_values[i].push_back(maps[0][0]->values[i]);
+		dataset_->original_point_values[i].push_back(maps[1][0]->values[i]);
+		dataset_->original_point_values[i].push_back(maps[2][0]->values[i]);
+		dataset_->original_point_values[i].push_back(maps[3][0]->values[i]);
 	}
 	dataset_->is_structured_data = true;
 	dataset_->w = map_range.x_grid_number;
 	dataset_->h = map_range.y_grid_number;
+
+	dataset_->DirectConstruct();
+	this->AddPointData2View();
+}
+
+void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
+	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
+
+	std::ifstream input_file("E:/Projects/DataProcessing/MdsConverter/mds_result.txt");
+	int record_num, value_num;
+	input_file >> record_num >> value_num;
+	dataset_->original_point_pos.resize(record_num);
+	dataset_->original_point_values.resize(record_num);
+	for (int i = 0; i < record_num; ++i) {
+		dataset_->original_point_pos[i].resize(2);
+		dataset_->original_point_values[i].resize(value_num);
+
+		input_file >> dataset_->original_point_pos[i][0] >> dataset_->original_point_pos[i][1];
+		for (int j = 0; j < value_num; ++j)
+			input_file >> dataset_->original_point_values[i][j];
+	}
 
 	dataset_->DirectConstruct();
 	this->AddPointData2View();
@@ -268,6 +309,32 @@ void ScatterPointGlyph::OnActionCloseTriggered() {
 
 void ScatterPointGlyph::OnActionExitTriggered() {
 	
+}
+
+void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
+	double point[4];
+	vtkInteractorObserver::ComputeDisplayToWorld(this->main_renderer_, (double)x, (double)this->main_view_->height() - y, 0, point);
+
+	if (cluster_glyph_layer_ != NULL) {
+		cluster_glyph_layer_->Select(point[0], point[1]);
+		std::vector< bool > is_cluster_selected = cluster_glyph_layer_->GetClusterSelection();
+		std::vector< int > cluster_color = cluster_point_rendering_layer_->GetClusterColor();
+		parallel_dataset_->is_record_selected.resize(1);
+		parallel_dataset_->is_record_selected[0].resize(dataset_->original_point_pos.size());
+		parallel_dataset_->is_record_selected[0].assign(dataset_->original_point_pos.size(), false);
+		parallel_dataset_->record_color.resize(1);
+		parallel_dataset_->record_color[0].resize(dataset_->original_point_pos.size());
+
+		for (int i = 0; i < is_cluster_selected.size(); ++i)
+			if (is_cluster_selected[i]) {
+				for (int j = 0; j < cluster_index.size(); ++j)
+					if (cluster_index[j] == i) {
+						parallel_dataset_->is_record_selected[0][j] = true;
+						parallel_dataset_->record_color[0][j] = QColor(cluster_color[3 * i], cluster_color[3 * i + 1], cluster_color[3 * i + 2]);
+					}
+			}
+	}
+	parallel_coordinate_->update();
 }
 
 void ScatterPointGlyph::OnSysmodeChanged() {
@@ -395,7 +462,7 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (original_point_rendering_layer_ == NULL) {
 		original_point_rendering_layer_ = new PointRenderingLayer;
 		main_renderer_->AddActor(original_point_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor(), false);
+		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_->actor());
 	}
 	original_point_rendering_layer_->SetData(original_vertex_data);
 	original_point_rendering_layer_->SetPointValue(represent_value);
@@ -405,7 +472,7 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (cluster_point_rendering_layer_ == NULL) {
 		cluster_point_rendering_layer_ = new PointRenderingLayer;
 		main_renderer_->AddActor(cluster_point_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Cluster Point Layer"), cluster_point_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Cluster Point Layer"), cluster_point_rendering_layer_->actor(), false);
 	}
 	cluster_point_rendering_layer_->SetData(cluster_vert_data);
 	cluster_point_rendering_layer_->SetPointValue(represent_value);
@@ -415,9 +482,29 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (un_rendering_layer_ == NULL) {
 		un_rendering_layer_ = new PointRenderingLayer;
 		main_renderer_->AddActor(un_rendering_layer_->actor());
-		rendering_layer_model_->AddLayer(QString("Uncertainty Map"), un_rendering_layer_->actor());
+		rendering_layer_model_->AddLayer(QString("Uncertainty Map"), un_rendering_layer_->actor(), false);
 	}
 	un_rendering_layer_->SetData(un_vert_data);
+
+	if (parallel_dataset_ == NULL) {
+		parallel_dataset_ = new ParallelDataset;
+		parallel_dataset_->subset_names.push_back(QString("MDS Data"));
+		parallel_dataset_->subset_records.resize(1);
+		parallel_dataset_->axis_anchors.resize(dataset_->original_point_values[0].size());
+		for (int i = 0; i < dataset_->original_point_values[0].size(); ++i) {
+			parallel_dataset_->axis_anchors[i].push_back(QString("0"));
+			parallel_dataset_->axis_anchors[i].push_back(QString("1"));
+			parallel_dataset_->axis_names.push_back(QString("v"));
+		}
+
+		for (int i = 0; i < dataset_->point_values.size(); ++i) {
+			ParallelRecord* record = new ParallelRecord;
+			record->values = dataset_->point_values[i];
+			parallel_dataset_->subset_records[0].push_back(record);
+		}
+		parallel_dataset_->CompleteInput();
+		parallel_coordinate_->SetDataset(parallel_dataset_);
+	}
 
 	main_renderer_->ResetCamera();
 	main_view_->update();
@@ -432,9 +519,6 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		int cluter_num;
-		std::vector< int > cluster_index;
-
 		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
 		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
 		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
@@ -444,9 +528,6 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	if (sys_mode_ == IMMEDIATE_PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		int cluter_num;
-		std::vector< int > cluster_index;
-
 		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE];
 		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
 		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
@@ -456,9 +537,6 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	if (sys_mode_ == IMMEDIATE_GESTALT_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		int cluter_num;
-		std::vector< int > cluster_index;
-
 		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_GESTALT_MODE];
 		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
 		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 20, dis_per_pixel_ * 20);
@@ -468,9 +546,6 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		int cluter_num;
-		std::vector< int > cluster_index;
-
 		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
 		un_tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluter_num, cluster_index);
 		cluster_glyph_layer_->SetRadiusRange(dis_per_pixel_ * 30, dis_per_pixel_ * 30);
@@ -478,6 +553,74 @@ void ScatterPointGlyph::OnClusterFinished() {
 
 		cluster_point_rendering_layer_->SetClusterIndex(cluter_num, cluster_index);
 		un_rendering_layer_->SetPointValue(un_tree->GetUncertainty());
+
+		TransMapData* data = new TransMapData;
+		data->node_center.resize(cluter_num);
+		data->node_average_value.resize(cluter_num);
+		data->node_num = cluter_num;
+		data->var_num = dataset_->weights.size();
+		for (int i = 0; i < cluter_num; ++i) {
+			data->node_average_value[i].resize(data->var_num, 0);
+			data->node_center[i].resize(2, 0);
+		}
+
+		std::vector< int > cluster_point_count;
+		cluster_point_count.resize(cluter_num);
+		cluster_point_count.assign(cluter_num, 0);
+		for (int i = 0; i < cluster_index.size(); ++i) {
+			int temp_index = cluster_index[i];
+			if (temp_index < 0) continue;
+			data->node_center[temp_index][0] += dataset_->original_point_pos[i][0];
+			data->node_center[temp_index][1] += dataset_->original_point_pos[i][1];
+			for (int j = 0; j < dataset_->weights.size(); ++j)
+				data->node_average_value[temp_index][j] += (dataset_->original_point_values[i][j] - dataset_->original_value_ranges[j][0]) / (dataset_->original_value_ranges[j][1] - dataset_->original_value_ranges[j][0]);
+			cluster_point_count[temp_index]++;
+		}
+		for (int i = 0; i < cluter_num; ++i)
+			if (cluster_point_count[i] != 0) {
+				data->node_center[i][0] /= cluster_point_count[i];
+				data->node_center[i][1] /= cluster_point_count[i];
+				for (int j = 0; j < dataset_->weights.size(); ++j)
+					data->node_average_value[i][j] /= cluster_point_count[i];
+			}
+			else {
+				std::cout << "Empty cluster detected." << std::endl;
+				return;
+			}
+
+			vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
+			for (int i = 0; i < data->node_num; ++i) {
+				points->InsertNextPoint(data->node_center[i][0], data->node_center[i][1], 0);
+			}
+			vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
+			polydata->SetPoints(points);
+			vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer< vtkDelaunay2D >::New();
+			delaunay->SetInputData(polydata);
+			delaunay->SetTolerance(0.00001);
+			delaunay->SetBoundingTriangulation(false);
+			delaunay->Update();
+			vtkPolyData* triangle_out = delaunay->GetOutput();
+
+			data->node_connecting_status.resize(data->node_num);
+			for (int k = 0; k < data->node_num; ++k) data->node_connecting_status[k].resize(data->node_num, false);
+			for (int k = 0; k < triangle_out->GetNumberOfPolys(); ++k){
+				vtkCell* cell = triangle_out->GetCell(k);
+				int id1 = cell->GetPointId(0);
+				int id2 = cell->GetPointId(1);
+				int id3 = cell->GetPointId(2);
+				data->node_connecting_status[id1][id2] = true;
+				data->node_connecting_status[id2][id1] = true;
+				data->node_connecting_status[id2][id3] = true;
+				data->node_connecting_status[id3][id2] = true;
+				data->node_connecting_status[id1][id3] = true;
+				data->node_connecting_status[id3][id1] = true;
+			}
+
+			data->var_repsentative_color = cluster_point_rendering_layer_->GetClusterColor();
+
+			trans_map_->SetNodeRadius(dis_per_pixel_ * 20);
+			trans_map_->SetData(data);
+			trans_map_->SetEnabled(true);
 	}
 
 	main_view_->update();

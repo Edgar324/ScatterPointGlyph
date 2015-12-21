@@ -248,6 +248,24 @@
     <ClCompile Include="multi_label_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="uncertainty_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_parallel_coordinate.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_parallel_coordinate.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="parallel_coordinate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="transmap.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="transmap_data.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -287,6 +305,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="scatter_point_view.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="parallel_coordinate.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -395,6 +416,15 @@
     </ClInclude>
     <ClInclude Include="multi_label_processor.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uncertainty_tree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transmap.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="transmap_data.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
