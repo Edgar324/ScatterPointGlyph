@@ -28,6 +28,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QActionGroup>
+#include <QtWidgets/QSplitter>
 
 #include "layer_control_widget.h"
 #include "rendering_layer_model.h"
@@ -49,6 +50,10 @@
 #include "transmap.h"
 #include "transmap_data.h"
 #include "color_mapping_generator.h"
+#include "field_rendering_layer.h"
+#include "distance_matrix_layer.h"
+#include "path_explore_widget.h"
+#include "path_dataset.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
@@ -72,17 +77,51 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
 	parallel_coordinate_ = new ParallelCoordinate;
-	QVBoxLayout* central_widget_layout = new QVBoxLayout;
-	central_widget_layout->addWidget(main_view_);
-	central_widget_layout->addWidget(parallel_coordinate_);
-	ui_.centralWidget->setLayout(central_widget_layout);
+	QVBoxLayout* transmap_widget_layout = new QVBoxLayout;
+	transmap_widget_layout->addWidget(main_view_);
+	transmap_widget_layout->addWidget(parallel_coordinate_);
+
+	path_explore_view_ = new PathExploreWidget;
+	QVBoxLayout* path_explore_layout = new QVBoxLayout;
+	path_explore_layout->addWidget(path_explore_view_);
+	QWidget* temp_widget = new QWidget;
+	path_explore_layout->addWidget(temp_widget);
+
+	QWidget* transmap_widget = new QWidget;
+	transmap_widget->setLayout(transmap_widget_layout);
+	QWidget* explore_widget = new QWidget;
+	explore_widget->setLayout(path_explore_layout);
+
+	QSplitter* main_splitter = new QSplitter(Qt::Horizontal);
+	main_splitter->addWidget(transmap_widget);
+	main_splitter->addWidget(explore_widget);
+
+	QHBoxLayout* main_layout = new QHBoxLayout;
+	main_layout->addWidget(main_splitter);
+	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
-	main_renderer_->RemoveAllViewProps();
-	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
+	main_renderer_->SetViewport(0.0, 0.0, 0.7, 1.0);
+	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateClusterView()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
+
+	dis_matrix_renderer_ = vtkRenderer::New();
+	main_view_->GetRenderWindow()->AddRenderer(dis_matrix_renderer_);
+	dis_matrix_renderer_->SetViewport(0.7, 0.5, 1.0, 1.0);
+	double eyepos[] = { 0.5, 0.5, 2.0 };
+	double viewup[] = { 0.0, 1.0, 0.0 };
+	dis_matrix_renderer_->GetActiveCamera()->SetPosition(eyepos);
+	//dis_matrix_renderer_->GetActiveCamera()->SetViewUp(viewup);
+	dis_matrix_renderer_->GetActiveCamera()->SetFocalPoint(0.5, 0.5, 0.0);
+	dis_matrix_renderer_->GetActiveCamera()->Modified();
+	dis_matrix_renderer_->SetBackground(1.0, 1.0, 1.0);
+
+	other_renderer_ = vtkRenderer::New();
+	main_view_->GetRenderWindow()->AddRenderer(other_renderer_);
+	other_renderer_->SetViewport(0.7, 0.0, 1.0, 0.5);
+	//other_renderer_->SetBackground(1.0, 1.0, 1.0);
 
 	layer_control_widget_ = new LayerControlWidget;
 	rendering_layer_model_ = new RenderingLayerModel;
@@ -95,6 +134,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	trans_map_ = TransMap::New();
 	trans_map_->SetInteractor(main_view_->GetInteractor());
+	trans_map_->SetDefaultRenderer(this->main_renderer_);
 	rendering_layer_model_->AddLayer(QString("Transfer Map"), trans_map_, false);
 
 	hier_para_widget_ = new HierParaWidget;
@@ -365,13 +405,66 @@ void ScatterPointGlyph::AddPointData2View() {
 	if (original_point_rendering_layer_ == NULL) {
 		original_point_rendering_layer_ = new PointRenderingLayer;
 		original_point_rendering_layer_->SetInteractor(main_view_->GetInteractor());
+		original_point_rendering_layer_->SetDefaultRenderer(this->main_renderer_);
 		rendering_layer_model_->AddLayer(QString("Original Point Layer"), original_point_rendering_layer_);
 	}
 	original_point_rendering_layer_->SetData(dataset_);
 
+	main_renderer_->ResetCamera();
+
+	// For test
+	for (int i = 0; i < dataset_->weights.size(); ++i) {
+		FieldRenderingLayer* field_layer = new FieldRenderingLayer;
+		field_layer->SetFieldData(dataset_, i);
+		std::vector< ColorMappingGenerator::ColorIndex > color_index;
+		bool b;
+		ColorMappingGenerator::GetInstance()->GetColorIndex(RMS_MAPPING, color_index, b);
+		std::vector< float > values;
+		std::vector< double > rgb;
+		for (int i = 0; i < color_index.size(); ++i) {
+			values.push_back(color_index[i].value_index);
+			rgb.push_back(color_index[i].color.redF());
+			rgb.push_back(color_index[i].color.greenF());
+			rgb.push_back(color_index[i].color.blueF());
+			rgb.push_back(1.0);
+		}
+		for (int j = 0; j < values.size(); ++j) values[j] /= values[values.size() - 1];
+		field_layer->SetColorScalar(values, rgb);
+		field_layer->SetInteractor(this->main_view_->GetInteractor());
+		field_layer->SetDefaultRenderer(this->main_renderer_);
+		rendering_layer_model_->AddLayer(QString("Field Layer"), field_layer, false);
+	}
+
+	DistanceMatrixLayer* matrix = new DistanceMatrixLayer;
+	std::vector< std::string > names;
+	std::vector< std::vector< float > > distance;
+	for (int i = 0; i < 5; ++i) names.push_back(std::string("test"));
+	distance.resize(5);
+	for (int i = 0; i < 5; ++i) {
+		for (int j = 0; j < 5; ++j) distance[i].push_back((float)rand() / RAND_MAX);
+	}
+	matrix->SetData(names, distance);
+	matrix->SetInteractor(this->main_view_->GetInteractor());
+	matrix->SetDefaultRenderer(this->dis_matrix_renderer_);
+	matrix->SetEnabled(true);
+
 	this->UpdateParallelCoordinate();
 
-	main_renderer_->ResetCamera();
+	// for test
+	PathDataset* pathset = new PathDataset;
+	for (int i = 0; i < 5; ++i) {
+		PathRecord* record = new PathRecord;
+		record->item_values.resize(4);
+		for (int j = 0; j < 4; ++j) record->item_values[j].resize(18, 1);
+		record->change_values.resize(3);
+		for (int j = 0; j < 3; ++j) {
+			for (int k = 0; k < 18; ++k)
+				record->change_values[j].push_back((float)rand() / RAND_MAX - 0.5);
+		}
+		pathset->path_records.push_back(record);
+	}
+	path_explore_view_->SetData(pathset);
+
 	main_view_->update();
 }
 
@@ -433,6 +526,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 		trans_map_->SetNodeRadius(dis_per_pixel_ * 20);
 		trans_map_->SetData(data);
 		trans_map_->SetEnabled(true);
+
 		layer_control_widget_->UpdateWidget();
 	}
 

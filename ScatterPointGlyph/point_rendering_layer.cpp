@@ -87,27 +87,18 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 	if (enabling) {
 		if (this->Enabled) return;
 
-		if (!this->CurrentRenderer) {
-			this->SetCurrentRenderer(
-				this->Interactor->FindPokedRenderer(
-				this->Interactor->GetLastEventPosition()[0],
-				this->Interactor->GetLastEventPosition()[1]));
-			if (this->CurrentRenderer == NULL) return;
-		}
-
 		this->Enabled = 1;
 
-		this->CurrentRenderer->AddActor(this->actor_);
+		this->DefaultRenderer->AddActor(this->actor_);
 	}
 	else {
 		if (!this->Enabled) return;
 
 		this->Enabled = 0;
 
-		this->CurrentRenderer->RemoveActor(this->actor_);
+		this->DefaultRenderer->RemoveActor(this->actor_);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
-		this->SetCurrentRenderer(NULL);
 	}
 
 	this->Interactor->Render();

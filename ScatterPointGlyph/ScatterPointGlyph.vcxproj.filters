@@ -272,6 +272,27 @@
     <ClCompile Include="field_rendering_layer.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
     </ClCompile>
+    <ClCompile Include="distance_matrix_layer.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_path_explore_widget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_path_explore_widget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="path_explore_widget.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="path_explore_item.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_path_explore_item.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_path_explore_item.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -317,6 +338,12 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="transmap.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="path_explore_widget.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="path_explore_item.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -437,6 +464,12 @@
     </ClInclude>
     <ClInclude Include="field_rendering_layer.h">
       <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="distance_matrix_layer.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="path_dataset.h">
+      <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

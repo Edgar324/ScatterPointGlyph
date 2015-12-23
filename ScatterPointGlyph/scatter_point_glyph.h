@@ -35,6 +35,7 @@ class TreeCommon;
 class ParallelCoordinate;
 class ParallelDataset;
 class TransMap;
+class PathExploreWidget;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -59,9 +60,13 @@ private:
 	Ui::ScatterPointGlyphClass ui_;
 	ScatterPointView* main_view_;
 	vtkRenderer* main_renderer_;
+	vtkRenderer* dis_matrix_renderer_;
+	vtkRenderer* other_renderer_;
 
 	ParallelCoordinate* parallel_coordinate_;
 	ParallelDataset* parallel_dataset_;
+
+	PathExploreWidget* path_explore_view_;
 
 	QActionGroup* sys_mode_action_group_;
 

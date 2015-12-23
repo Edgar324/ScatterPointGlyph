@@ -2,10 +2,13 @@
 #define FIELD_RENDERING_LAYER_H_
 
 #include <vtk3DWidget.h>
+#include <vtkScalarBarActor.h>
+#include <vector>
 
 class vtkActor;
 class vtkPolyData;
 class vtkPolyDataMapper;
+class vtkLookupTable;
 class ScatterPointDataset;
 
 class FieldRenderingLayer : public vtk3DWidget
@@ -28,6 +31,7 @@ public:
 	}
 
 	void SetFieldData(ScatterPointDataset* data, int var_index);
+	void SetColorScalar(std::vector< float >& values, std::vector< double >& rgb);
 
 private:
 	vtkPolyData* field_polydata_;
@@ -37,6 +41,9 @@ private:
 	vtkPolyData* point_polydata_;
 	vtkPolyDataMapper* point_mapper_;
 	vtkActor* point_actor_;
+
+	vtkScalarBarActor* color_bar_actor_;
+	vtkLookupTable* lookup_table_;
 
 	ScatterPointDataset* dataset_;
 	int var_index_;

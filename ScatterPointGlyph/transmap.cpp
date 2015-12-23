@@ -284,14 +284,6 @@ void TransMap::SetEnabled(int enabling) {
 	if (enabling) {
 		if (this->Enabled) return;
 
-		if (!this->CurrentRenderer) {
-			this->SetCurrentRenderer(
-				this->Interactor->FindPokedRenderer(
-				this->Interactor->GetLastEventPosition()[0],
-				this->Interactor->GetLastEventPosition()[1]));
-			if (this->CurrentRenderer == NULL) return;
-		}
-
 		this->Enabled = 1;
 
 		this->Interactor->AddObserver(vtkCommand::MouseMoveEvent,
@@ -306,21 +298,21 @@ void TransMap::SetEnabled(int enabling) {
 			this->EventCallbackCommand, this->Priority);
 
 		for (int i = 0; i < level_one_node_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->AddActor(level_one_node_glyph_actors[i]);
+			this->DefaultRenderer->AddActor(level_one_node_glyph_actors[i]);
 			this->level_one_node_picker->AddPickList(level_one_node_glyph_actors[i]);
 		}
 
 		for (int i = 0; i < level_zero_node_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->AddActor(level_zero_node_glyph_actors[i]);
+			this->DefaultRenderer->AddActor(level_zero_node_glyph_actors[i]);
 			this->level_zero_node_picker->AddPickList(level_zero_node_glyph_actors[i]);
 		}
 
 		for (int i = 0; i < trans_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->AddActor(trans_glyph_actors[i]);
+			this->DefaultRenderer->AddActor(trans_glyph_actors[i]);
 			this->trans_picker->AddPickList(trans_glyph_actors[i]);
 		}
 
-		this->CurrentRenderer->AddActor(this->highlight_actor);
+		this->DefaultRenderer->AddActor(this->highlight_actor);
 	} else {
 		if (!this->Enabled) return;
 
@@ -329,24 +321,23 @@ void TransMap::SetEnabled(int enabling) {
 		this->Interactor->RemoveObserver(this->EventCallbackCommand);
 
 		for (int i = 0; i < level_one_node_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->RemoveActor(level_one_node_glyph_actors[i]);
+			this->DefaultRenderer->RemoveActor(level_one_node_glyph_actors[i]);
 			this->level_one_node_picker->DeletePickList(level_one_node_glyph_actors[i]);
 		}
 
 		for (int i = 0; i < level_zero_node_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->RemoveActor(level_zero_node_glyph_actors[i]);
+			this->DefaultRenderer->RemoveActor(level_zero_node_glyph_actors[i]);
 			this->level_zero_node_picker->DeletePickList(level_zero_node_glyph_actors[i]);
 		}
 
 		for (int i = 0; i < trans_glyph_actors.size(); ++i) {
-			this->CurrentRenderer->RemoveActor(trans_glyph_actors[i]);
+			this->DefaultRenderer->RemoveActor(trans_glyph_actors[i]);
 			this->trans_picker->DeletePickList(trans_glyph_actors[i]);
 		}
 
-		this->CurrentRenderer->RemoveActor(this->highlight_actor);
+		this->DefaultRenderer->RemoveActor(this->highlight_actor);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
-		this->SetCurrentRenderer(NULL);
 	}
 
 	this->Interactor->Render();
