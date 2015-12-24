@@ -11,10 +11,10 @@ public:
 	std::vector< std::vector< float > > item_values;
 
 	std::vector< std::vector< float > > change_values;
-	std::vector< std::vector< int > > fuzzy_change_values;
 
-	std::vector< bool > is_item_selected;
-	std::vector< bool > is_transition_selected;
+	std::vector< float > var_normalizing_values;
+	std::vector< float > var_min_values;
+	std::vector< std::string > var_names;
 };
 
 class PathDataset

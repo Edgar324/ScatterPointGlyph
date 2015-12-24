@@ -87,17 +87,9 @@ void ScatterPointGlyph::InitWidget() {
 	QWidget* temp_widget = new QWidget;
 	path_explore_layout->addWidget(temp_widget);
 
-	QWidget* transmap_widget = new QWidget;
-	transmap_widget->setLayout(transmap_widget_layout);
-	QWidget* explore_widget = new QWidget;
-	explore_widget->setLayout(path_explore_layout);
-
-	QSplitter* main_splitter = new QSplitter(Qt::Horizontal);
-	main_splitter->addWidget(transmap_widget);
-	main_splitter->addWidget(explore_widget);
-
 	QHBoxLayout* main_layout = new QHBoxLayout;
-	main_layout->addWidget(main_splitter);
+	main_layout->addLayout(transmap_widget_layout);
+	main_layout->addLayout(path_explore_layout);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -113,7 +105,6 @@ void ScatterPointGlyph::InitWidget() {
 	double eyepos[] = { 0.5, 0.5, 2.0 };
 	double viewup[] = { 0.0, 1.0, 0.0 };
 	dis_matrix_renderer_->GetActiveCamera()->SetPosition(eyepos);
-	//dis_matrix_renderer_->GetActiveCamera()->SetViewUp(viewup);
 	dis_matrix_renderer_->GetActiveCamera()->SetFocalPoint(0.5, 0.5, 0.0);
 	dis_matrix_renderer_->GetActiveCamera()->Modified();
 	dis_matrix_renderer_->SetBackground(1.0, 1.0, 1.0);
@@ -280,20 +271,17 @@ void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 		original_point_rendering_layer_->SetHighlightCluster(trans_map_->GetSelectedClusterIndex());
 	}
 
-	std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
-	parallel_dataset_->is_record_selected.resize(1);
-	parallel_dataset_->is_record_selected[0].resize(dataset_->original_point_pos.size());
-	parallel_dataset_->is_record_selected[0].assign(dataset_->original_point_pos.size(), false);
-	parallel_dataset_->record_color.resize(1);
-	parallel_dataset_->record_color[0].resize(dataset_->original_point_pos.size());
 
 	int current_selection_index = trans_map_->GetSelectedClusterIndex();
+	std::vector< int > temp_ids;
+	if (current_selection_index == -1) {
+		for (int i = 0; i < cluster_num; ++i)
+			temp_ids.push_back(i);
+	} else {
+		temp_ids.push_back(current_selection_index);
+	}
 
-	for (int i = 0; i < cluster_index.size(); ++i)
-		if (cluster_index[i] == current_selection_index) {
-			parallel_dataset_->is_record_selected[0][i] = true;
-			parallel_dataset_->record_color[0][i] = QColor(cluster_color[3 * current_selection_index], cluster_color[3 * current_selection_index + 1], cluster_color[3 * current_selection_index + 2]);
-		}
+	this->GenerateParallelDataset(parallel_dataset_, temp_ids);
 
 	parallel_coordinate_->update();
 }
@@ -462,6 +450,7 @@ void ScatterPointGlyph::AddPointData2View() {
 				record->change_values[j].push_back((float)rand() / RAND_MAX - 0.5);
 		}
 		pathset->path_records.push_back(record);
+		for (int k = 0; k < 18; ++k) record->var_names.push_back("Test");
 	}
 	path_explore_view_->SetData(pathset);
 
@@ -531,6 +520,35 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	main_view_->update();
+}
+
+void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids) {
+	pdata->ClearData();
+
+	std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
+	parallel_dataset_->subset_names.resize(cluster_ids.size());
+	parallel_dataset_->subset_colors.resize(cluster_ids.size());
+	parallel_dataset_->subset_records.resize(cluster_ids.size());
+	parallel_dataset_->axis_names.resize(dataset_->original_value_ranges.size());
+	parallel_dataset_->axis_anchors.resize(dataset_->original_value_ranges.size());
+
+	for (int i = 0; i < cluster_ids.size(); ++i) {
+		parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(cluster_ids[i]);
+		parallel_dataset_->subset_colors[i] = QColor(cluster_color[3 * cluster_ids[i]], cluster_color[3 * cluster_ids[i] + 1], cluster_color[3 * cluster_ids[i] + 2]);
+		for (int j = 0; j < cluster_index.size(); ++j)
+			if (cluster_index[j] == cluster_ids[i]) {
+				ParallelRecord* record = new ParallelRecord;
+				record->values = dataset_->point_values[j];
+				parallel_dataset_->subset_records[i].push_back(record);
+			}
+	}
+	for (int i = 0; i < dataset_->original_value_ranges.size(); ++i) {
+		parallel_dataset_->axis_names[i] = "v";
+		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][0]));
+		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][1]));
+	}
+	parallel_dataset_->CompleteInput();
+	parallel_dataset_->UpdateGaussian();
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {

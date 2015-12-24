@@ -30,6 +30,7 @@ private:
 
 	private slots:
 		void OnItemUpdated();
+		void OnVarSelectionChanged(int);
 };
 
 #endif

@@ -13,30 +13,38 @@ public:
 	~PathExploreItem();
 
 	void SetData(PathRecord* record);
+	void SetItemWidth(int w);
+	void SetSelectedVar(int index);
 
 	virtual QRectF boundingRect() const;
 	virtual void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
-	void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+	void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
+	//void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 signals:
 	void ItemUpdated();
+	void SelectedVarChanged(int);
 
 private:
 	PathRecord* path_record_;
 	bool is_extending_;
 
-	const int width_per_item_ = 50;
-	const int width_per_band_ = 80;
-	const int extending_height_ = 200;
-	const int abstract_height_ = 50;
-	const int total_width_ = 400;
-	const int left_margin = 20;
+	int item_num_per_row_ = 3;
+	int width_per_item_ = 50;
+	int width_per_band_ = 80;
+	int height_per_item_ = 50;
+	int total_width_ = 400;
+	int total_height = 100;
+	int row_margin_ = 15;
 
-	void PaintExtendingWidget(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-	void PaintAbstractWidget(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+	int item_margin_ = 10;
+	int label_width_ = 10;
+
+	int selected_var_ = -1;
+
+
 	void PaintClusterItem(QPainter* painter, int radius, int centerx, int centery, int item_index);
 	void PaintTransitionBand(QPainter* painter, int beginx, int endx, int item_index);
 	QColor GetMappingColor(float value);

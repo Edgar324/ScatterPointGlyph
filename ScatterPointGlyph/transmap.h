@@ -88,6 +88,7 @@ protected:
 
 	float node_radius;
 
+
 private:
 	TransMapData* dataset_;
 

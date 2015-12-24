@@ -21,6 +21,7 @@ public:
     ~ParallelDataset();
 
     bool CompleteInput();
+	void UpdateGaussian();
     bool ClearData();
 
     // attributes which must be set
@@ -28,20 +29,22 @@ public:
     std::vector< std::vector< ParallelRecord* > > subset_records;
     std::vector< std::vector< QString > > axis_anchors;
     std::vector< QString > axis_names;
+	std::vector< QColor > subset_colors;
 
 
     // attributes which can be set automatically
+	std::vector< std::vector< float > > var_centers;
+	std::vector< std::vector< float > > var_width;
     std::vector< std::vector< QColor > > record_color;
     std::vector< std::vector< bool > > is_record_selected;
 
-    std::vector< QColor > subset_colors;
     std::vector< bool > is_subset_visible;
     std::vector< float > subset_opacity;
     std::vector< bool > is_axis_selected;
     std::vector< int > mapped_axis;
 
-    bool is_axis_weight_enabled;
-    std::vector< float > axis_weights;
+	bool is_axis_weight_enabled;
+	std::vector< float > axis_weights;
 
     bool is_cluster_enabled;
     std::vector< std::vector< ParallelRecord* > > cluster_centers;
@@ -51,6 +54,7 @@ public:
 
     bool is_edge_bundling_enabled;
     bool is_correlation_analysis_enabled;
+	bool is_gaussian_enabled;
 };
 
 class ParallelCoordinate : public QGLWidget {
@@ -96,6 +100,8 @@ private:
     void PaintText();
     void PaintSubsetIdentifyItems();
     void PaintWeightCircles();
+
+	void PaintGaussianCurve();
 };
 
 #endif

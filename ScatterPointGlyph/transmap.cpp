@@ -77,9 +77,11 @@ TransMap::~TransMap() {
 void TransMap::SetData(TransMapData* data) {
 	dataset_ = data;
 
+	this->SetEnabled(false);
 	this->ClearActors();
 	this->ConstructActors();
 	this->BuildRepresentation();
+	this->SetEnabled(true);
 }
 
 int TransMap::GetSelectedClusterIndex() {
@@ -260,19 +262,25 @@ void TransMap::ConstructActors() {
 
 void TransMap::ClearActors() {
 	for (int i = 0; i < level_one_node_glyph_actors.size(); ++i) {
-		this->CurrentRenderer->RemoveActor(level_one_node_glyph_actors[i]);
+		this->level_one_node_picker->DeletePickList(level_one_node_glyph_actors[i]);
+		level_one_node_glyph_actors[i]->Delete();
 	}
 	level_one_node_glyph_actors.clear();
 
 	for (int i = 0; i < level_zero_node_glyph_actors.size(); ++i) {
-		this->CurrentRenderer->RemoveActor(level_zero_node_glyph_actors[i]);
+		this->level_zero_node_picker->DeletePickList(level_zero_node_glyph_actors[i]);
+		level_zero_node_glyph_actors[i]->Delete();
 	}
 	level_zero_node_glyph_actors.clear();
 
 	for (int i = 0; i < trans_glyph_actors.size(); ++i) {
-		this->CurrentRenderer->RemoveActor(trans_glyph_actors[i]);
+		this->trans_picker->DeletePickList(trans_glyph_actors[i]);
+		trans_glyph_actors[i]->Delete();
 	}
 	trans_glyph_actors.clear();
+
+	this->highlight_poly->Initialize();
+	this->highlight_actor->Modified();
 }
 
 void TransMap::SetEnabled(int enabling) {
@@ -280,6 +288,8 @@ void TransMap::SetEnabled(int enabling) {
 		vtkErrorMacro(<< "The interactor must be set prior to enabling/disabling widget");
 		return;
 	}
+
+	if (this->DefaultRenderer) this->SetCurrentRenderer(this->DefaultRenderer);
 
 	if (enabling) {
 		if (this->Enabled) return;
@@ -338,6 +348,7 @@ void TransMap::SetEnabled(int enabling) {
 		this->DefaultRenderer->RemoveActor(this->highlight_actor);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
+		this->SetCurrentRenderer(NULL);
 	}
 
 	this->Interactor->Render();
@@ -478,7 +489,7 @@ void TransMap::HighlightHandle(vtkProp* prop) {
 
 			pre_id = current_id;
 		}
-
+		
 		for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
 	}
 		break;

@@ -6,6 +6,9 @@ PathExploreWidget::PathExploreWidget()
 	scene_ = NULL;
 	title_item_ = NULL;
 
+	this->setFixedWidth(600);
+	this->setFocusPolicy(Qt::StrongFocus);
+
 	this->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 }
 
@@ -44,7 +47,10 @@ void PathExploreWidget::SetData(PathDataset* data) {
 		scene_->addItem(item);
 		item_vec_.push_back(item);
 
+		item->SetItemWidth(this->width() - 10);
+
 		connect(item, SIGNAL(ItemUpdated()), this, SLOT(OnItemUpdated()));
+		connect(item, SIGNAL(SelectedVarChanged(int)), this, SLOT(OnVarSelectionChanged(int)));
 	}
 	this->UpdateLayout();
 }
@@ -56,7 +62,7 @@ void PathExploreWidget::UpdateLayout() {
 
 	for (int i = 0; i < item_vec_.size(); ++i) {
 		item_vec_[i]->setPos(0, accu_height);
-		accu_height += item_vec_[i]->boundingRect().height() + 10;
+		accu_height += item_vec_[i]->boundingRect().height() + 40;
 	}
 
 	this->update();
@@ -72,4 +78,12 @@ void PathExploreWidget::resizeEvent(QResizeEvent *event) {
 	if (title_item_ != NULL) {
 		title_item_->setPos(this->width() / 2 - 20, 10);
 	}
+
+	for (int i = 0; i < item_vec_.size(); ++i)
+		item_vec_[i]->SetItemWidth(this->width() - 10);
+}
+
+void PathExploreWidget::OnVarSelectionChanged(int index) {
+	for (int i = 0; i < item_vec_.size(); ++i)
+		item_vec_[i]->SetSelectedVar(index);
 }

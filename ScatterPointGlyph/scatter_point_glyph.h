@@ -100,6 +100,7 @@ private:
 
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);
+	void GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids);
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
