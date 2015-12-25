@@ -54,6 +54,8 @@
 #include "distance_matrix_layer.h"
 #include "path_explore_widget.h"
 #include "path_dataset.h"
+#include "tour_path_generator.h"
+#include "change_table_lens.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
@@ -63,6 +65,8 @@ ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	ui_.setupUi(this);
 
 	data_manager_ = WrfDataManager::GetInstance();
+	path_generator_ = new TourPathGenerator;
+	pathset_ = new PathDataset;
 
 	this->InitWidget();
 
@@ -74,22 +78,31 @@ ScatterPointGlyph::~ScatterPointGlyph() {
 }
 
 void ScatterPointGlyph::InitWidget() {
+	QList< int > temp_sizes;
+	temp_sizes.push_back(200);
+	temp_sizes.push_back(100);
+
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
 	parallel_coordinate_ = new ParallelCoordinate;
-	QVBoxLayout* transmap_widget_layout = new QVBoxLayout;
-	transmap_widget_layout->addWidget(main_view_);
-	transmap_widget_layout->addWidget(parallel_coordinate_);
+	QSplitter* transmap_widget_splitter = new QSplitter(Qt::Vertical);
+	transmap_widget_splitter->addWidget(main_view_);
+	transmap_widget_splitter->addWidget(parallel_coordinate_);
+	transmap_widget_splitter->setStretchFactor(0, 2);
+	transmap_widget_splitter->setStretchFactor(1, 1);
 
 	path_explore_view_ = new PathExploreWidget;
-	QVBoxLayout* path_explore_layout = new QVBoxLayout;
-	path_explore_layout->addWidget(path_explore_view_);
-	QWidget* temp_widget = new QWidget;
-	path_explore_layout->addWidget(temp_widget);
+	change_table_lens_view_ = new ChangeTableLens;
+	QSplitter* path_explore_splitter = new QSplitter(Qt::Vertical);
+	path_explore_splitter->addWidget(path_explore_view_);
+	path_explore_splitter->addWidget(change_table_lens_view_);
+	path_explore_splitter->setSizes(temp_sizes);
+	path_explore_splitter->setStretchFactor(0, 2);
+	path_explore_splitter->setStretchFactor(1, 1);
 
 	QHBoxLayout* main_layout = new QHBoxLayout;
-	main_layout->addLayout(transmap_widget_layout);
-	main_layout->addLayout(path_explore_layout);
+	main_layout->addWidget(transmap_widget_splitter);
+	main_layout->addWidget(path_explore_splitter);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -126,6 +139,7 @@ void ScatterPointGlyph::InitWidget() {
 	trans_map_ = TransMap::New();
 	trans_map_->SetInteractor(main_view_->GetInteractor());
 	trans_map_->SetDefaultRenderer(this->main_renderer_);
+	transmap_data_ = new TransMapData;
 	rendering_layer_model_->AddLayer(QString("Transfer Map"), trans_map_, false);
 
 	hier_para_widget_ = new HierParaWidget;
@@ -430,22 +444,6 @@ void ScatterPointGlyph::AddPointData2View() {
 
 	this->UpdateParallelCoordinate();
 
-	// for test
-	PathDataset* pathset = new PathDataset;
-	for (int i = 0; i < 5; ++i) {
-		PathRecord* record = new PathRecord;
-		record->item_values.resize(4);
-		for (int j = 0; j < 4; ++j) record->item_values[j].resize(18, 1);
-		record->change_values.resize(3);
-		for (int j = 0; j < 3; ++j) {
-			for (int k = 0; k < 18; ++k)
-				record->change_values[j].push_back((float)rand() / RAND_MAX - 0.5);
-		}
-		pathset->path_records.push_back(record);
-		for (int k = 0; k < 18; ++k) record->var_names.push_back("Test");
-	}
-	path_explore_view_->SetData(pathset);
-
 	main_view_->update();
 }
 
@@ -492,21 +490,37 @@ void ScatterPointGlyph::OnClusterFinished() {
 		un_tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
 
 		original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index);
+		original_point_rendering_layer_->SetHighlightCluster(-1);
 
-		TransMapData* data = new TransMapData;
-		data->cluster_num = cluster_num;
-		data->var_num = dataset_->weights.size();
-		data->cluster_index = cluster_index;
+		transmap_data_->ClearData();
+		transmap_data_->cluster_num = cluster_num;
+		transmap_data_->var_num = dataset_->weights.size();
+		transmap_data_->cluster_index = cluster_index;
 		// TODO: update the cluster color
-		data->cluster_reprentative_color = original_point_rendering_layer_->GetClusterColor();
+		transmap_data_->cluster_reprentative_color = original_point_rendering_layer_->GetClusterColor();
 		// TODO: update the variable color
-		data->var_repsentative_color.resize(data->var_num * 3, 0);
-		data->dataset = dataset_;
-		data->ProcessData();
+		transmap_data_->var_repsentative_color.resize(transmap_data_->var_num * 3, 0);
+		transmap_data_->dataset = dataset_;
+		transmap_data_->ProcessData();
 
 		trans_map_->SetNodeRadius(dis_per_pixel_ * 20);
-		trans_map_->SetData(data);
+		trans_map_->SetData(transmap_data_);
 		trans_map_->SetEnabled(true);
+
+		path_generator_->SetData(transmap_data_);
+		if (path_generator_->GenerateRoundPath()) {
+			// for test
+			for (int i = 0; i < pathset_->path_records.size(); ++i)
+				delete pathset_->path_records[i];
+			pathset_->path_records.clear();
+
+			PathRecord* record = path_generator_->GetPath();
+			pathset_->path_records.push_back(record);
+
+			path_explore_view_->SetData(pathset_);
+		}
+
+		change_table_lens_view_->SetData(transmap_data_);
 
 		layer_control_widget_->UpdateWidget();
 	}
@@ -515,6 +529,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 }
 
 void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids) {
+	pdata->is_updating = true;
 	pdata->ClearData();
 
 	std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
@@ -541,6 +556,8 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 	}
 	parallel_dataset_->CompleteInput();
 	parallel_dataset_->UpdateGaussian();
+
+	pdata->is_updating = false;
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {

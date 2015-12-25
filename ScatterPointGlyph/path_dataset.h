@@ -1,6 +1,9 @@
 #ifndef PATH_DATASET_H_
 #define PATH_DATASET_H_
 
+#include <vector>
+#include <QtGui/QColor>
+
 class PathRecord 
 {
 public:

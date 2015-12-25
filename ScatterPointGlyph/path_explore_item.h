@@ -21,7 +21,6 @@ public:
 
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
 	void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-	//void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 signals:
 	void ItemUpdated();

@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/pick.png</file>
+    <file>images/sequence.png</file>
+    <file>images/painter.png</file>
     <file>images/exec.png</file>
     <file>images/hier.png</file>
     <file>images/perception.png</file>

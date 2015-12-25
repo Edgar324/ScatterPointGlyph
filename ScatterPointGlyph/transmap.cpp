@@ -103,7 +103,6 @@ int TransMap::GetSelectedClusterIndex() {
 			return iter->first;
 		}
 	} 
-
 	return -1;
 }
 

@@ -293,6 +293,21 @@
     <ClCompile Include="GeneratedFiles\Release\moc_path_explore_item.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="tour_path_generator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="change_table_lens.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_change_sorting_item.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_change_sorting_item.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="change_sorting_item.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -344,6 +359,9 @@
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
     <CustomBuild Include="path_explore_item.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="change_sorting_item.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -470,6 +488,12 @@
     </ClInclude>
     <ClInclude Include="path_dataset.h">
       <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="tour_path_generator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="change_table_lens.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

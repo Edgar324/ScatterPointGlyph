@@ -35,7 +35,11 @@ class TreeCommon;
 class ParallelCoordinate;
 class ParallelDataset;
 class TransMap;
+class TransMapData;
 class PathExploreWidget;
+class TourPathGenerator;
+class PathDataset;
+class ChangeTableLens;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -68,6 +72,8 @@ private:
 
 	PathExploreWidget* path_explore_view_;
 
+	ChangeTableLens* change_table_lens_view_;
+
 	QActionGroup* sys_mode_action_group_;
 
 	QDockWidget* layer_control_panel_;
@@ -82,6 +88,7 @@ private:
 	PointRenderingLayer* un_rendering_layer_;
 	MapRenderingLayer* map_rendering_layer_;
 	TransMap* trans_map_;
+	TransMapData* transmap_data_;
 
 	SystemMode sys_mode_;
 	std::vector< TreeCommon* > cluster_tree_vec_;
@@ -90,6 +97,9 @@ private:
 
 	WrfDataManager* data_manager_;
 	ScatterPointDataset* dataset_;
+
+	TourPathGenerator* path_generator_;
+	PathDataset* pathset_;
 
 	int cluster_num;
 	std::vector< int > cluster_index;

@@ -21,6 +21,7 @@ public:
 	std::vector< int > var_repsentative_color;
 	int min_point_num;
 
+	// data that can be completed in ProcessData
 	std::vector< CNode* > level_one_nodes;
 	std::vector< int > level_one_colors;
 	std::vector< CNode* > level_zero_nodes;
@@ -29,6 +30,7 @@ public:
 	std::map< int, CNode* > cluster_node_map;
 
 	// construct the first level nodes and sub-level nodes
+	void ClearData();
 	void ProcessData();
 	void UpdateConnectingStatus();
 };

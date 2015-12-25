@@ -28,6 +28,27 @@ TransMapData::TransMapData() {
 TransMapData::~TransMapData() {
 }
 
+void TransMapData::ClearData() {
+	cluster_num = 0;
+	var_num = 0;
+	cluster_index.clear();
+	cluster_point_count.clear();
+	cluster_reprentative_color.clear();
+	var_repsentative_color.clear();
+	min_point_num = 5;
+
+	std::map< int, CNode* >::iterator iter = cluster_node_map.begin();
+	while (iter != cluster_node_map.end()) {
+		delete iter->second;
+		iter++;
+	}
+	cluster_node_map.clear();
+	level_one_colors.clear();
+	level_one_nodes.clear();
+	level_zero_colors.clear();
+	level_zero_nodes.clear();
+}
+
 void TransMapData::ProcessData() {
 	std::vector< CLeaf* > leaf_nodes;
 	for (int i = 0; i < cluster_num; ++i) {

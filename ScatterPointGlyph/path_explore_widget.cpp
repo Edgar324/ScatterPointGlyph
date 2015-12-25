@@ -6,7 +6,6 @@ PathExploreWidget::PathExploreWidget()
 	scene_ = NULL;
 	title_item_ = NULL;
 
-	this->setFixedWidth(600);
 	this->setFocusPolicy(Qt::StrongFocus);
 
 	this->setAlignment(Qt::AlignLeft | Qt::AlignTop);

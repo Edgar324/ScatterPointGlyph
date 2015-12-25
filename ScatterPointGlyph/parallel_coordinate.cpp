@@ -3,7 +3,7 @@
 ParallelDataset::ParallelDataset()
 	: is_edge_bundling_enabled(false), is_correlation_analysis_enabled(false),
 	is_cluster_enabled(false), is_range_filter_enabled(false), is_axis_weight_enabled(false),
-	is_gaussian_enabled(false) {
+	is_gaussian_enabled(false), is_updating(false) {
 }
 
 ParallelDataset::~ParallelDataset(){
@@ -57,7 +57,6 @@ bool ParallelDataset::CompleteInput(){
         is_axis_selected.clear();
         is_axis_selected.resize(axis_names.size(), false);
     }
-
     return true;
 }
 
@@ -115,8 +114,8 @@ bool ParallelDataset::ClearData(){
 
 
 ParallelCoordinate::ParallelCoordinate()
-    : dataset_(NULL){
-    this->setMinimumSize(200, 300);
+    : dataset_(NULL) {
+    //this->setMinimumSize(200, 300);
 }
 
 ParallelCoordinate::~ParallelCoordinate(){
@@ -202,7 +201,7 @@ void ParallelCoordinate::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT);
     glShadeModel(GL_SMOOTH);
 
-    if ( dataset_ == NULL ) return;
+    if ( dataset_ == NULL || dataset_->is_updating) return;
 
     PaintSubsetIdentifyItems();
     if (!dataset_->is_gaussian_enabled) PaintLines();

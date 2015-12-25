@@ -55,6 +55,8 @@ public:
     bool is_edge_bundling_enabled;
     bool is_correlation_analysis_enabled;
 	bool is_gaussian_enabled;
+
+	bool is_updating;
 };
 
 class ParallelCoordinate : public QGLWidget {

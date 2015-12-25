@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>456</width>
-    <height>400</height>
+    <width>848</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,7 +19,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>456</width>
+     <width>848</width>
      <height>23</height>
     </rect>
    </property>
@@ -84,6 +84,11 @@
    <addaction name="action_perception_driven"/>
    <addaction name="actionImmediate_Gestalts"/>
    <addaction name="action_hierarchical_clustering"/>
+   <addaction name="separator"/>
+   <addaction name="actionSingle_Selection"/>
+   <addaction name="actionSequence_Selection"/>
+   <addaction name="separator"/>
+   <addaction name="actionBrush_Cluster"/>
    <addaction name="separator"/>
    <addaction name="actionExec"/>
   </widget>
@@ -175,6 +180,45 @@
    </property>
    <property name="text">
     <string>Immediate Gestalts</string>
+   </property>
+  </action>
+  <action name="actionSingle_Selection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/pick.png</normaloff>:/ScatterPointGlyph/images/pick.png</iconset>
+   </property>
+   <property name="text">
+    <string>Single Selection</string>
+   </property>
+  </action>
+  <action name="actionSequence_Selection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/sequence.png</normaloff>:/ScatterPointGlyph/images/sequence.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sequence Selection</string>
+   </property>
+  </action>
+  <action name="actionBrush_Cluster">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/painter.png</normaloff>:/ScatterPointGlyph/images/painter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Brush Cluster</string>
    </property>
   </action>
  </widget>
