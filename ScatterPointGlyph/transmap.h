@@ -36,6 +36,9 @@ public:
 	void SetNodeRadius(float r) { this->node_radius = r; }
 
 	int GetSelectedClusterIndex();
+	void GetSelectedClusterIndex(std::vector< int >& index);
+	void SetSequenceSelectionOn();
+	void SetSequenceSelectionOff();
 
 protected:
 	TransMap();
@@ -86,7 +89,10 @@ protected:
 	vtkActor* current_handle;
 	CNode* current_node;
 
+	std::list< CNode* > highlight_node_sequence;
+
 	float node_radius;
+	bool is_sequence_selection;
 
 
 private:
@@ -96,6 +102,8 @@ private:
 
 	void ConstructActors();
 	void HighlightHandle(vtkProp* prop);
+	void SelectNode(CNode* node);
+	void UpdateHightlightActor();
 };
 
 #endif

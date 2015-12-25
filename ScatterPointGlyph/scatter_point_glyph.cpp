@@ -267,21 +267,13 @@ void ScatterPointGlyph::OnActionExitTriggered() {
 }
 
 void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
+	std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
-		original_point_rendering_layer_->SetHighlightCluster(trans_map_->GetSelectedClusterIndex());
+		original_point_rendering_layer_->SetHighlightClusters(selection_index);
 	}
 
-
-	int current_selection_index = trans_map_->GetSelectedClusterIndex();
-	std::vector< int > temp_ids;
-	if (current_selection_index == -1) {
-		for (int i = 0; i < cluster_num; ++i)
-			temp_ids.push_back(i);
-	} else {
-		temp_ids.push_back(current_selection_index);
-	}
-
-	this->GenerateParallelDataset(parallel_dataset_, temp_ids);
+	this->GenerateParallelDataset(parallel_dataset_, selection_index);
 
 	parallel_coordinate_->update();
 }
@@ -323,7 +315,7 @@ void ScatterPointGlyph::UpdateClusterView() {
 			connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
 		}
 
-		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_vec_[PERCEPTION_MODE]);
+		HierarchicalTree* hier_tree = dynamic_cast< HierarchicalTree* >(cluster_tree_vec_[PERCEPTION_MODE]);
 		if (hier_tree != NULL) hier_tree->start();
 	}
 		break;

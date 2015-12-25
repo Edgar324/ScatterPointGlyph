@@ -39,7 +39,6 @@ PointRenderingLayer::PointRenderingLayer() {
 	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
 
 	is_category_on_ = false;
-	this->current_selection_index_ = -1;
 }
 
 PointRenderingLayer::~PointRenderingLayer() {
@@ -134,16 +133,33 @@ void PointRenderingLayer::SetHighlightCluster(int index) {
 	if (is_category_on_) SetCategoryOn();
 	else SetCategoryOff();
 
-	this->current_selection_index_ = index;
+	this->current_selection_index_.clear();
+	if (index == -1) return;
 
-	if (this->current_selection_index_ != -1) {
-		vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
-		for (int i = 0; i < point_index_.size(); ++i)
-			if (point_index_[i] == this->current_selection_index_) {
-				color_array->SetTuple3(i, 255, 0.0, 0.0);
+	this->current_selection_index_.push_back(index);
+
+	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+	for (int i = 0; i < point_index_.size(); ++i)
+		if (point_index_[i] == index) {
+			color_array->SetTuple3(i, 255, 0.0, 0.0);
+		}
+	color_array->Modified();
+}
+
+void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
+	if (is_category_on_) SetCategoryOn();
+	else SetCategoryOff();
+
+	this->current_selection_index_ = index;
+	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+	for (int i = 0; i < current_selection_index_.size(); ++i) {
+		for (int j = 0; j < point_index_.size(); ++j)
+			if (point_index_[j] == current_selection_index_[i]) {
+				color_array->SetTuple3(j, 255, 0.0, 0.0);
 			}
-		color_array->Modified();
 	}
+	
+	color_array->Modified();
 }
 
 void PointRenderingLayer::SetCategoryOn() {
@@ -175,14 +191,4 @@ void PointRenderingLayer::SetCategoryOff() {
 		}
 	}
 	color_array->Modified();
-}
-
-std::vector< bool > PointRenderingLayer::GetPointSelection() {
-	std::vector< bool > selection;
-	if (this->current_selection_index_ != -1 && this->point_index_.size() != 0) {
-		selection.resize(dataset_->original_point_pos.size(), false);
-		for (int i = 0; i < point_index_.size(); ++i)
-			if (point_index_[i] == this->current_selection_index_) selection[i] = true;
-	}
-	return selection;
 }

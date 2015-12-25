@@ -33,12 +33,12 @@ public:
 
 	void SetClusterIndex(int cluster_count, std::vector< int >& point_index);
 	void SetHighlightCluster(int index);
+	void SetHighlightClusters(std::vector< int >& index);
 
 	void SetCategoryOn();
 	void SetCategoryOff();
 
 	std::vector< int >& GetClusterColor() { return cluster_color_; }
-	std::vector< bool > GetPointSelection();
 
 private:
 	int cluster_count_;
@@ -47,7 +47,7 @@ private:
 	std::vector< int > cluster_color_;
 
 	bool is_category_on_;
-	int current_selection_index_;
+	std::vector< int > current_selection_index_;
 
 	ScatterPointDataset* dataset_;
 

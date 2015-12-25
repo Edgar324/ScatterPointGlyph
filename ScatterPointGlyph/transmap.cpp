@@ -59,6 +59,7 @@ TransMap::TransMap() {
 	this->PlaceWidget(bounds);
 
 	this->node_radius = 10;
+	this->is_sequence_selection = true;
 	this->current_handle = NULL;
 	this->current_node = NULL;
 
@@ -82,6 +83,16 @@ void TransMap::SetData(TransMapData* data) {
 	this->ConstructActors();
 	this->BuildRepresentation();
 	this->SetEnabled(true);
+
+	highlight_node_sequence.clear();
+}
+
+void TransMap::SetSequenceSelectionOn() {
+	this->is_sequence_selection = true;
+}
+
+void TransMap::SetSequenceSelectionOff()  {
+	this->is_sequence_selection = false;
 }
 
 int TransMap::GetSelectedClusterIndex() {
@@ -94,6 +105,20 @@ int TransMap::GetSelectedClusterIndex() {
 	} 
 
 	return -1;
+}
+
+void TransMap::GetSelectedClusterIndex(std::vector< int >& index) {
+	index.clear();
+
+	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	while (node_iter != highlight_node_sequence.end()) {
+		std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+		while (iter != dataset_->cluster_node_map.end() && iter->second != *node_iter) iter++;
+		if (iter != dataset_->cluster_node_map.end()) {
+			index.push_back(iter->first);
+		}
+		node_iter++;
+	}
 }
 
 void TransMap::ConstructActors() {
@@ -385,7 +410,7 @@ void TransMap::OnLeftButtonDown() {
 	int X = this->Interactor->GetEventPosition()[0];
 	int Y = this->Interactor->GetEventPosition()[1];
 
-	if (!this->CurrentRenderer || !this->CurrentRenderer->IsInViewport(X, Y)) {
+	if (!this->CurrentRenderer) {
 		this->state = TransMap::NORMAL;
 		this->current_handle = NULL;
 		this->current_node = NULL;
@@ -431,38 +456,11 @@ void TransMap::OnMouseMove() {
 }
 
 void TransMap::HighlightHandle(vtkProp* prop) {
-	if (prop == NULL) {
-		this->current_handle = NULL;
-		this->current_node = NULL;
-		this->highlight_poly->Initialize();
-		this->highlight_actor->Modified();
-	}
+	if (prop == NULL) return;
 
 	vtkActor* actor = dynamic_cast< vtkActor* >(prop);
-	if (this->current_handle == actor) return;
-
-	this->highlight_poly->Initialize();
-	if (this->state != TransMap::HIGHLIGHT_TRANSFER_BAND) {
-		vtkPoints* points = vtkPoints::New();
-		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
-		colors->SetNumberOfComponents(3);
-
-		highlight_poly->SetPoints(points);
-		highlight_poly->GetPointData()->SetScalars(colors);
-
-		vtkCellArray* line_array = vtkCellArray::New();
-		highlight_poly->SetLines(line_array);
-	} else {
-		this->highlight_poly->DeepCopy(actor->GetMapper()->GetInput());
-	}
-
-	vtkPoints* points = highlight_poly->GetPoints();
-	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(highlight_poly->GetPointData()->GetScalars());
-
-	float end_arc = 0;
-	float x = node_radius;
-	float y = 0;
-	vtkIdType cell_ids[5];
+	//if (this->current_handle == actor) return;
+	if (actor == NULL) return;
 
 	switch (this->state) {
 	case TransMap::HIGHLIGHT_LEVEL_ZERO_NODE:
@@ -475,22 +473,7 @@ void TransMap::HighlightHandle(vtkProp* prop) {
 			}
 		if (node_index == -1) break;
 		this->current_node = dataset_->level_zero_nodes[node_index];
-
-		vtkIdType pre_id = points->InsertNextPoint(this->current_node->center_pos[0] + x * 0.4, this->current_node->center_pos[1] + y * 0.4, 0);
-		for (int k = 1; k <= 20; ++k) {
-			end_arc = (float)k / 20 * 3.14159 * 2;
-			x = node_radius * cos(end_arc);
-			y = node_radius * sin(end_arc);
-			vtkIdType current_id = points->InsertNextPoint(this->current_node->center_pos[0] + x * 0.4, this->current_node->center_pos[1] + y * 0.4, 0);
-
-			cell_ids[0] = pre_id;
-			cell_ids[1] = current_id;
-			this->highlight_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
-
-			pre_id = current_id;
-		}
-		
-		for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+		this->SelectNode(this->current_node);
 	}
 		break;
 	case TransMap::HIGHLIGHT_LEVEL_ONE_NODE:
@@ -503,28 +486,119 @@ void TransMap::HighlightHandle(vtkProp* prop) {
 			}
 		if (node_index == -1) break;
 		this->current_node = dataset_->level_one_nodes[node_index];
-
-		vtkIdType pre_id = points->InsertNextPoint(this->current_node->center_pos[0] + x, this->current_node->center_pos[1] + y, 0);
-		for (int k = 1; k <= 20; ++k) {
-			end_arc = (float)k / 20 * 3.14159 * 2;
-			x = node_radius * cos(end_arc);
-			y = node_radius * sin(end_arc);
-			vtkIdType current_id = points->InsertNextPoint(this->current_node->center_pos[0] + x, this->current_node->center_pos[1] + y, 0);
-
-			cell_ids[0] = pre_id;
-			cell_ids[1] = current_id;
-			this->highlight_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
-
-			pre_id = current_id;
-		}
-
-		for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+		this->SelectNode(this->current_node);
 	}
 		break;
 	default:
 		break;
 	}
 
+	this->UpdateHightlightActor();
+}
+
+void TransMap::UpdateHightlightActor() {
+	this->highlight_poly->Initialize();
+
+	vtkPoints* points = vtkPoints::New();
+	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::New();
+	color_array->SetNumberOfComponents(3);
+
+	highlight_poly->SetPoints(points);
+	highlight_poly->GetPointData()->SetScalars(color_array);
+
+	vtkCellArray* line_array = vtkCellArray::New();
+	highlight_poly->SetLines(line_array);
+
+	float end_arc = 0;
+	float x = node_radius;
+	float y = 0;
+	vtkIdType cell_ids[5];
+
+	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	while (iter != highlight_node_sequence.end()) {
+		int node_index = -1;
+		for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
+			if (dataset_->level_one_nodes[i] == *iter) {
+				node_index = i;
+				break;
+			}
+		if (node_index != -1) {
+			CNode* temp_node = dataset_->level_one_nodes[node_index];
+			vtkIdType pre_id = points->InsertNextPoint(temp_node->center_pos[0] + x, temp_node->center_pos[1] + y, 0);
+			for (int k = 1; k <= 20; ++k) {
+				end_arc = (float)k / 20 * 3.14159 * 2;
+				x = node_radius * cos(end_arc);
+				y = node_radius * sin(end_arc);
+				vtkIdType current_id = points->InsertNextPoint(temp_node->center_pos[0] + x, temp_node->center_pos[1] + y, 0);
+
+				cell_ids[0] = pre_id;
+				cell_ids[1] = current_id;
+				this->highlight_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
+
+				pre_id = current_id;
+			}
+
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+			iter++;
+			continue;
+		}
+
+		for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i)
+			if (dataset_->level_zero_nodes[i] == *iter) {
+				node_index = i;
+				break;
+			}
+		if (node_index != -1) {
+			CNode* temp_node = dataset_->level_zero_nodes[node_index];
+			vtkIdType pre_id = points->InsertNextPoint(temp_node->center_pos[0] + x * 0.4, temp_node->center_pos[1] + y * 0.4, 0);
+			for (int k = 1; k <= 20; ++k) {
+				end_arc = (float)k / 20 * 3.14159 * 2;
+				x = node_radius * cos(end_arc);
+				y = node_radius * sin(end_arc);
+				vtkIdType current_id = points->InsertNextPoint(temp_node->center_pos[0] + x * 0.4, temp_node->center_pos[1] + y * 0.4, 0);
+
+				cell_ids[0] = pre_id;
+				cell_ids[1] = current_id;
+				this->highlight_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
+
+				pre_id = current_id;
+			}
+
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+			iter++;
+			continue;
+		}
+
+		iter++;
+	}
+
 	this->highlight_actor->GetProperty()->SetLineStipplePattern(0xF00F);
 	this->highlight_actor->Modified();
+}
+
+void TransMap::SelectNode(CNode* node) {
+	if (!is_sequence_selection) {
+		if (highlight_node_sequence.size() > 1) {
+			highlight_node_sequence.clear();
+			highlight_node_sequence.push_back(node);
+		} else if (highlight_node_sequence.size() == 1) {
+			if (*highlight_node_sequence.begin() == node) {
+				highlight_node_sequence.clear();
+			}
+			else {
+				highlight_node_sequence.clear();
+				highlight_node_sequence.push_back(node);
+			}
+		} else {
+			highlight_node_sequence.push_back(node);
+		}
+	} else {
+		std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+		while (iter != highlight_node_sequence.end() && *iter != node) iter++;
+		if (iter != highlight_node_sequence.end()) {
+			highlight_node_sequence.erase(iter);
+		} else {
+			highlight_node_sequence.push_back(node);
+		}
+	}
 }
