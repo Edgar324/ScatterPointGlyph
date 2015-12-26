@@ -56,6 +56,9 @@ void TransMapData::ProcessData() {
 		leaf->set_level(0);
 		leaf->center_pos.resize(2, 0);
 		leaf->average_values.resize(this->var_num, 0);
+		leaf->value_variance.resize(this->var_num, 0);
+		leaf->boxplot_lower_bound.resize(this->var_num, 0);
+		leaf->boxplot_upper_bound.resize(this->var_num, 0);
 
 		cluster_node_map.insert(std::map< int, CNode* >::value_type(i, leaf));
 		leaf_nodes.push_back(leaf);
@@ -70,7 +73,7 @@ void TransMapData::ProcessData() {
 		leaf_nodes[temp_index]->center_pos[0] += dataset->original_point_pos[i][0];
 		leaf_nodes[temp_index]->center_pos[1] += dataset->original_point_pos[i][1];
 		for (int j = 0; j < dataset->weights.size(); ++j)
-			leaf_nodes[temp_index]->average_values[j] += (dataset->original_point_values[i][j] - dataset->original_value_ranges[j][0]) / (dataset->original_value_ranges[j][1] - dataset->original_value_ranges[j][0]);
+			leaf_nodes[temp_index]->average_values[j] += dataset->point_values[i][j];
 		cluster_point_count[temp_index]++;
 	}
 
@@ -80,6 +83,30 @@ void TransMapData::ProcessData() {
 			leaf_nodes[i]->center_pos[1] /= cluster_point_count[i];
 			for (int j = 0; j < dataset->weights.size(); ++j)
 				leaf_nodes[i]->average_values[j] /= cluster_point_count[i];
+		}
+
+	std::vector< std::vector< std::vector< float > > > temp_data;
+	temp_data.resize(cluster_num);
+	for (int i = 0; i < cluster_num; ++i) temp_data[i].resize(var_num);
+
+	for (int i = 0; i < cluster_index.size(); ++i) {
+		int temp_index = cluster_index[i];
+		if (temp_index < 0) continue;
+		
+		for (int j = 0; j < dataset->weights.size(); ++j){
+			temp_data[temp_index][j].push_back(dataset->point_values[i][j]);
+			leaf_nodes[temp_index]->value_variance[j] += pow(dataset->point_values[i][j] - leaf_nodes[temp_index]->average_values[j], 2);
+		}
+	}
+	for (int i = 0; i < leaf_nodes.size(); ++i) 
+		if (cluster_point_count[i] != 0) {
+			for (int j = 0; j < this->var_num; ++j) {
+				leaf_nodes[i]->value_variance[j] = sqrt(leaf_nodes[i]->value_variance[j] / cluster_point_count[i]);
+				std::sort(temp_data[i][j].begin(), temp_data[i][j].end());
+				leaf_nodes[i]->boxplot_lower_bound[j] = temp_data[i][j][(int)(0.1 * temp_data[i][j].size())];
+				leaf_nodes[i]->boxplot_upper_bound[j] = temp_data[i][j][(int)(0.9 * temp_data[i][j].size())];
+			}
+				
 		}
 	
 	std::vector< std::vector< int > > temp_index;

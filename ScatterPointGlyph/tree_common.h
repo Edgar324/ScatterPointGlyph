@@ -23,6 +23,9 @@ public:
 
 	std::vector< float > center_pos;
 	std::vector< float > average_values;
+	std::vector< float > value_variance;
+	std::vector< float > boxplot_upper_bound;
+	std::vector< float > boxplot_lower_bound;
 
 	int level() { return level_; }
 	void set_level(int l) { level_ = l; }

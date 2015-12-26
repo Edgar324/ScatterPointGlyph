@@ -137,34 +137,77 @@ void TransMap::ConstructActors() {
 		vtkCellArray* poly_array = vtkCellArray::New();
 		polydata->SetPolys(poly_array);
 
+		vtkCellArray* line_array = vtkCellArray::New();
+		polydata->SetLines(line_array);
+
+		// paint bound
+		std::vector< int > var_point_ids;
+		var_point_ids.resize(dataset_->var_num * 2);
+		for (int j = 0; j < dataset_->var_num; ++j) {
+			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
+
+			float temp_radius = node_radius * node->boxplot_lower_bound[j] * 0.8 + node_radius * 0.2;
+			float x = temp_radius * cos(end_arc);
+			float y = temp_radius * sin(end_arc);
+
+			vtkIdType id_one = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
+			colors->InsertNextTuple3(128, 128, 128);
+
+			temp_radius = node_radius * node->boxplot_upper_bound[j] * 0.8 + node_radius * 0.2;
+			x = temp_radius * cos(end_arc);
+			y = temp_radius * sin(end_arc);
+
+			vtkIdType id_two = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
+			colors->InsertNextTuple3(128, 128, 128);
+
+			var_point_ids[j * 2] = id_one;
+			var_point_ids[j * 2 + 1] = id_two;
+		}
+		for (int j = 0; j < dataset_->var_num; ++j) {
+			cell_ids[0] = var_point_ids[2 * j];
+			cell_ids[1] = var_point_ids[2 * j + 1];
+			cell_ids[2] = var_point_ids[2 * (j + 1) % dataset_->var_num];
+			polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+
+			cell_ids[0] = var_point_ids[2 * j + 1];
+			cell_ids[1] = var_point_ids[2 * (j + 1) % dataset_->var_num + 1];
+			cell_ids[2] = var_point_ids[2 * (j + 1) % dataset_->var_num];
+			polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+		}
+
+		// paint value
+		std::vector< vtkIdType > value_pos_ids;
+		value_pos_ids.resize(dataset_->var_num);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float temp_radius = node_radius * node->average_values[j] * 0.8 + node_radius * 0.2;
-			vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], 0);
-
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
+			value_pos_ids[j] = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
+			colors->InsertNextTuple3(0, 0, 255);
+		}
+		for (int j = 0; j < dataset_->var_num; ++j) {
+			cell_ids[0] = value_pos_ids[j];
+			cell_ids[1] = value_pos_ids[(j + 1) % dataset_->var_num];
+			polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
+		}
+		
+
+		// paint axis
+		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], 0);
+		colors->InsertNextTuple3(0, 0, 0);
+		for (int j = 0; j < dataset_->var_num; ++j) {
+			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
+			float x = node_radius * cos(end_arc);
+			float y = node_radius * sin(end_arc);
+
 			vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
-			for (int k = 1; k <= 8; ++k) {
-				end_arc = ((float)k / 8 + j) * 3.14159 * 2 / dataset_->var_num;
-				x = temp_radius * cos(end_arc);
-				y = temp_radius * sin(end_arc);
-				vtkIdType current_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
-
-				cell_ids[0] = center_id;
-				cell_ids[1] = pre_id;
-				cell_ids[2] = current_id;
-				polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
-
-				pre_id = current_id;
-			}
-
-			int rgb[3];
-			rgb[0] = dataset_->level_one_colors[3 * i];
-			rgb[1] = dataset_->level_one_colors[3 * i + 1];
-			rgb[2] = dataset_->level_one_colors[3 * i + 2];
-			for (int k = 0; k < 10; ++k) colors->InsertNextTuple3(rgb[0], rgb[1], rgb[2]);
+			colors->InsertNextTuple3(0, 0, 0);
+			
+			cell_ids[0] = center_id;
+			cell_ids[1] = pre_id;
+			polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
 		}
 
 		vtkActor* node_actor = vtkActor::New();
@@ -196,6 +239,7 @@ void TransMap::ConstructActors() {
 
 		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], 0);
 		vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
+
 		for (int k = 1; k <= 20; ++k) {
 			end_arc = (float)k / 20 * 3.14159 * 2;
 			x = temp_radius * cos(end_arc);
