@@ -32,12 +32,14 @@ PathRecord* TourPathGenerator::GetPath() {
 		record->item_values[i] = trans_data_->level_one_nodes[i]->average_values;
 	}
 	record->change_values.resize(trans_data_->level_one_nodes.size() - 1);
+	record->item_color.resize(trans_data_->level_one_nodes.size());
 	for (int i = 0; i < trans_data_->level_one_nodes.size() - 1; ++i) {
 		CNode* current_node = trans_data_->level_one_nodes[i];
 		CNode* next_node = trans_data_->level_one_nodes[i + 1];
 		record->change_values[i].resize(current_node->average_values.size());
 		for (int j = 0; j < current_node->average_values.size(); ++j)
 			record->change_values[i][j] = next_node->average_values[j] - current_node->average_values[j];
+		record->item_color[i] = QColor(trans_data_->level_one_colors[3 * i], trans_data_->level_one_colors[3 * i + 1], trans_data_->level_one_colors[3 * i + 2]);
 	}
 	for (int k = 0; k < trans_data_->level_one_nodes[0]->average_values.size(); ++k) 
 		record->var_names.push_back("Test");

@@ -171,6 +171,8 @@ void TreeCommon::ConstructDirectly() {
 			for (int j = 0; j < dataset_->weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
 
+			temp_leaf->id = leaf_nodes_.size();
+
 			leaf_nodes_.push_back(temp_leaf);
 			temp_leaf->set_level(0);
 		}

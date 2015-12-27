@@ -16,11 +16,14 @@ public:
 signals:
 	void ViewUpdated();
 	void GlyphSelected(int x, int y);
+	void LeftButtonUp();
+	void MouseDrag(int x, int y);
 
 protected:
 	void wheelEvent(QWheelEvent* event);
 	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
+	void mouseReleaseEvent(QMouseEvent* event);
 
 private:
 	QTimer* timer_;

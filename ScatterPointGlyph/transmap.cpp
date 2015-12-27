@@ -21,11 +21,10 @@
 #include "vtkRenderer.h"
 #include "vtkSphereSource.h"
 #include "vtkPointData.h"
+#include <QVTKWidget.h>
 #include "transmap_data.h"
 #include "vtkCellArray.h"
 #include "tree_common.h"
-
-vtkStandardNewMacro(TransMap);
 
 TransMap::TransMap() {
 	this->state = TransMap::NORMAL;
@@ -69,6 +68,20 @@ TransMap::TransMap() {
 	this->hightlight_mapper->SetInputData(this->highlight_poly);
 	this->highlight_actor->SetMapper(this->hightlight_mapper);
 	this->highlight_actor->GetProperty()->SetLineWidth(3.0);
+	
+
+	this->selection_brush_poly = vtkPolyData::New();
+	this->selection_brush_mapper = vtkPolyDataMapper::New();
+	this->selection_brush_actor = vtkActor::New();
+	this->selection_brush_mapper->SetInputData(this->selection_brush_poly);
+	this->selection_brush_actor->SetMapper(this->selection_brush_mapper);
+	this->selection_brush_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+	this->selection_brush_actor->GetProperty()->SetLineWidth(3.0);
+}
+
+TransMap::TransMap(QVTKWidget* parent) 
+	: TransMap() {
+	this->parent_view = parent;
 }
 
 TransMap::~TransMap() {
@@ -93,6 +106,54 @@ void TransMap::SetSequenceSelectionOn() {
 
 void TransMap::SetSequenceSelectionOff()  {
 	this->is_sequence_selection = false;
+}
+
+void TransMap::SetBrushSelectionOn() {
+	this->state_vec.push_back(this->state);
+	this->state = WidgetState::SELECT_CLUSTER;
+	this->highlight_actor->SetVisibility(false);
+}
+
+void TransMap::SetBrushSelectionOff() {
+	this->state = this->state_vec[this->state_vec.size() - 1];
+	this->state_vec.pop_back();
+	this->selection_brush_poly->Initialize();
+	this->selection_brush_actor->Modified();
+	this->highlight_actor->SetVisibility(true);
+}
+
+void TransMap::SetMouseReleased() {
+	this->OnLeftButtonUp();
+}
+
+void TransMap::SetMouseDragmove(int x, int y) {
+	if (this->state == WidgetState::SELECTION_BRUSH_BEGIN) {
+		double display_pos[4];
+		display_pos[0] = x;
+		display_pos[1] = y;
+		display_pos[2] = 0;
+		display_pos[3] = 1;
+		this->DefaultRenderer->SetDisplayPoint(display_pos);
+		this->DefaultRenderer->DisplayToWorld();
+		double* world_pos = this->DefaultRenderer->GetWorldPoint();
+
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0);
+
+		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
+		line_array->Initialize();
+		int pnum = this->selection_brush_poly->GetPoints()->GetNumberOfPoints();
+		vtkIdType cell_ids[2];
+		for (int i = 0; i < pnum; ++i){
+			cell_ids[0] = i;
+			cell_ids[1] = (i + 1) % pnum;
+			this->selection_brush_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
+		}
+
+		this->selection_brush_poly->Modified();
+		this->selection_brush_actor->Modified();
+
+		this->parent_view->update();
+	}
 }
 
 int TransMap::GetSelectedClusterIndex() {
@@ -128,7 +189,7 @@ void TransMap::ConstructActors() {
 		// construct the polydata
 		vtkPoints* points = vtkPoints::New();
 		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
-		colors->SetNumberOfComponents(3);
+		colors->SetNumberOfComponents(4);
 
 		vtkPolyData* polydata = vtkPolyData::New();
 		polydata->SetPoints(points);
@@ -140,25 +201,37 @@ void TransMap::ConstructActors() {
 		vtkCellArray* line_array = vtkCellArray::New();
 		polydata->SetLines(line_array);
 
+		// insert background
+		std::vector< vtkIdType > background_ids;
+		for (int j = 0; j < dataset_->var_num; ++j) {
+			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
+			float x = node_radius * cos(end_arc);
+			float y = node_radius * sin(end_arc);
+
+			background_ids.push_back(points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00002));
+			colors->InsertNextTuple4(128, 128, 128, 10);
+		}
+		polydata->InsertNextCell(VTK_POLYGON, dataset_->var_num, background_ids.data());
+
 		// paint bound
 		std::vector< int > var_point_ids;
 		var_point_ids.resize(dataset_->var_num * 2);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 
-			float temp_radius = node_radius * node->boxplot_lower_bound[j] * 0.8 + node_radius * 0.2;
+			float temp_radius = node_radius * node->boxplot_lower_bound[j]/* * 0.8 + node_radius * 0.2*/;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
 			vtkIdType id_one = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
-			colors->InsertNextTuple3(128, 128, 128);
+			colors->InsertNextTuple4(128, 128, 128, 128);
 
-			temp_radius = node_radius * node->boxplot_upper_bound[j] * 0.8 + node_radius * 0.2;
+			temp_radius = node_radius * node->boxplot_upper_bound[j]/* * 0.8 + node_radius * 0.2*/;
 			x = temp_radius * cos(end_arc);
 			y = temp_radius * sin(end_arc);
 
 			vtkIdType id_two = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
-			colors->InsertNextTuple3(128, 128, 128);
+			colors->InsertNextTuple4(128, 128, 128, 128);
 
 			var_point_ids[j * 2] = id_one;
 			var_point_ids[j * 2 + 1] = id_two;
@@ -166,12 +239,12 @@ void TransMap::ConstructActors() {
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			cell_ids[0] = var_point_ids[2 * j];
 			cell_ids[1] = var_point_ids[2 * j + 1];
-			cell_ids[2] = var_point_ids[2 * (j + 1) % dataset_->var_num];
+			cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num)];
 			polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 
 			cell_ids[0] = var_point_ids[2 * j + 1];
-			cell_ids[1] = var_point_ids[2 * (j + 1) % dataset_->var_num + 1];
-			cell_ids[2] = var_point_ids[2 * (j + 1) % dataset_->var_num];
+			cell_ids[1] = var_point_ids[2 * ((j + 1) % dataset_->var_num) + 1];
+			cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num)];
 			polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 		}
 
@@ -179,13 +252,13 @@ void TransMap::ConstructActors() {
 		std::vector< vtkIdType > value_pos_ids;
 		value_pos_ids.resize(dataset_->var_num);
 		for (int j = 0; j < dataset_->var_num; ++j) {
-			float temp_radius = node_radius * node->average_values[j] * 0.8 + node_radius * 0.2;
+			float temp_radius = node_radius * node->average_values[j]/* * 0.8 + node_radius * 0.2*/;
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
 			value_pos_ids[j] = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
-			colors->InsertNextTuple3(0, 0, 255);
+			colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
 		}
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			cell_ids[0] = value_pos_ids[j];
@@ -195,15 +268,15 @@ void TransMap::ConstructActors() {
 		
 
 		// paint axis
-		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], 0);
-		colors->InsertNextTuple3(0, 0, 0);
+		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], -0.0001);
+		colors->InsertNextTuple4(0, 0, 0, 255);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = node_radius * cos(end_arc);
 			float y = node_radius * sin(end_arc);
 
-			vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
-			colors->InsertNextTuple3(0, 0, 0);
+			vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.0001);
+			colors->InsertNextTuple4(0, 0, 0, 255);
 			
 			cell_ids[0] = center_id;
 			cell_ids[1] = pre_id;
@@ -214,6 +287,7 @@ void TransMap::ConstructActors() {
 		vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
 		mapper->SetInputData(polydata);
 		node_actor->SetMapper(mapper);
+		node_actor->GetProperty()->SetLineWidth(2.0);
 		
 		level_one_node_glyph_actors.push_back(node_actor);
 	}
@@ -254,7 +328,7 @@ void TransMap::ConstructActors() {
 			pre_id = current_id;
 		}
 
-		for (int k = 0; k < 22; ++k) colors->InsertNextTuple3(0, 0, 255);
+		for (int k = 0; k < 22; ++k) colors->InsertNextTuple3(dataset_->level_zero_colors[3 * i], dataset_->level_zero_colors[3 * i + 1], dataset_->level_zero_colors[3 * i + 2]);
 
 		vtkActor* node_actor = vtkActor::New();
 		vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
@@ -364,9 +438,9 @@ void TransMap::SetEnabled(int enabling) {
 
 		this->Enabled = 1;
 
-		this->Interactor->AddObserver(vtkCommand::MouseMoveEvent,
-			this->EventCallbackCommand, this->Priority);
 		this->Interactor->AddObserver(vtkCommand::LeftButtonPressEvent,
+			this->EventCallbackCommand, this->Priority);
+		this->Interactor->AddObserver(vtkCommand::MouseMoveEvent,
 			this->EventCallbackCommand, this->Priority);
 		this->Interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent,
 			this->EventCallbackCommand, this->Priority);
@@ -391,6 +465,9 @@ void TransMap::SetEnabled(int enabling) {
 		}
 
 		this->DefaultRenderer->AddActor(this->highlight_actor);
+		this->DefaultRenderer->AddActor(this->selection_brush_actor);
+
+		this->InvokeEvent(vtkCommand::EnableEvent, NULL);
 	} else {
 		if (!this->Enabled) return;
 
@@ -414,6 +491,13 @@ void TransMap::SetEnabled(int enabling) {
 		}
 
 		this->DefaultRenderer->RemoveActor(this->highlight_actor);
+		this->DefaultRenderer->RemoveActor(this->selection_brush_actor);
+
+		this->Interactor->RemoveObserver(vtkCommand::LeftButtonPressEvent);
+		this->Interactor->RemoveObserver(vtkCommand::MouseMoveEvent);
+		this->Interactor->RemoveObserver(vtkCommand::LeftButtonReleaseEvent);
+		this->Interactor->RemoveObserver(vtkCommand::RightButtonPressEvent);
+		this->Interactor->RemoveObserver(vtkCommand::RightButtonReleaseEvent);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
 		this->SetCurrentRenderer(NULL);
@@ -446,6 +530,8 @@ void TransMap::ProcessEvents(vtkObject* object, unsigned long event, void* clien
 	case vtkCommand::MouseMoveEvent:
 		self->OnMouseMove();
 		break;
+	default:
+		break;
 	}
 }
 
@@ -459,6 +545,25 @@ void TransMap::OnLeftButtonDown() {
 		this->current_node = NULL;
 		this->highlight_poly->Initialize();
 		this->highlight_actor->Modified();
+		return;
+	}
+
+	if (this->state == WidgetState::SELECT_CLUSTER) {
+		this->state_vec.push_back(this->state);
+		this->state = WidgetState::SELECTION_BRUSH_BEGIN;
+
+		this->selection_brush_poly->Initialize();
+
+		vtkPoints* points = vtkPoints::New();
+		selection_brush_poly->SetPoints(points);
+
+		vtkCellArray* line_array = vtkCellArray::New();
+		selection_brush_poly->SetLines(line_array);
+
+		this->selection_brush_actor->Modified();
+
+		this->parent_view->update();
+
 		return;
 	}
 
@@ -485,7 +590,15 @@ void TransMap::OnLeftButtonDown() {
 }
 
 void TransMap::OnLeftButtonUp() {
+	if (this->state == WidgetState::SELECTION_BRUSH_BEGIN) {
+		this->state = this->state_vec[this->state_vec.size() - 1];
+		this->state_vec.pop_back();
 
+		this->UpdateBrushSelectionResult();
+
+		this->selection_brush_poly->Initialize();
+		this->selection_brush_actor->Modified();
+	}
 }
 
 void TransMap::OnRightButtonDown() {
@@ -495,7 +608,9 @@ void TransMap::OnRightButtonUp() {
 }
 
 void TransMap::OnMouseMove() {
-
+	if (this->state == WidgetState::SELECTION_BRUSH_BEGIN) {
+		
+	}
 }
 
 void TransMap::HighlightHandle(vtkProp* prop) {
@@ -644,4 +759,51 @@ void TransMap::SelectNode(CNode* node) {
 			highlight_node_sequence.push_back(node);
 		}
 	}
+}
+
+void TransMap::UpdateBrushSelectionResult() {
+	highlight_node_sequence.clear();
+
+	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i) {
+		if (IsInsideSelection(dataset_->level_one_nodes[i]->center_pos[0], dataset_->level_one_nodes[i]->center_pos[1]))
+			highlight_node_sequence.push_back(dataset_->level_one_nodes[i]);
+	}
+
+	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i) {
+		if (IsInsideSelection(dataset_->level_zero_nodes[i]->center_pos[0], dataset_->level_zero_nodes[i]->center_pos[1]))
+			highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);
+	}
+
+	this->UpdateHightlightActor();
+}
+
+bool TransMap::IsInsideSelection(float x, float y) {
+	int count = this->selection_brush_poly->GetPoints()->GetNumberOfPoints();
+
+	if (count < 3) return false;
+
+	const double PI = 3.14159265358979323846;
+	double angle = 0;
+
+	for (int i = 0, k = count - 1; i < count; k = i++) {
+		double p1[2];
+		double p2[2];
+		double* temp_pos = this->selection_brush_poly->GetPoint(i);
+		p1[0] = temp_pos[0] - x;
+		p1[1] = temp_pos[1] - y;
+
+		temp_pos = this->selection_brush_poly->GetPoint(k);
+		p2[0] = temp_pos[0] - x;
+		p2[1] = temp_pos[1] - y;
+
+		double radian = atan2(p1[1], p1[0]) - atan2(p2[1], p2[0]);
+		radian = abs(radian);
+		if (radian > PI)
+			radian = 2 * PI - radian;
+		angle += radian;
+	}
+	if (fabs(6.28318530717958647692 - abs(angle)) < 1)
+		return true;
+	else
+		return false;
 }

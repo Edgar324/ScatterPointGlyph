@@ -30,13 +30,12 @@ private:
 	PathRecord* path_record_;
 	bool is_extending_;
 
-	int item_num_per_row_ = 3;
-	int width_per_item_ = 50;
-	int width_per_band_ = 80;
-	int height_per_item_ = 50;
+	int item_num_per_row_ = 5;
+	int size_per_item_ = 40;
+	int width_per_band_ = 50;
 	int total_width_ = 400;
 	int total_height = 100;
-	int row_margin_ = 15;
+	int row_margin_ = 25;
 
 	int item_margin_ = 10;
 	int label_width_ = 10;

@@ -25,6 +25,80 @@ void UncertaintyTree::SetSampleSize(int num) {
 	is_threshold_updated_ = true;
 }
 
+void UncertaintyTree::SplitCluster(int cluster_index) {
+	CBranch* branch = (CBranch*)root_->linked_nodes[cluster_index];
+
+	std::vector< std::vector< float > > pos;
+	std::vector< std::vector< float > > value;
+	for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+		pos.push_back(branch->linked_nodes[i]->center_pos);
+		value.push_back(branch->linked_nodes[i]->average_values);
+	}
+	std::vector< std::vector< bool > > connecting_status;
+	connecting_status.resize(branch->linked_nodes.size());
+	for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+		connecting_status[i].resize(branch->linked_nodes.size(), false);
+
+		for (int j = 0; j < branch->linked_nodes.size(); ++j) {
+			connecting_status[i][j] = node_connecting_status_[branch->linked_nodes[i]->id][branch->linked_nodes[j]->id];
+		}
+	}
+
+	processor_->SetLabelEstimationRadius(branch->radius / 2);
+	processor_->SetData(pos, value, dataset_->weights, connecting_status);
+	//processor_->SetEdgeWeights(edge_weights_);
+	//processor_->SetSampleNumber(sample_num_);
+	processor_->GenerateCluster();
+	std::vector< int > node_cluster_index = processor_->GetResultLabel();
+
+	std::vector< CBranch* > label_nodes;
+	label_nodes.resize(branch->linked_nodes.size(), NULL);
+	for (int i = 0; i < node_cluster_index.size(); ++i) {
+		int label = node_cluster_index[i];
+		if (label < 0) continue;
+		if (label_nodes[label] == NULL) {
+			label_nodes[label] = new CBranch;
+			label_nodes[label]->radius = max_radius_threshold_;
+		}
+		label_nodes[label]->linked_nodes.push_back(branch->linked_nodes[i]);
+	}
+	for (int i = 0; i < node_cluster_index.size(); ++i)
+		if (label_nodes[i] != NULL) {
+			root_->linked_nodes.push_back(label_nodes[i]);
+		}
+	delete root_->linked_nodes[cluster_index];
+	for (int i = cluster_index; i < root_->linked_nodes.size() - 1; ++i)
+		root_->linked_nodes[i] = root_->linked_nodes[i + 1];
+	root_->linked_nodes.resize(root_->linked_nodes.size() - 1);
+}
+
+void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
+	std::sort(cluster_index.begin(), cluster_index.end());
+
+	CBranch* branch = (CBranch*)root_->linked_nodes[cluster_index[0]];
+	for (int i = cluster_index.size() - 1; i >= 1; --i) {
+		CBranch* next_branch = (CBranch*)root_->linked_nodes[cluster_index[i]];
+		for (int j = 0; j < next_branch->linked_nodes.size(); ++j){
+			branch->linked_nodes.push_back(next_branch->linked_nodes[j]);
+		}
+		delete root_->linked_nodes[cluster_index[i]];
+
+		for (int j = cluster_index[i]; j < root_->linked_nodes.size() - 1; ++j)
+			root_->linked_nodes[j] = root_->linked_nodes[j + 1];
+		root_->linked_nodes.resize(root_->linked_nodes.size() - 1);
+	}
+}
+
+void UncertaintyTree::AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index) {
+	if (origin_cluster == -1) {
+		// do it on the top level
+
+	} else {
+		// create a new cluster based on the original cluster
+
+	}
+}
+
 void UncertaintyTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
 	cluster_index.clear();
 
@@ -174,10 +248,13 @@ void UncertaintyTree::GenerateCluster() {
 		if (label < 0) continue;
 		if (label_nodes[label] == NULL) {
 			label_nodes[label] = new CBranch;
+			label_nodes[label]->radius = max_radius_threshold_;
 		}
 		label_nodes[label]->linked_nodes.push_back(leaf_nodes_[i]);
 	}
-	for (int i = 0; i < node_cluster_index.size(); ++i)
-		if (label_nodes[i] != NULL) root_->linked_nodes.push_back(label_nodes[i]);
+	for (int i = 0; i < node_cluster_index.size(); ++i) 
+		if (label_nodes[i] != NULL) {
+			root_->linked_nodes.push_back(label_nodes[i]);
+		}
 	root_->set_level(1);
 }

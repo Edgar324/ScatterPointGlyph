@@ -63,7 +63,7 @@ void PathExploreWidget::UpdateLayout() {
 		item_vec_[i]->setPos(0, accu_height);
 		accu_height += item_vec_[i]->boundingRect().height() + 40;
 	}
-
+	this->scene_->update();
 	this->update();
 }
 

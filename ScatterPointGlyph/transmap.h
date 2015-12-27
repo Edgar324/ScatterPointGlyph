@@ -13,11 +13,12 @@ class vtkProperty;
 class TransMapData;
 class vtkProp;
 class CNode;
+class QVTKWidget;
 
 class TransMap : public vtk3DWidget
 {
 public:
-	static TransMap* New();
+	TransMap(QVTKWidget* parent);
 
 	vtkTypeMacro(TransMap, vtk3DWidget);
 	void PrintSelf(ostream& os, vtkIndent indent) {}
@@ -35,15 +36,23 @@ public:
 	void SetData(TransMapData* data);
 	void SetNodeRadius(float r) { this->node_radius = r; }
 
+	void SetBrushSelectionOn();
+	void SetBrushSelectionOff();
+	
+
 	int GetSelectedClusterIndex();
 	void GetSelectedClusterIndex(std::vector< int >& index);
 	void SetSequenceSelectionOn();
 	void SetSequenceSelectionOff();
 
+	void SetMouseReleased();
+	void SetMouseDragmove(int x, int y);
+
 protected:
 	TransMap();
 	~TransMap();
 
+	std::vector< int > state_vec;
 	int state;
 	enum WidgetState {
 		NORMAL = 0x0,
@@ -51,6 +60,8 @@ protected:
 		HIGHLIGHT_LEVEL_ONE_NODE,
 		HIGHLIGHT_TRANSFER_BAND,
 		SELECT_PATH_SEQUENCE,
+		SELECT_CLUSTER,
+		SELECTION_BRUSH_BEGIN,
 	};
 	
 	static void ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata);
@@ -77,9 +88,15 @@ protected:
 	std::vector< vtkPolyDataMapper* > boundary_glyph_mappers;
 	std::vector< vtkPolyData* > boundary_glyph_polys;
 
+	QVTKWidget* parent_view;
+
 	vtkActor* highlight_actor;
 	vtkPolyDataMapper* hightlight_mapper;
 	vtkPolyData* highlight_poly;
+
+	vtkActor* selection_brush_actor;
+	vtkPolyDataMapper* selection_brush_mapper;
+	vtkPolyData* selection_brush_poly;
 
 	vtkCellPicker* level_one_node_picker;
 	vtkCellPicker* level_zero_node_picker;
@@ -104,6 +121,8 @@ private:
 	void HighlightHandle(vtkProp* prop);
 	void SelectNode(CNode* node);
 	void UpdateHightlightActor();
+	void UpdateBrushSelectionResult();
+	bool IsInsideSelection(float x, float y);
 };
 
 #endif

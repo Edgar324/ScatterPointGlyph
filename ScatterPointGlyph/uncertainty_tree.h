@@ -18,6 +18,10 @@ public:
 	virtual void GetClusterResult(float dis_per_piexl, int& cluster_num, std::vector< int >& cluster_index);
 	std::vector< float >& GetUncertainty();
 
+	void SplitCluster(int cluster_index);
+	void MergeClusters(std::vector< int >& cluster_index);
+	void AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index);
+
 protected:
 	virtual void run();
 	virtual void GenerateCluster();

@@ -87,6 +87,7 @@ void ParallelDataset::UpdateGaussian() {
 			std::sort(sub_value.begin(), sub_value.end());
 			var_centers[i][j] = average;
 			var_width[i][j] = sub_value[(int)(0.8 * (accu_count - 1))];
+			if (var_width[i][j] < 0.01) var_width[i][j] = 0.01;
 		}
 	}
 

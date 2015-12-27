@@ -106,11 +106,15 @@ private:
 
 	void InitWidget();
 	void AddPointData2View();
-	void UpdateParallelCoordinate();
 
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);
 	void GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids);
+
+	void UpdateParallelCoordinate();
+	void UpdateTransmap();
+	void UpdatePathMap();
+	void UpdateSortingLens();
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
@@ -127,6 +131,11 @@ private slots:
 	void OnClusterFinished();
 
 	void OnGlyphSelected(int x, int y);
+	void OnBrushSelectionTriggered(bool checked);
+	void OnMainviewLeftButtonUp();
+	void OnMouseDragmove(int x, int y);;
+	void OnSplitClusterTriggered();
+	void OnMergeClusterTriggered();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

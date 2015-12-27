@@ -4,11 +4,19 @@
 #include <QtGui/QWheelEvent>
 #include <QtGui/QDragMoveEvent>
 #include <vtkRenderWindow.h>
+#include <vtkSmartPointer.h>
+#include <vtkInteractorStyleImage.h>
 
 ScatterPointView::ScatterPointView() 
 	: QVTKWidget(), is_wheel_updated_(false) {
 	timer_ = new QTimer;
 	timer_->setSingleShot(true);
+
+	this->setFocusPolicy(Qt::StrongFocus);
+
+	vtkSmartPointer< vtkInteractorStyleImage > imageStyle =
+		vtkSmartPointer< vtkInteractorStyleImage >::New();
+	this->GetRenderWindow()->GetInteractor()->SetInteractorStyle(imageStyle);
 
 	connect(timer_, SIGNAL(timeout()), this, SLOT(OnTimeout()));
 }
@@ -28,11 +36,19 @@ void ScatterPointView::wheelEvent(QWheelEvent* event) {
 
 void ScatterPointView::mousePressEvent(QMouseEvent* event) {
 	QVTKWidget::mousePressEvent(event);
-	emit GlyphSelected(event->x(), event->y());
+	emit GlyphSelected(event->x(), this->height() - event->y());
 }
 
 void ScatterPointView::mouseMoveEvent(QMouseEvent* event) {
-	if (event->buttons() & Qt::MidButton) QVTKWidget::mouseMoveEvent(event);
+	if (event->buttons() & Qt::LeftButton) {
+		emit MouseDrag(event->pos().x(), this->height() - event->pos().y());
+	}
+	QVTKWidget::mouseMoveEvent(event);
+}
+
+void ScatterPointView::mouseReleaseEvent(QMouseEvent* event) {
+	QVTKWidget::mouseReleaseEvent(event);
+	emit LeftButtonUp();
 }
 
 void ScatterPointView::OnTimeout() {

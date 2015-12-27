@@ -67,11 +67,12 @@ void TransMapData::ProcessData() {
 	cluster_point_count.resize(this->cluster_num);
 	cluster_point_count.assign(this->cluster_num, 0);
 
-	for (int i = 0; i < cluster_index.size(); ++i) {
-		int temp_index = cluster_index[i];
+	for (int i = 0; i < dataset->sample_index.size(); ++i) {
+		int point_index = dataset->sample_index[i];
+		int temp_index = cluster_index[point_index];
 		if (temp_index < 0) continue;
-		leaf_nodes[temp_index]->center_pos[0] += dataset->original_point_pos[i][0];
-		leaf_nodes[temp_index]->center_pos[1] += dataset->original_point_pos[i][1];
+		leaf_nodes[temp_index]->center_pos[0] += dataset->original_point_pos[point_index][0];
+		leaf_nodes[temp_index]->center_pos[1] += dataset->original_point_pos[point_index][1];
 		for (int j = 0; j < dataset->weights.size(); ++j)
 			leaf_nodes[temp_index]->average_values[j] += dataset->point_values[i][j];
 		cluster_point_count[temp_index]++;
@@ -89,8 +90,9 @@ void TransMapData::ProcessData() {
 	temp_data.resize(cluster_num);
 	for (int i = 0; i < cluster_num; ++i) temp_data[i].resize(var_num);
 
-	for (int i = 0; i < cluster_index.size(); ++i) {
-		int temp_index = cluster_index[i];
+	for (int i = 0; i < dataset->sample_index.size(); ++i) {
+		int point_index = dataset->sample_index[i];
+		int temp_index = cluster_index[point_index];
 		if (temp_index < 0) continue;
 		
 		for (int j = 0; j < dataset->weights.size(); ++j){
@@ -147,8 +149,10 @@ void TransMapData::UpdateConnectingStatus() {
 	vtkPolyData* triangle_out = delaunay->GetOutput();
 
 	this->node_connecting_status.resize(this->level_one_nodes.size());
-	for (int k = 0; k < this->level_one_nodes.size(); ++k) 
+	for (int k = 0; k < this->level_one_nodes.size(); ++k){
 		this->node_connecting_status[k].resize(this->level_one_nodes.size(), false);
+		this->node_connecting_status[k].assign(this->level_one_nodes.size(), false);
+	}
 	for (int k = 0; k < triangle_out->GetNumberOfPolys(); ++k){
 		vtkCell* cell = triangle_out->GetCell(k);
 		int id1 = cell->GetPointId(0);
