@@ -34,6 +34,7 @@ public:
 	}
 
 	void SetData(TransMapData* data);
+	void UpdateScale();
 	void SetNodeRadius(float r) { this->node_radius = r; }
 
 	void SetBrushSelectionOn();

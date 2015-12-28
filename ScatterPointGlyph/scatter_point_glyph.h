@@ -127,6 +127,7 @@ private slots:
 
 	void OnSysmodeChanged();
 	void UpdateClusterView();
+	void UpdateTransmapScale();
 	
 	void OnClusterFinished();
 

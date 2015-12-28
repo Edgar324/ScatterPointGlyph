@@ -69,6 +69,12 @@
     <Filter Include="Source Files\Data">
       <UniqueIdentifier>{91ac453c-b2cb-435f-ab1d-f3ed665bc405}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\TSP">
+      <UniqueIdentifier>{0b63b565-adeb-4118-8bfe-c2429582ec76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\TSP">
+      <UniqueIdentifier>{4c203305-1088-49db-99f6-bec54f75bb66}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

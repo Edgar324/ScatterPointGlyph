@@ -111,7 +111,7 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	main_renderer_->SetViewport(0.0, 0.0, 0.7, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
-	//connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnClusterFinished()));
+	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateTransmapScale()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
@@ -520,9 +520,19 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->dataset = dataset_;
 	transmap_data_->ProcessData();
 
-	trans_map_->SetNodeRadius(dis_per_pixel_ * 20);
+	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
 	trans_map_->SetData(transmap_data_);
 	trans_map_->SetEnabled(true);
+
+	main_view_->update();
+}
+
+void ScatterPointGlyph::UpdateTransmapScale() {
+	dis_per_pixel_ = this->GetMainViewDisPerPixel();
+	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
+	trans_map_->SetData(transmap_data_);
+	// TODO: update the polydata
+	//trans_map_->UpdateScale();
 
 	main_view_->update();
 }
@@ -530,6 +540,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 void ScatterPointGlyph::UpdatePathMap() {
 	path_generator_->SetData(transmap_data_);
 	if (path_generator_->GenerateRoundPath()) {
+		path_generator_->GenerateSpanningTree();
 		// for test
 		for (int i = 0; i < pathset_->path_records.size(); ++i)
 			delete pathset_->path_records[i];

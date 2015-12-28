@@ -100,6 +100,10 @@ void TransMap::SetData(TransMapData* data) {
 	highlight_node_sequence.clear();
 }
 
+void TransMap::UpdateScale() {
+	this->ConstructActors();
+}
+
 void TransMap::SetSequenceSelectionOn() {
 	this->is_sequence_selection = true;
 }
