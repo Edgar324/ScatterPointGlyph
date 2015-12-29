@@ -39,6 +39,7 @@
 #include "point_rendering_layer.h"
 #include "gestalt_processor2.h"
 #include "scatter_point_dataset.h"
+#include "grid_scatter_point_dataset.h"
 #include "scatter_point_view.h"
 #include "wrf_data_manager.h"
 #include "map_rendering_layer.h"
@@ -56,6 +57,7 @@
 #include "path_dataset.h"
 #include "tour_path_generator.h"
 #include "change_table_lens.h"
+#include "tree_map_view.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
@@ -91,10 +93,11 @@ void ScatterPointGlyph::InitWidget() {
 	transmap_widget_splitter->setStretchFactor(0, 2);
 	transmap_widget_splitter->setStretchFactor(1, 1);
 
+	tree_map_view_ = new TreeMapView;
 	path_explore_view_ = new PathExploreWidget;
 	change_table_lens_view_ = new ChangeTableLens;
 	QSplitter* path_explore_splitter = new QSplitter(Qt::Vertical);
-	path_explore_splitter->addWidget(path_explore_view_);
+	path_explore_splitter->addWidget(tree_map_view_);
 	path_explore_splitter->addWidget(change_table_lens_view_);
 	path_explore_splitter->setSizes(temp_sizes);
 	path_explore_splitter->setStretchFactor(0, 2);
@@ -214,7 +217,7 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 }
 
 void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
-	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
+	GridScatterPointDataset* grid_dataset = new GridScatterPointDataset;
 
 	data_manager_->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("E:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
 	data_manager_->LoadEnsembleData(WRF_MSLP, std::string("E:/Data/ens_l/pres_msl_latlon_all_20150401_20150430_liaoawNRCR.nc"));
@@ -231,26 +234,28 @@ void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
 	data_manager_->GetModelMapRange(WRF_NCEP_ENSEMBLES, map_range);
 
 	int point_num = map_range.x_grid_number * map_range.y_grid_number;
-	dataset_->original_point_values.resize(point_num);
-	dataset_->original_point_pos.resize(point_num);
-	for (int i = 0; i < point_num; ++i) dataset_->original_point_pos[i].resize(2);
+	grid_dataset->original_point_values.resize(point_num);
+	grid_dataset->original_point_pos.resize(point_num);
+	for (int i = 0; i < point_num; ++i) grid_dataset->original_point_pos[i].resize(2);
 
 	for (int i = 0; i < point_num; ++i){
 		int w = i % map_range.x_grid_number;
 		int h = i / map_range.x_grid_number;
-		dataset_->original_point_pos[i][0] = map_range.start_x + map_range.x_grid_space * w;
-		dataset_->original_point_pos[i][1] = map_range.start_y + map_range.y_grid_space * h;
+		grid_dataset->original_point_pos[i][0] = map_range.start_x + map_range.x_grid_space * w;
+		grid_dataset->original_point_pos[i][1] = map_range.start_y + map_range.y_grid_space * h;
 
-		dataset_->original_point_values[i].push_back(maps[0][0]->values[i]);
-		dataset_->original_point_values[i].push_back(maps[1][0]->values[i]);
-		dataset_->original_point_values[i].push_back(maps[2][0]->values[i]);
-		dataset_->original_point_values[i].push_back(maps[3][0]->values[i]);
+		grid_dataset->original_point_values[i].push_back(maps[0][0]->values[i]);
+		grid_dataset->original_point_values[i].push_back(maps[1][0]->values[i]);
+		grid_dataset->original_point_values[i].push_back(maps[2][0]->values[i]);
+		grid_dataset->original_point_values[i].push_back(maps[3][0]->values[i]);
 	}
-	dataset_->is_structured_data = true;
-	dataset_->w = map_range.x_grid_number;
-	dataset_->h = map_range.y_grid_number;
+	grid_dataset->w = map_range.x_grid_number;
+	grid_dataset->h = map_range.y_grid_number;
+	grid_dataset->DirectConstruct();
 
-	dataset_->DirectConstruct();
+	if (dataset_ != NULL) delete dataset_;
+	dataset_ = grid_dataset;
+
 	this->AddPointData2View();
 }
 
@@ -395,8 +400,7 @@ void ScatterPointGlyph::UpdateClusterView() {
 			float left, right, bottom, top;
 			this->GetSceneRange(left, right, bottom, top);
 			dataset_->Sample(left, right, bottom, top);
-			un_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (160 * 160)));
-			un_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
+			un_tree->SetRadiusThreshold(200.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
 			un_tree->start();
 		}
 	}
@@ -504,7 +508,9 @@ void ScatterPointGlyph::OnClusterFinished() {
 
 void ScatterPointGlyph::UpdateTransmap() {
 	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
-	un_tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
+	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
+	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
+	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
 
 	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index);
 	original_point_rendering_layer_->SetHighlightCluster(-1);
@@ -512,29 +518,30 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->ClearData();
 	transmap_data_->cluster_num = cluster_num;
 	transmap_data_->var_num = dataset_->weights.size();
-	transmap_data_->cluster_index = cluster_index;
+
 	// TODO: update the cluster color
 	transmap_data_->cluster_reprentative_color = original_point_rendering_layer_->GetClusterColor();
-	// TODO: update the variable color
-	transmap_data_->var_repsentative_color.resize(transmap_data_->var_num * 3, 0);
 	transmap_data_->dataset = dataset_;
 	transmap_data_->ProcessData();
 
 	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
+	trans_map_->SetOriginalData(dataset_);
 	trans_map_->SetData(transmap_data_);
-	trans_map_->SetEnabled(true);
+
+	tree_map_view_->SetData(un_tree->root());
 
 	main_view_->update();
 }
 
 void ScatterPointGlyph::UpdateTransmapScale() {
-	dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
-	trans_map_->SetData(transmap_data_);
+	this->UpdateTransmap();
+	//dis_per_pixel_ = this->GetMainViewDisPerPixel();
+	//trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
+	//trans_map_->SetData(transmap_data_);
 	// TODO: update the polydata
 	//trans_map_->UpdateScale();
 
-	main_view_->update();
+	//main_view_->update();
 }
 
 void ScatterPointGlyph::UpdatePathMap() {
@@ -655,7 +662,7 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 			// else do the clustering
 
 		} else {
-			un_tree->SplitCluster(temp_cluster_index);
+			un_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id);
 			UpdateTransmap();
 			UpdatePathMap();
 		}
@@ -669,7 +676,10 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 		std::vector< int > merged_clusters;
 		trans_map_->GetSelectedClusterIndex(merged_clusters);
 
-		un_tree->MergeClusters(merged_clusters);
+		std::vector< int > cluster_ids;
+		for (int i = 0; i < merged_clusters.size(); ++i)
+			cluster_ids.push_back(transmap_data_->cluster_nodes[merged_clusters[i]]->id);
+		un_tree->MergeClusters(cluster_ids);
 
 		UpdateTransmap();
 		UpdatePathMap();

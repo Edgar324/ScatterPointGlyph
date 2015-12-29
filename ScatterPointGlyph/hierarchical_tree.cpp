@@ -77,7 +77,7 @@ void HierarchicalTree::run() {
 }
 
 void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
-	if (leaf_nodes_.size() == 0) {
+	/*if (leaf_nodes_.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
 	}
@@ -158,5 +158,5 @@ void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
 	}
 
 	root_->linked_nodes = cluster_nodes;
-	root_->set_level(max_level_);
+	root_->set_level(max_level_);*/
 }

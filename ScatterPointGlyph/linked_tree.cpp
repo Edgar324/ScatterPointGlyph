@@ -180,7 +180,7 @@ void LinkedTree::ConstructOnKmeans(int level_num, int basic_cnum) {
 }
 
 void LinkedTree::ConstructDirectly(int level_num) {
-	ClearData();
+	/*ClearData();
 
 	tree_nodes.resize(level_num);
 	tree_nodes[0].resize(dataset_->point_pos.size());
@@ -210,7 +210,7 @@ void LinkedTree::ConstructDirectly(int level_num) {
 		}
 	} else {
 		VtkTriangulation();
-	}
+	}*/
 }
 
 void LinkedTree::VtkTriangulation() {

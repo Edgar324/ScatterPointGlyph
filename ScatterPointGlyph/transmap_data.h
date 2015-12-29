@@ -15,10 +15,9 @@ public:
 	// data that must be initialized
 	ScatterPointDataset* dataset;
 	int cluster_num, var_num;
-	std::vector< int > cluster_index;
-	std::vector< int > cluster_point_count;
+	std::vector< CNode* > cluster_nodes;
 	std::vector< int > cluster_reprentative_color;
-	std::vector< int > var_repsentative_color;
+
 	int min_point_num;
 
 	// data that can be completed in ProcessData

@@ -22,8 +22,11 @@
 
 #include "scatter_point_dataset.h"
 
-CNode::CNode() : type_(UNKNOWN), level_(-1) {
+int CNode::max_id_ = 0;
 
+CNode::CNode() : type_(UNKNOWN), level_(-1) {
+	this->id = max_id_++;
+	is_expanded = true;
 }
 
 CNode::~CNode() {
@@ -56,7 +59,8 @@ CNode* CBranch::FindNearestValue(std::vector< float >& values) {
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
-	min_edge_length_(0) {
+	min_edge_length_(0),
+	max_level_(0) {
 
 	root_ = new CBranch;
 }
@@ -89,6 +93,8 @@ void TreeCommon::ConstructOnRandomSample(int sample_num) {
 	srand((unsigned int)time(0));
 	std::vector< bool > is_used;
 	is_used.resize(dataset_->point_pos.size(), false);
+
+	root_->linked_nodes.clear();
 
 	float temp_min = 1e10;
 	for (int i = 0; i < dataset_->point_pos.size(); ++i)
@@ -124,10 +130,9 @@ void TreeCommon::ConstructOnRandomSample(int sample_num) {
 			for (int j = 0; j < dataset_->weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
 
-			leaf_nodes_.push_back(temp_leaf);
+			root_->linked_nodes.push_back(temp_leaf);
 			temp_leaf->set_level(0);
 		}
-	VtkTriangulation();
 }
 
 void TreeCommon::ConstructDirectly() {
@@ -135,7 +140,7 @@ void TreeCommon::ConstructDirectly() {
 	std::vector< bool > is_used;
 	is_used.resize(dataset_->point_pos.size(), false);
 
-	leaf_nodes_.clear();
+	root_->linked_nodes.clear();
 
 	float temp_min = 1e10;
 	for (int i = 0; i < dataset_->point_pos.size(); ++i) 
@@ -170,14 +175,21 @@ void TreeCommon::ConstructDirectly() {
 			temp_leaf->center_pos[1] /= neighbour_list.size();
 			for (int j = 0; j < dataset_->weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
+			temp_leaf->point_count = temp_leaf->linked_points.size();
 
-			temp_leaf->id = leaf_nodes_.size();
-
-			leaf_nodes_.push_back(temp_leaf);
+			root_->linked_nodes.push_back(temp_leaf);
 			temp_leaf->set_level(0);
 		}
 
-	if (dataset_->is_structured_data) {
+	min_edge_length_ = 1e10;
+	for (int i = 0; i < root_->linked_nodes.size() - 1; ++i)
+		for (int j = i + 1; j < root_->linked_nodes.size(); ++j) {
+			float temp_dis;
+			temp_dis = sqrt(pow(root_->linked_nodes[i]->center_pos[0] - root_->linked_nodes[j]->center_pos[0], 2)
+				+ pow(root_->linked_nodes[i]->center_pos[1] - root_->linked_nodes[j]->center_pos[1], 2));
+			if (temp_dis < min_edge_length_) min_edge_length_ = temp_dis;
+		}
+	/*if (dataset_->is_structured_data) {
 		node_connecting_status_.resize(dataset_->point_pos.size());
 		for (int i = 0; i < dataset_->point_pos.size(); ++i) {
 			node_connecting_status_[i].resize(dataset_->point_pos.size());
@@ -205,11 +217,11 @@ void TreeCommon::ConstructDirectly() {
 			+ pow(leaf_nodes_[0]->center_pos[1] - leaf_nodes_[1]->center_pos[1], 2));
 	}
 	else {
-		VtkTriangulation();
-	}
+		
+	}*/
 }
 
-void TreeCommon::GenerateCluster(int min_pixel_radius) {
+void TreeCommon::GenerateCluster(CBranch* node /* = NULL */) {
 
 }
 
@@ -221,10 +233,45 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 	while (node_queue.size() != 0) {
 		CNode* temp_node = node_queue.front();
 		node_queue.pop();
+		temp_node->is_expanded = true;
 
-		if (temp_node->level() <= level) {
+		if (temp_node->level() == level) {
 			nodes.push_back(temp_node);
+			temp_node->is_expanded = false;
 		} else {
+			if (temp_node->type() == CNode::BRANCH && temp_node->level() < level) {
+				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+				bool is_all_leaf = true;
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					if (branch->linked_nodes[i]->type() != CNode::LEAF) {
+						is_all_leaf = false;
+						break;
+					}
+				if (is_all_leaf && level != max_level_) {
+					nodes.push_back(temp_node);
+					temp_node->is_expanded = false;
+				} else {
+					for (int i = 0; i < branch->linked_nodes.size(); ++i)
+						node_queue.push(branch->linked_nodes[i]);
+				}
+			}
+		}
+	}
+}
+
+void TreeCommon::Traverse(float radius, std::vector< CNode* >& nodes) {
+	nodes.clear();
+
+	std::queue< CNode* > node_queue;
+	node_queue.push(root_);
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (temp_node->radius > radius) {
+			nodes.push_back(temp_node);
+		}
+		else {
 			if (temp_node->type() == CNode::BRANCH) {
 				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
 				if (branch != NULL) {
@@ -261,11 +308,16 @@ void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
 	}
 }
 
-void TreeCommon::VtkTriangulation() {
+void TreeCommon::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status) {
+	connecting_status.resize(nodes.size());
+	for (int i = 0; i < nodes.size(); ++i) {
+		connecting_status[i].resize(nodes.size());
+		connecting_status[i].assign(nodes.size(), false);
+	}
+
 	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
-	for (int i = 0; i < leaf_nodes_.size(); ++i) {
-		CLeaf* leaf_node = dynamic_cast<CLeaf*>(leaf_nodes_[i]);
-		points->InsertNextPoint(leaf_node->center_pos[0], leaf_node->center_pos[1], 0);
+	for (int i = 0; i < nodes.size(); ++i) {
+		points->InsertNextPoint(nodes[i]->center_pos[0], nodes[i]->center_pos[1], 0);
 	}
 	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(points);
@@ -275,10 +327,6 @@ void TreeCommon::VtkTriangulation() {
 	delaunay->SetBoundingTriangulation(false);
 	delaunay->Update();
 	vtkPolyData* triangle_out = delaunay->GetOutput();
-
-	int site_num = leaf_nodes_.size();
-	node_connecting_status_.resize(site_num);
-	for (int i = 0; i < site_num; ++i) node_connecting_status_[i].resize(site_num, false);
 
 	min_edge_length_ = 0.0;
 	int edge_count = 0;
@@ -290,45 +338,33 @@ void TreeCommon::VtkTriangulation() {
 		int id1 = cell->GetPointId(0);
 		int id2 = cell->GetPointId(1);
 		int id3 = cell->GetPointId(2);
-		node_connecting_status_[id1][id2] = true;
-		node_connecting_status_[id2][id1] = true;
-		node_connecting_status_[id2][id3] = true;
-		node_connecting_status_[id3][id2] = true;
-		node_connecting_status_[id1][id3] = true;
-		node_connecting_status_[id3][id1] = true;
+		connecting_status[id1][id2] = true;
+		connecting_status[id2][id1] = true;
+		connecting_status[id2][id3] = true;
+		connecting_status[id3][id2] = true;
+		connecting_status[id1][id3] = true;
+		connecting_status[id3][id1] = true;
 
 		float temp_dis;
-		temp_dis = sqrt(pow(leaf_nodes_[id1]->center_pos[0] - leaf_nodes_[id2]->center_pos[0], 2)
-			+ pow(leaf_nodes_[id1]->center_pos[1] - leaf_nodes_[id2]->center_pos[1], 2));
-		if (temp_dis <= 0.2) {
-			min_edge_length_ += temp_dis;
-			edge_count++;
-		}
-		if (temp_dis < min_dis) min_dis = temp_dis;
-		temp_dis = sqrt(pow(leaf_nodes_[id1]->center_pos[0] - leaf_nodes_[id3]->center_pos[0], 2)
-			+ pow(leaf_nodes_[id1]->center_pos[1] - leaf_nodes_[id3]->center_pos[1], 2));
-		if (temp_dis <= 0.2) {
-			min_edge_length_ += temp_dis;
-			edge_count++;
-		}
-		if (temp_dis < min_dis) min_dis = temp_dis;
-		temp_dis = sqrt(pow(leaf_nodes_[id3]->center_pos[0] - leaf_nodes_[id2]->center_pos[0], 2)
-			+ pow(leaf_nodes_[id3]->center_pos[1] - leaf_nodes_[id2]->center_pos[1], 2));
-		if (temp_dis <= 0.2) {
-			min_edge_length_ += temp_dis;
-			edge_count++;
-		}
+		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id2]->center_pos[0], 2)
+			+ pow(nodes[id1]->center_pos[1] - nodes[id2]->center_pos[1], 2));
 		if (temp_dis < min_dis) min_dis = temp_dis;
 
-		if (min_dis < 1e-20) {
-			min_dis = 0;
-		}
+		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id3]->center_pos[0], 2)
+			+ pow(nodes[id1]->center_pos[1] - nodes[id3]->center_pos[1], 2));
+		if (temp_dis < min_dis) min_dis = temp_dis;
+
+		temp_dis = sqrt(pow(nodes[id3]->center_pos[0] - nodes[id2]->center_pos[0], 2)
+			+ pow(nodes[id3]->center_pos[1] - nodes[id2]->center_pos[1], 2));
+		if (temp_dis < min_dis) min_dis = temp_dis;
 	}
 	min_edge_length_ = min_dis;
 
-	for (int i = 0; i < node_connecting_status_.size(); ++i){
+#ifdef DEBUG_ON
+	for (int i = 0; i < connecting_status.size(); ++i){
 		bool is_connecting = false;
-		for (int j = 0; j < node_connecting_status_[i].size(); ++j) is_connecting = is_connecting || node_connecting_status_[i][j];
+		for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
 		assert(is_connecting);
 	}
+#endif // DEBUG_ON
 }

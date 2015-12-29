@@ -1,9 +1,6 @@
 #include "scatter_point_dataset.h"
 
 ScatterPointDataset::ScatterPointDataset() {
-	this->is_structured_data = false;
-	this->w = 0;
-	this->h = 0;
 }
 
 ScatterPointDataset::~ScatterPointDataset() {
@@ -11,10 +8,14 @@ ScatterPointDataset::~ScatterPointDataset() {
 }
 
 void ScatterPointDataset::Sample(float left, float right, float bottom, float top) {
+	var_num = 0;
+	point_num = 0;
 	point_pos.clear();
 	point_values.clear();
 	sample_index.clear();
 	node_sample_map.clear();
+	weights.clear();
+
 	for (int i = 0; i < original_point_pos.size(); ++i)
 		if ((original_point_pos[i][0] - left) * (original_point_pos[i][0] - right) <= 0  
 			&& (original_point_pos[i][1] - bottom) * (original_point_pos[i][1] - top) <= 0) {
@@ -23,9 +24,12 @@ void ScatterPointDataset::Sample(float left, float right, float bottom, float to
 			sample_index.push_back(i);
 			node_sample_map.insert(std::map< int, int >::value_type(i, (int)sample_index.size() - 1));
 		}
+	if (point_values.size() == 0) return;
 
 	weights.resize(point_values[0].size());
 	weights.assign(point_values[0].size(), 1.0 / point_values[0].size());
+	var_num = point_values[0].size();
+	point_num = point_values.size();
 
 	NormalizePosition(this->point_pos, this->original_pos_ranges);
 	NormalizeValues(this->point_values, this->original_value_ranges);

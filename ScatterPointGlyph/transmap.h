@@ -14,6 +14,7 @@ class TransMapData;
 class vtkProp;
 class CNode;
 class QVTKWidget;
+class ScatterPointDataset;
 
 class TransMap : public vtk3DWidget
 {
@@ -33,6 +34,7 @@ public:
 		this->Superclass::PlaceWidget(xmin, xmax, ymin, ymax, zmin, zmax);
 	}
 
+	void SetOriginalData(ScatterPointDataset* data);
 	void SetData(TransMapData* data);
 	void UpdateScale();
 	void SetNodeRadius(float r) { this->node_radius = r; }
@@ -115,6 +117,7 @@ protected:
 
 private:
 	TransMapData* dataset_;
+	ScatterPointDataset* scatter_data_;
 
 	void ClearActors();
 

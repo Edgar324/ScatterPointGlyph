@@ -25,6 +25,7 @@
 #include "transmap_data.h"
 #include "vtkCellArray.h"
 #include "tree_common.h"
+#include "scatter_point_dataset.h"
 
 TransMap::TransMap() {
 	this->state = TransMap::NORMAL;
@@ -86,6 +87,10 @@ TransMap::TransMap(QVTKWidget* parent)
 
 TransMap::~TransMap() {
 	
+}
+
+void TransMap::SetOriginalData(ScatterPointDataset* data) {
+	this->scatter_data_ = data;
 }
 
 void TransMap::SetData(TransMapData* data) {
@@ -190,7 +195,9 @@ void TransMap::ConstructActors() {
 
 	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i) {
 		CNode* node = dataset_->level_one_nodes[i];
-		// construct the polydata
+		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		// construct the polydata 
 		vtkPoints* points = vtkPoints::New();
 		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
 		colors->SetNumberOfComponents(4);
@@ -212,29 +219,31 @@ void TransMap::ConstructActors() {
 			float x = node_radius * cos(end_arc);
 			float y = node_radius * sin(end_arc);
 
-			background_ids.push_back(points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00002));
+			background_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.00002));
 			colors->InsertNextTuple4(128, 128, 128, 10);
 		}
 		polydata->InsertNextCell(VTK_POLYGON, dataset_->var_num, background_ids.data());
 
-		// paint bound
+		// paint variance
 		std::vector< int > var_point_ids;
 		var_point_ids.resize(dataset_->var_num * 2);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 
-			float temp_radius = node_radius * node->boxplot_lower_bound[j]/* * 0.8 + node_radius * 0.2*/;
+			float temp_radius = node_radius * (node->average_values[j] - node->value_variance[j]);
+			if (temp_radius < 0) temp_radius = 0;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
-			vtkIdType id_one = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
+			vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.00001);
 			colors->InsertNextTuple4(128, 128, 128, 128);
 
-			temp_radius = node_radius * node->boxplot_upper_bound[j]/* * 0.8 + node_radius * 0.2*/;
+			temp_radius = node_radius * (node->average_values[j] + node->value_variance[j]);
+			if (temp_radius > 1.0) temp_radius = 1.0;
 			x = temp_radius * cos(end_arc);
 			y = temp_radius * sin(end_arc);
 
-			vtkIdType id_two = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.00001);
+			vtkIdType id_two = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.00001);
 			colors->InsertNextTuple4(128, 128, 128, 128);
 
 			var_point_ids[j * 2] = id_one;
@@ -261,7 +270,7 @@ void TransMap::ConstructActors() {
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
-			value_pos_ids[j] = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
+			value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
 			colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
 		}
 		for (int j = 0; j < dataset_->var_num; ++j) {
@@ -272,14 +281,14 @@ void TransMap::ConstructActors() {
 		
 
 		// paint axis
-		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], -0.0001);
+		vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, -0.0001);
 		colors->InsertNextTuple4(0, 0, 0, 255);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = node_radius * cos(end_arc);
 			float y = node_radius * sin(end_arc);
 
-			vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, -0.0001);
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.0001);
 			colors->InsertNextTuple4(0, 0, 0, 255);
 			
 			cell_ids[0] = center_id;
@@ -298,6 +307,9 @@ void TransMap::ConstructActors() {
 
 	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i) {
 		CNode* node = dataset_->level_zero_nodes[i];
+		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+
 		// construct the polydata
 		vtkPoints* points = vtkPoints::New();
 		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
@@ -315,14 +327,14 @@ void TransMap::ConstructActors() {
 		float x = temp_radius;
 		float y = 0;
 
-		vtkIdType center_id = points->InsertNextPoint(node->center_pos[0], node->center_pos[1], 0);
-		vtkIdType pre_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
+		vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, 0);
+		vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
 
 		for (int k = 1; k <= 20; ++k) {
 			end_arc = (float)k / 20 * 3.14159 * 2;
 			x = temp_radius * cos(end_arc);
 			y = temp_radius * sin(end_arc);
-			vtkIdType current_id = points->InsertNextPoint(node->center_pos[0] + x, node->center_pos[1] + y, 0);
+			vtkIdType current_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
 
 			cell_ids[0] = pre_id;
 			cell_ids[1] = current_id;
@@ -343,7 +355,7 @@ void TransMap::ConstructActors() {
 		level_zero_node_glyph_actors.push_back(node_actor);
 	}
 
-	for (int i = 0; i < dataset_->level_one_nodes.size() - 1; ++i){
+	/*for (int i = 0; i < dataset_->level_one_nodes.size() - 1; ++i){
 		CNode* node_one = dataset_->level_one_nodes[i];
 
 		for (int j = i + 1; j < dataset_->level_one_nodes.size(); ++j) {
@@ -403,7 +415,7 @@ void TransMap::ConstructActors() {
 				trans_glyph_actors.push_back(node_actor);
 			}
 		}
-	}
+	}*/
 }
 
 void TransMap::ClearActors() {
@@ -686,12 +698,15 @@ void TransMap::UpdateHightlightActor() {
 			}
 		if (node_index != -1) {
 			CNode* temp_node = dataset_->level_one_nodes[node_index];
-			vtkIdType pre_id = points->InsertNextPoint(temp_node->center_pos[0] + x, temp_node->center_pos[1] + y, 0);
+			float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+			float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius * cos(end_arc);
 				y = node_radius * sin(end_arc);
-				vtkIdType current_id = points->InsertNextPoint(temp_node->center_pos[0] + x, temp_node->center_pos[1] + y, 0);
+				vtkIdType current_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
 
 				cell_ids[0] = pre_id;
 				cell_ids[1] = current_id;
@@ -712,12 +727,15 @@ void TransMap::UpdateHightlightActor() {
 			}
 		if (node_index != -1) {
 			CNode* temp_node = dataset_->level_zero_nodes[node_index];
-			vtkIdType pre_id = points->InsertNextPoint(temp_node->center_pos[0] + x * 0.4, temp_node->center_pos[1] + y * 0.4, 0);
+			float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+			float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius * cos(end_arc);
 				y = node_radius * sin(end_arc);
-				vtkIdType current_id = points->InsertNextPoint(temp_node->center_pos[0] + x * 0.4, temp_node->center_pos[1] + y * 0.4, 0);
+				vtkIdType current_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0);
 
 				cell_ids[0] = pre_id;
 				cell_ids[1] = current_id;

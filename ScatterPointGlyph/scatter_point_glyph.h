@@ -40,6 +40,7 @@ class PathExploreWidget;
 class TourPathGenerator;
 class PathDataset;
 class ChangeTableLens;
+class TreeMapView;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -71,6 +72,8 @@ private:
 	ParallelDataset* parallel_dataset_;
 
 	PathExploreWidget* path_explore_view_;
+
+	TreeMapView* tree_map_view_;
 
 	ChangeTableLens* change_table_lens_view_;
 

@@ -207,7 +207,7 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 			int min_index = -1;
 			for (int k = 0; k < point_num_; ++k)
 				if (!is_reached[k] && node_distance[k] < min_dist && node_distance[k] < max_radius_ 
-					&& abs(point_value_[k][0] - point_value_[sample_center_index[i]][0]) <= 0.3 * point_value_[sample_center_index[i]][0] + 0.2) {
+					&& abs(point_value_[k][0] - point_value_[sample_center_index[i]][0]) <= 0.3 * point_value_[sample_center_index[i]][0] + 0.4) {
 					min_dist = node_distance[k];
 					min_index = k;
 				}

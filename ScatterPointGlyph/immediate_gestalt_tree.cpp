@@ -21,7 +21,7 @@ void ImmediateGestaltTree::run() {
 }
 
 void ImmediateGestaltTree::GenerateCluster() {
-	node_cluster_index_.resize(leaf_nodes_.size());
+	/*node_cluster_index_.resize(leaf_nodes_.size());
 	for (int i = 0; i < leaf_nodes_.size(); ++i) node_cluster_index_[i] = i;
 
 	int current_level = 1;
@@ -92,5 +92,5 @@ void ImmediateGestaltTree::GenerateCluster() {
 	}
 
 	root_->linked_nodes = cluster_nodes;
-	root_->set_level(2);
+	root_->set_level(2);*/
 }

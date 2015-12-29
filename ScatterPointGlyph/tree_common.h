@@ -6,6 +6,7 @@
 #include <QThread>
 
 class ScatterPointDataset;
+class CBranch;
 
 class CNode
 {
@@ -28,6 +29,10 @@ public:
 	std::vector< float > boxplot_lower_bound;
 	float radius;
 	int id;
+	int point_count;
+	bool is_expanded;
+
+	CBranch* parent = NULL;
 
 	int level() { return level_; }
 	void set_level(int l) { level_ = l; }
@@ -35,6 +40,8 @@ public:
 protected:
 	NodeType type_;
 	int level_;
+
+	static int max_id_;
 };
 
 class CLeaf : public CNode
@@ -72,21 +79,22 @@ public:
 	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
 	virtual void GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index);
 
+	CBranch* root() { return root_; }
+
 protected:
 	ScatterPointDataset* dataset_;
 
 	CBranch* root_;
-	std::vector< CLeaf* > leaf_nodes_;
-	std::vector< std::vector< bool > > node_connecting_status_;
-
 	float min_edge_length_;
-
-	void VtkTriangulation();
+	int max_level_;
 
 	virtual void run();
-	virtual void GenerateCluster(int min_pixel_radius = 1);
+	virtual void GenerateCluster(CBranch* node = NULL);
+
+	void VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status);
 	void Traverse(CNode* node, std::vector< int >& linked_points);
 	void Traverse(int level, std::vector< CNode* >& nodes);
+	void Traverse(float radius , std::vector< CNode* >& nodes);
 };
 
 #endif

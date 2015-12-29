@@ -254,9 +254,6 @@
     <ClCompile Include="multi_label_processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="uncertainty_tree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_parallel_coordinate.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -314,6 +311,24 @@
     <ClCompile Include="change_sorting_item.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
     </ClCompile>
+    <ClCompile Include="uncertainty_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="grid_scatter_point_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_tree_map_view.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_tree_map_view.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="tree_map_item.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="tree_map_view.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -368,6 +383,9 @@
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
     <CustomBuild Include="change_sorting_item.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="tree_map_view.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -477,9 +495,6 @@
     <ClInclude Include="multi_label_processor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="uncertainty_tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="transmap_data.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
@@ -499,6 +514,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="change_table_lens.h">
+      <Filter>Header Files\Rendering Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="uncertainty_tree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="grid_scatter_point_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="tree_map_item.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>

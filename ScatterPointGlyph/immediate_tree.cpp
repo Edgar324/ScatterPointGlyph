@@ -75,7 +75,7 @@ void ImmediateTree::run() {
 }
 
 void ImmediateTree::GenerateCluster() {
-	if (leaf_nodes_.size() == 0) {
+	/*if (leaf_nodes_.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
 	}
@@ -113,5 +113,5 @@ void ImmediateTree::GenerateCluster() {
 	}
 	for (int i = 0; i < node_cluster_index_.size(); ++i)
 		if (label_nodes[i] != NULL) root_->linked_nodes.push_back(label_nodes[i]);
-	root_->set_level(1);
+	root_->set_level(1);*/
 }
