@@ -64,7 +64,7 @@ void TreeMapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 	QPen title_pen;
 	title_pen.setColor(Qt::black);
 	title_pen.setWidth(2.0);
-	painter->drawText(QRect(0, 0, this->total_width, title_height), Qt::AlignCenter, QString("Path Map"));
+	painter->drawText(QRect(0, 0, this->total_width, title_height), Qt::AlignCenter, QString("Hierarchical Tree"));
 
 	int item_width = left_margin;
 

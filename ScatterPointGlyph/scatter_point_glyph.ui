@@ -95,6 +95,7 @@
    <addaction name="actionExec"/>
    <addaction name="actionSplit"/>
    <addaction name="actionMerge"/>
+   <addaction name="actionAdd_Path_Sequence"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_close">
@@ -233,6 +234,11 @@
   <action name="actionMerge">
    <property name="text">
     <string>Merge</string>
+   </property>
+  </action>
+  <action name="actionAdd_Path_Sequence">
+   <property name="text">
+    <string>Add Path Sequence</string>
    </property>
   </action>
  </widget>

@@ -55,6 +55,8 @@ public:
 
 	bool IsMapUpdateNeeded() { return is_map_update_needed;  }
 
+	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
+
 protected:
 	TransMap();
 	~TransMap();

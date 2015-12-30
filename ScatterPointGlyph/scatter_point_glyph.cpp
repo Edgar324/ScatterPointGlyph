@@ -100,7 +100,7 @@ void ScatterPointGlyph::InitWidget() {
 	change_table_lens_view_ = new ChangeTableLens;
 	QSplitter* path_explore_splitter = new QSplitter(Qt::Vertical);
 	path_explore_splitter->addWidget(tree_map_view_);
-	path_explore_splitter->addWidget(change_table_lens_view_);
+	path_explore_splitter->addWidget(path_explore_view_);
 	path_explore_splitter->setSizes(temp_sizes);
 	path_explore_splitter->setStretchFactor(0, 2);
 	path_explore_splitter->setStretchFactor(1, 1);
@@ -172,6 +172,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(ui_.actionBrush_Cluster, SIGNAL(toggled(bool)), this, SLOT(OnBrushSelectionTriggered(bool)));
 	connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
 	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
+	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnAddPathSequenceTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -499,6 +500,11 @@ void ScatterPointGlyph::OnClusterFinished() {
 }
 
 void ScatterPointGlyph::UpdateTransmap() {
+	if (transmap_data_ != NULL) {
+		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+			transmap_data_->cluster_nodes[i]->is_highlighted = false;
+	}
+
 	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
 	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
 	if (is_active_retrieval_on_) {
@@ -506,7 +512,6 @@ void ScatterPointGlyph::UpdateTransmap() {
 		un_tree->GetActiveClusterResult(cluster_num, cluster_index);
 	} else {
 		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
-
 		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
 	}
 	
@@ -544,19 +549,19 @@ void ScatterPointGlyph::UpdateTransmapScale() {
 }
 
 void ScatterPointGlyph::UpdatePathMap() {
-	path_generator_->SetData(transmap_data_);
-	if (path_generator_->GenerateRoundPath()) {
-		path_generator_->GenerateSpanningTree();
-		// for test
-		for (int i = 0; i < pathset_->path_records.size(); ++i)
-			delete pathset_->path_records[i];
-		pathset_->path_records.clear();
+	//path_generator_->SetData(transmap_data_);
+	//if (path_generator_->GenerateRoundPath()) {
+	//	path_generator_->GenerateSpanningTree();
+	//	// for test
+	//	for (int i = 0; i < pathset_->path_records.size(); ++i)
+	//		delete pathset_->path_records[i];
+	//	pathset_->path_records.clear();
 
-		PathRecord* record = path_generator_->GetPath();
-		pathset_->path_records.push_back(record);
+	//	PathRecord* record = path_generator_->GetPath();
+	//	pathset_->path_records.push_back(record);
 
-		path_explore_view_->SetData(pathset_);
-	}
+	//	path_explore_view_->SetData(pathset_);
+	//}
 
 	change_table_lens_view_->SetData(transmap_data_);
 }
@@ -719,4 +724,33 @@ void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 	//UpdateTransmap();
 
 	this->main_view_->update();
+}
+
+void ScatterPointGlyph::OnAddPathSequenceTriggered() {
+	std::list< CNode* > node_seq = trans_map_->GetNodeSequence();
+
+	PathRecord* record = new PathRecord;
+	record->item_values.resize(node_seq.size());
+	record->item_color.resize(node_seq.size());
+	std::list< CNode* >::iterator node_iter = node_seq.begin();
+
+	int count = 0;
+	while (node_iter != node_seq.end()) {
+		record->item_values[count] = (*node_iter)->average_values;
+		record->item_color[count] = QColor(128, 128, 128);
+		count++;
+		node_iter++;
+	}
+
+	record->change_values.resize(node_seq.size() - 1);
+	for (int i = 0; i < node_seq.size() - 1; ++i) {
+		record->change_values[i].resize(record->item_values[0].size());
+		for (int j = 0; j < record->item_values[0].size(); ++j)
+			record->change_values[i][j] = record->item_values[i + 1][j] - record->item_values[i][j];
+	}
+	for (int k = 0; k < record->item_values[0].size(); ++k)
+		record->var_names.push_back("Test");
+
+	pathset_->path_records.push_back(record);
+	path_explore_view_->SetData(pathset_);
 }

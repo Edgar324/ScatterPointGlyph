@@ -17,16 +17,17 @@ PathExploreItem::~PathExploreItem() {
 void PathExploreItem::SetData(PathRecord* record) {
 	this->path_record_ = record;
 
-	this->total_height = (size_per_item_ + row_margin_) * path_record_->change_values.size() / (item_num_per_row_ - 1);
+	this->total_height = (size_per_item_ + row_margin_) * path_record_->change_values.size() / (item_num_per_row_ - 1) + 10;
 
-	this->update();
+	this->prepareGeometryChange();
+	this->update(QRectF(0, 0, total_width_, total_height));
 }
 
 void PathExploreItem::SetItemWidth(int w) {
 	this->total_width_ = w;
 	
 	if (this->path_record_ != NULL) {
-		this->total_height = (size_per_item_ + row_margin_) * path_record_->change_values.size() / (item_num_per_row_ - 1);
+		this->total_height = (size_per_item_ + row_margin_) * path_record_->change_values.size() / (item_num_per_row_ - 1) + 10;
 	}
 
 	this->update();
@@ -194,8 +195,9 @@ void PathExploreItem::PaintTransitionBand(QPainter* painter, int beginx, int end
 	for (int i = 0; i < var_num; ++i) {
 		float value = path_record_->change_values[item_index][i];
 		int tempx = beginx + 5 +  width_per_var * i + 2;
-		int temp_height = value * size_per_item_ / 2 * -1 * 0.8;
-		if (temp_height > 0){
+		double temp = log(exp(1));
+		int temp_height = log(abs(value) * 9 + 1) / log(10) * size_per_item_ / 2 * 0.8;
+		if (value < 0){
 			if (selected_var_ == -1 || i == selected_var_)
 				painter->fillRect(QRectF(tempx, centery, width_per_var, temp_height), QColor(255, 0, 0, 255));
 			else
@@ -203,9 +205,9 @@ void PathExploreItem::PaintTransitionBand(QPainter* painter, int beginx, int end
 		}
 		else {
 			if (selected_var_ == -1 || i == selected_var_)
-				painter->fillRect(QRectF(tempx, centery, width_per_var, temp_height), QColor(0, 255, 0, 255));
+				painter->fillRect(QRectF(tempx, centery, width_per_var, -1 * temp_height), QColor(0, 255, 0, 255));
 			else
-				painter->fillRect(QRectF(tempx, centery, width_per_var, temp_height), QColor(0, 255, 0, 50));
+				painter->fillRect(QRectF(tempx, centery, width_per_var, -1 * temp_height), QColor(0, 255, 0, 50));
 		}
 
 		/*painter->setPen(path_pen);

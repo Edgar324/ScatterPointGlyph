@@ -144,6 +144,7 @@ private slots:
 	void OnSplitClusterTriggered();
 	void OnMergeClusterTriggered();
 	void OnTreemapNodeSelected(int node_id);
+	void OnAddPathSequenceTriggered();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

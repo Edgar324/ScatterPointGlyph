@@ -111,6 +111,7 @@ void TransMap::SetData(TransMapData* data) {
 	this->BuildRepresentation();
 	this->SetEnabled(true);
 
+	this->highlight_node_sequence.clear();
 	this->UpdateHightlightActor();
 	is_map_update_needed = false;
 }
@@ -177,7 +178,7 @@ void TransMap::SetNodeSelected(int node_id) {
 	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
 	while (iter != dataset_->cluster_node_map.end() && iter->second->id != node_id) iter++;
 	if (iter != dataset_->cluster_node_map.end()) {
-		//this->SelectNode(iter->second);
+		this->SelectNode(iter->second);
 		this->UpdateHightlightActor();
 	}
 }
@@ -301,7 +302,7 @@ void TransMap::ConstructActors() {
 
 		// paint axis
 		vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, -0.0001);
-		colors->InsertNextTuple4(0, 0, 0, 255);
+		colors->InsertNextTuple4(200, 200, 200, 255);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = node_radius * cos(end_arc);
@@ -794,11 +795,11 @@ void TransMap::HighlightHandle(vtkProp* prop) {
 
 void TransMap::UpdateHightlightActor() {
 	this->highlight_poly->Initialize();
-	this->highlight_node_sequence.clear();
+	/*this->highlight_node_sequence.clear();
 	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
 		if (dataset_->level_one_nodes[i]->is_highlighted)  this->highlight_node_sequence.push_back(dataset_->level_one_nodes[i]);
 	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i)
-		if (dataset_->level_zero_nodes[i]->is_highlighted) this->highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);
+		if (dataset_->level_zero_nodes[i]->is_highlighted) this->highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);*/
 
 	vtkPoints* points = vtkPoints::New();
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::New();
