@@ -96,8 +96,8 @@ void TransMap::SetOriginalData(ScatterPointDataset* data) {
 void TransMap::SetData(TransMapData* data) {
 	dataset_ = data;
 
-	this->SetEnabled(false);
-	this->ClearActors();
+	//this->SetEnabled(false);
+	this->ResizeActors();
 	this->ConstructActors();
 	this->BuildRepresentation();
 	this->SetEnabled(true);
@@ -120,7 +120,6 @@ void TransMap::SetSequenceSelectionOff()  {
 void TransMap::SetBrushSelectionOn() {
 	this->state_vec.push_back(this->state);
 	this->state = WidgetState::SELECT_CLUSTER;
-	this->highlight_actor->SetVisibility(false);
 }
 
 void TransMap::SetBrushSelectionOff() {
@@ -128,7 +127,6 @@ void TransMap::SetBrushSelectionOff() {
 	this->state_vec.pop_back();
 	this->selection_brush_poly->Initialize();
 	this->selection_brush_actor->Modified();
-	this->highlight_actor->SetVisibility(true);
 }
 
 void TransMap::SetMouseReleased() {
@@ -162,6 +160,15 @@ void TransMap::SetMouseDragmove(int x, int y) {
 		this->selection_brush_actor->Modified();
 
 		this->parent_view->update();
+	}
+}
+
+void TransMap::SetNodeSelected(int node_id) {
+	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+	while (iter != dataset_->cluster_node_map.end() && iter->second->id != node_id) iter++;
+	if (iter != dataset_->cluster_node_map.end()) {
+		this->SelectNode(iter->second);
+		this->UpdateHightlightActor();
 	}
 }
 
@@ -202,7 +209,9 @@ void TransMap::ConstructActors() {
 		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
 		colors->SetNumberOfComponents(4);
 
-		vtkPolyData* polydata = vtkPolyData::New();
+		vtkPolyData* polydata = this->level_one_node_glyph_polys[i];
+		polydata->Initialize();
+
 		polydata->SetPoints(points);
 		polydata->GetPointData()->SetScalars(colors);
 
@@ -289,20 +298,14 @@ void TransMap::ConstructActors() {
 			float y = node_radius * sin(end_arc);
 
 			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.0001);
-			colors->InsertNextTuple4(0, 0, 0, 255);
+			colors->InsertNextTuple4(100, 100, 100, 255);
 			
 			cell_ids[0] = center_id;
 			cell_ids[1] = pre_id;
 			polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
 		}
 
-		vtkActor* node_actor = vtkActor::New();
-		vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-		mapper->SetInputData(polydata);
-		node_actor->SetMapper(mapper);
-		node_actor->GetProperty()->SetLineWidth(2.0);
-		
-		level_one_node_glyph_actors.push_back(node_actor);
+		this->level_one_node_glyph_actors[i]->Modified();
 	}
 
 	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i) {
@@ -315,7 +318,9 @@ void TransMap::ConstructActors() {
 		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
 		colors->SetNumberOfComponents(3);
 
-		vtkPolyData* polydata = vtkPolyData::New();
+		vtkPolyData* polydata = this->level_zero_node_glyph_polys[i];
+		polydata->Initialize();
+
 		polydata->SetPoints(points);
 		polydata->GetPointData()->SetScalars(colors);
 
@@ -346,13 +351,7 @@ void TransMap::ConstructActors() {
 
 		for (int k = 0; k < 22; ++k) colors->InsertNextTuple3(dataset_->level_zero_colors[3 * i], dataset_->level_zero_colors[3 * i + 1], dataset_->level_zero_colors[3 * i + 2]);
 
-		vtkActor* node_actor = vtkActor::New();
-		vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-		mapper->SetInputData(polydata);
-		node_actor->SetMapper(mapper);
-		node_actor->GetProperty()->SetLineWidth(2.0);
-
-		level_zero_node_glyph_actors.push_back(node_actor);
+		this->level_zero_node_glyph_actors[i]->Modified();
 	}
 
 	/*for (int i = 0; i < dataset_->level_one_nodes.size() - 1; ++i){
@@ -418,18 +417,85 @@ void TransMap::ConstructActors() {
 	}*/
 }
 
-void TransMap::ClearActors() {
-	for (int i = 0; i < level_one_node_glyph_actors.size(); ++i) {
-		this->level_one_node_picker->DeletePickList(level_one_node_glyph_actors[i]);
-		level_one_node_glyph_actors[i]->Delete();
-	}
-	level_one_node_glyph_actors.clear();
+void TransMap::ResizeActors() {
+	if (level_one_node_glyph_actors.size() < dataset_->level_one_nodes.size()) {
+		for (int i = level_one_node_glyph_actors.size(); i < dataset_->level_one_nodes.size(); ++i) {
+			vtkPoints* points = vtkPoints::New();
+			vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
+			colors->SetNumberOfComponents(4);
 
-	for (int i = 0; i < level_zero_node_glyph_actors.size(); ++i) {
-		this->level_zero_node_picker->DeletePickList(level_zero_node_glyph_actors[i]);
-		level_zero_node_glyph_actors[i]->Delete();
+			vtkPolyData* polydata = vtkPolyData::New();
+			polydata->SetPoints(points);
+			polydata->GetPointData()->SetScalars(colors);
+
+			vtkCellArray* poly_array = vtkCellArray::New();
+			polydata->SetPolys(poly_array);
+
+			vtkCellArray* line_array = vtkCellArray::New();
+			polydata->SetLines(line_array);
+
+			vtkActor* node_actor = vtkActor::New();
+			vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+			mapper->SetInputData(polydata);
+			node_actor->SetMapper(mapper);
+			node_actor->GetProperty()->SetLineWidth(2.0);
+
+			level_one_node_glyph_actors.push_back(node_actor);
+			level_one_node_glyph_polys.push_back(polydata);
+
+			this->level_one_node_picker->AddPickList(node_actor);
+
+			if (Enabled) this->DefaultRenderer->AddActor(node_actor);
+		}
+	} else {
+		for (int i = dataset_->level_one_nodes.size(); i < level_one_node_glyph_actors.size(); ++i) {
+			if (Enabled) this->DefaultRenderer->RemoveActor(level_one_node_glyph_actors[i]);
+			this->level_one_node_picker->DeletePickList(level_one_node_glyph_actors[i]);
+			level_one_node_glyph_actors[i]->Delete();
+		}
+		level_one_node_glyph_actors.resize(dataset_->level_one_nodes.size());
+		level_one_node_glyph_polys.resize(dataset_->level_one_nodes.size());
 	}
-	level_zero_node_glyph_actors.clear();
+
+	if (level_zero_node_glyph_actors.size() < dataset_->level_zero_nodes.size()) {
+		for (int i = level_zero_node_glyph_actors.size(); i < dataset_->level_zero_nodes.size(); ++i) {
+			vtkPoints* points = vtkPoints::New();
+			vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
+			colors->SetNumberOfComponents(4);
+
+			vtkPolyData* polydata = vtkPolyData::New();
+			polydata->SetPoints(points);
+			polydata->GetPointData()->SetScalars(colors);
+
+			vtkCellArray* poly_array = vtkCellArray::New();
+			polydata->SetPolys(poly_array);
+
+			vtkCellArray* line_array = vtkCellArray::New();
+			polydata->SetLines(line_array);
+
+			vtkActor* node_actor = vtkActor::New();
+			vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+			mapper->SetInputData(polydata);
+			node_actor->SetMapper(mapper);
+			node_actor->GetProperty()->SetLineWidth(2.0);
+
+			level_zero_node_glyph_actors.push_back(node_actor);
+			level_zero_node_glyph_polys.push_back(polydata);
+
+			this->level_zero_node_picker->AddPickList(node_actor);
+
+			if (Enabled) this->DefaultRenderer->AddActor(node_actor);
+		}
+	}
+	else {
+		for (int i = dataset_->level_zero_nodes.size(); i < level_zero_node_glyph_actors.size(); ++i) {
+			if (Enabled) this->DefaultRenderer->RemoveActor(level_zero_node_glyph_actors[i]);
+			this->level_zero_node_picker->DeletePickList(level_zero_node_glyph_actors[i]);
+			level_zero_node_glyph_actors[i]->Delete();
+		}
+		level_zero_node_glyph_actors.resize(dataset_->level_zero_nodes.size());
+		level_zero_node_glyph_polys.resize(dataset_->level_zero_nodes.size());
+	}
 
 	for (int i = 0; i < trans_glyph_actors.size(); ++i) {
 		this->trans_picker->DeletePickList(trans_glyph_actors[i]);
@@ -701,12 +767,12 @@ void TransMap::UpdateHightlightActor() {
 			float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
 			float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
-			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0001);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius * cos(end_arc);
 				y = node_radius * sin(end_arc);
-				vtkIdType current_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
+				vtkIdType current_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0001);
 
 				cell_ids[0] = pre_id;
 				cell_ids[1] = current_id;
@@ -715,7 +781,7 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(128, 128, 128);
 			iter++;
 			continue;
 		}
@@ -730,12 +796,12 @@ void TransMap::UpdateHightlightActor() {
 			float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
 			float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
-			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0);
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0.0001);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius * cos(end_arc);
 				y = node_radius * sin(end_arc);
-				vtkIdType current_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0);
+				vtkIdType current_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0.0001);
 
 				cell_ids[0] = pre_id;
 				cell_ids[1] = current_id;
@@ -744,7 +810,7 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(128, 128, 128);
 			iter++;
 			continue;
 		}
@@ -759,41 +825,76 @@ void TransMap::UpdateHightlightActor() {
 void TransMap::SelectNode(CNode* node) {
 	if (!is_sequence_selection) {
 		if (highlight_node_sequence.size() > 1) {
+			std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+			while (iter != highlight_node_sequence.end()) {
+				(*iter)->is_highlighted = false;
+				iter++;
+			}
 			highlight_node_sequence.clear();
 			highlight_node_sequence.push_back(node);
+			node->is_highlighted = true;
 		} else if (highlight_node_sequence.size() == 1) {
 			if (*highlight_node_sequence.begin() == node) {
+				std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+				while (iter != highlight_node_sequence.end()) {
+					(*iter)->is_highlighted = false;
+					iter++;
+				}
 				highlight_node_sequence.clear();
 			}
 			else {
+				std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+				while (iter != highlight_node_sequence.end()) {
+					(*iter)->is_highlighted = false;
+					iter++;
+				}
 				highlight_node_sequence.clear();
 				highlight_node_sequence.push_back(node);
+				node->is_highlighted = true;
 			}
 		} else {
 			highlight_node_sequence.push_back(node);
+			node->is_highlighted = true;
 		}
 	} else {
 		std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
 		while (iter != highlight_node_sequence.end() && *iter != node) iter++;
 		if (iter != highlight_node_sequence.end()) {
+			(*iter)->is_highlighted = false;
 			highlight_node_sequence.erase(iter);
 		} else {
 			highlight_node_sequence.push_back(node);
+			node->is_highlighted = true;
 		}
 	}
 }
 
 void TransMap::UpdateBrushSelectionResult() {
+	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	while (iter != highlight_node_sequence.end()) {
+		(*iter)->is_highlighted = false;
+		iter++;
+	}
 	highlight_node_sequence.clear();
 
 	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i) {
-		if (IsInsideSelection(dataset_->level_one_nodes[i]->center_pos[0], dataset_->level_one_nodes[i]->center_pos[1]))
+		CNode* node = dataset_->level_one_nodes[i];
+		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		if (IsInsideSelection(node_center_x, node_center_y)) {
 			highlight_node_sequence.push_back(dataset_->level_one_nodes[i]);
+			dataset_->level_one_nodes[i]->is_highlighted = true;
+		}
 	}
 
 	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i) {
-		if (IsInsideSelection(dataset_->level_zero_nodes[i]->center_pos[0], dataset_->level_zero_nodes[i]->center_pos[1]))
+		CNode* node = dataset_->level_zero_nodes[i];
+		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		if (IsInsideSelection(node_center_x, node_center_y)) {
 			highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);
+			dataset_->level_zero_nodes[i]->is_highlighted = true;
+		}
 	}
 
 	this->UpdateHightlightActor();

@@ -140,6 +140,7 @@ private slots:
 	void OnMouseDragmove(int x, int y);;
 	void OnSplitClusterTriggered();
 	void OnMergeClusterTriggered();
+	void OnTreemapNodeSelected(int node_id);
 };
 
 #endif // SCATTER_POINT_GLYPH_H

@@ -6,24 +6,33 @@
 
 #include <map>
 
-class TreeMapItem : public QGraphicsItem
+class TreeMapItem : public QObject, public QGraphicsItem
 {
+	Q_OBJECT
+
 public:
 	TreeMapItem();
 	~TreeMapItem();
 
 	void SetData(CNode* data);
 
+signals:
+	void NodeSelected(int node_id);
+
 protected:
 	QRectF boundingRect() const;
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */);
+
+	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
+	void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 private:
 	CNode* root_ = NULL;
 
 	std::map< int, QRectF > item_pos_map_;
+	std::map< int, CNode* > item_map_;
 
-	int item_size = 20;
+	int item_size = 40;
 	int item_margin = 5;
 	int transition_width = 70;
 	int left_margin = 10;

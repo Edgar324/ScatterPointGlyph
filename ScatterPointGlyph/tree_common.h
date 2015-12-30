@@ -31,6 +31,7 @@ public:
 	int id;
 	int point_count;
 	bool is_expanded;
+	bool is_highlighted;
 
 	CBranch* parent = NULL;
 

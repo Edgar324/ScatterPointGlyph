@@ -27,6 +27,7 @@ int CNode::max_id_ = 0;
 CNode::CNode() : type_(UNKNOWN), level_(-1) {
 	this->id = max_id_++;
 	is_expanded = true;
+	is_highlighted = false;
 }
 
 CNode::~CNode() {
@@ -238,6 +239,7 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 		if (temp_node->level() == level) {
 			nodes.push_back(temp_node);
 			temp_node->is_expanded = false;
+			temp_node->is_highlighted = false;
 		} else {
 			if (temp_node->type() == CNode::BRANCH && temp_node->level() < level) {
 				CBranch* branch = dynamic_cast<CBranch*>(temp_node);

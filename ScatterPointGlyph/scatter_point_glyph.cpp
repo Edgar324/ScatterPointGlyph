@@ -102,6 +102,7 @@ void ScatterPointGlyph::InitWidget() {
 	path_explore_splitter->setSizes(temp_sizes);
 	path_explore_splitter->setStretchFactor(0, 2);
 	path_explore_splitter->setStretchFactor(1, 1);
+	connect(tree_map_view_, SIGNAL(NodeSelected(int)), this, SLOT(OnTreemapNodeSelected(int)));
 
 	QHBoxLayout* main_layout = new QHBoxLayout;
 	main_layout->addWidget(transmap_widget_splitter);
@@ -112,14 +113,14 @@ void ScatterPointGlyph::InitWidget() {
 
 	main_renderer_ = vtkRenderer::New();
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
-	main_renderer_->SetViewport(0.0, 0.0, 0.7, 1.0);
+	main_renderer_->SetViewport(0.0, 0.0, 1.0, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateTransmapScale()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
 
-	dis_matrix_renderer_ = vtkRenderer::New();
+	/*dis_matrix_renderer_ = vtkRenderer::New();
 	main_view_->GetRenderWindow()->AddRenderer(dis_matrix_renderer_);
 	dis_matrix_renderer_->SetViewport(0.7, 0.5, 1.0, 1.0);
 	double eyepos[] = { 0.5, 0.5, 2.0 };
@@ -132,7 +133,7 @@ void ScatterPointGlyph::InitWidget() {
 	other_renderer_ = vtkRenderer::New();
 	main_view_->GetRenderWindow()->AddRenderer(other_renderer_);
 	other_renderer_->SetViewport(0.7, 0.0, 1.0, 0.5);
-	//other_renderer_->SetBackground(1.0, 1.0, 1.0);
+	other_renderer_->SetBackground(1.0, 1.0, 1.0);*/
 
 	layer_control_widget_ = new LayerControlWidget;
 	rendering_layer_model_ = new RenderingLayerModel;
@@ -296,18 +297,6 @@ void ScatterPointGlyph::OnActionExitTriggered() {
 	
 }
 
-void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
-	std::vector< int > selection_index;
-	trans_map_->GetSelectedClusterIndex(selection_index);
-	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
-		original_point_rendering_layer_->SetHighlightClusters(selection_index);
-	}
-
-	this->GenerateParallelDataset(parallel_dataset_, selection_index);
-
-	parallel_coordinate_->update();
-}
-
 void ScatterPointGlyph::OnSysmodeChanged() {
 	if (ui_.action_perception_driven->isChecked()) {
 		sys_mode_ = PERCEPTION_MODE;
@@ -444,7 +433,7 @@ void ScatterPointGlyph::AddPointData2View() {
 		rendering_layer_model_->AddLayer(QString("Field Layer"), field_layer, false);
 	}
 
-	DistanceMatrixLayer* matrix = new DistanceMatrixLayer;
+	/*DistanceMatrixLayer* matrix = new DistanceMatrixLayer;
 	std::vector< std::string > names;
 	std::vector< std::vector< float > > distance;
 	for (int i = 0; i < 5; ++i) names.push_back(std::string("test"));
@@ -455,7 +444,7 @@ void ScatterPointGlyph::AddPointData2View() {
 	matrix->SetData(names, distance);
 	matrix->SetInteractor(this->main_view_->GetInteractor());
 	matrix->SetDefaultRenderer(this->dis_matrix_renderer_);
-	matrix->SetEnabled(true);
+	matrix->SetEnabled(true);*/
 
 	this->UpdateParallelCoordinate();
 
@@ -628,6 +617,19 @@ void ScatterPointGlyph::OnBrushSelectionTriggered(bool checked) {
 	}
 }
 
+void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
+	std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
+	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
+		original_point_rendering_layer_->SetHighlightClusters(selection_index);
+	}
+
+	this->GenerateParallelDataset(parallel_dataset_, selection_index);
+	parallel_coordinate_->update();
+
+	tree_map_view_->scene()->update();
+}
+
 void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 	if (trans_map_ != NULL) {
 		trans_map_->SetMouseReleased();
@@ -641,6 +643,8 @@ void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 			this->GenerateParallelDataset(parallel_dataset_, selection_index);
 
 			parallel_coordinate_->update();
+
+			tree_map_view_->scene()->update();
 
 			this->main_view_->update();
 		}
@@ -664,6 +668,9 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 		} else {
 			un_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id);
 			UpdateTransmap();
+
+			tree_map_view_->scene()->update();
+
 			UpdatePathMap();
 		}
 	}
@@ -682,6 +689,15 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 		un_tree->MergeClusters(cluster_ids);
 
 		UpdateTransmap();
+
+		tree_map_view_->scene()->update();
+
 		UpdatePathMap();
 	}
+}
+
+void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
+	trans_map_->SetNodeSelected(node_id);
+
+	this->main_view_->update();
 }

@@ -4,6 +4,7 @@
 #include <QtWidgets/QGraphicsView>
 #include "tree_common.h"
 
+class QGraphicsTextItem;
 class TreeMapItem;
 
 class TreeMapView : public QGraphicsView
@@ -16,12 +17,16 @@ public:
 
 	void SetData(CNode* data);
 
+signals:
+	void NodeSelected(int node_id);
+
 private:
 	CNode* root_node_;
 
 	QGraphicsScene* scene_;
 
 	TreeMapItem* tree_item_;
+	QGraphicsTextItem* title_item_;
 };
 
 #endif

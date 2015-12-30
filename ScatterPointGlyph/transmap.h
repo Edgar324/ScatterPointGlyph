@@ -41,13 +41,13 @@ public:
 
 	void SetBrushSelectionOn();
 	void SetBrushSelectionOff();
-	
 
 	int GetSelectedClusterIndex();
 	void GetSelectedClusterIndex(std::vector< int >& index);
 	void SetSequenceSelectionOn();
 	void SetSequenceSelectionOff();
 
+	void SetNodeSelected(int node_id);
 	void SetMouseReleased();
 	void SetMouseDragmove(int x, int y);
 
@@ -78,17 +78,15 @@ protected:
 	void BuildRepresentation();
 
 	std::vector< vtkActor* > level_one_node_glyph_actors;
-	std::vector< vtkPolyDataMapper* > node_glyph_mappers;
-	std::vector< vtkPolyData* > node_glyph_polys;
+	std::vector< vtkPolyData* > level_one_node_glyph_polys;
 
 	std::vector< vtkActor* > level_zero_node_glyph_actors;
+	std::vector< vtkPolyData* > level_zero_node_glyph_polys;
 
 	std::vector< vtkActor* > trans_glyph_actors;
-	std::vector< vtkPolyDataMapper* > trans_glyph_mappers;
 	std::vector< vtkPolyData* > trans_glyph_polys;
 
 	std::vector< vtkActor* > boundary_glyph_actors;
-	std::vector< vtkPolyDataMapper* > boundary_glyph_mappers;
 	std::vector< vtkPolyData* > boundary_glyph_polys;
 
 	QVTKWidget* parent_view;
@@ -119,7 +117,7 @@ private:
 	TransMapData* dataset_;
 	ScatterPointDataset* scatter_data_;
 
-	void ClearActors();
+	void ResizeActors();
 
 	void ConstructActors();
 	void HighlightHandle(vtkProp* prop);

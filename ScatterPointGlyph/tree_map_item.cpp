@@ -1,6 +1,7 @@
 #include "tree_map_item.h"
 #include <QtGui/QPen>
 #include <QtGui/QPainter>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
 
 TreeMapItem::TreeMapItem() {
 
@@ -13,6 +14,7 @@ TreeMapItem::~TreeMapItem() {
 void TreeMapItem::SetData(CNode* data) {
 	root_ = data;
 
+	this->item_map_.clear();
 	int bottom = 0;
 	int item_width = 0;
 	this->UpdateSize(root_, bottom, item_width);
@@ -26,6 +28,8 @@ void TreeMapItem::SetData(CNode* data) {
 
 void TreeMapItem::UpdateSize(CNode* node, int& bottom, int& item_width) {
 	if (node == NULL) return;
+
+	this->item_map_.insert(std::map< int, CNode* >::value_type(node->id, node));
 
 	int temp_bottom = bottom;
 	// paint the child nodes
@@ -79,13 +83,61 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 	}
 
 	// paint the item glyph
-	int leftx, centery;
+	int leftx, centery, centerx;
 	if (bottom - temp_bottom < item_size)  bottom += item_size;
 	centery = (bottom + temp_bottom) / 2;
-	leftx = node->level() * (item_size + transition_width) + 0.5 * item_size;
+	leftx = node->level() * (item_size + transition_width);
+	centerx = leftx + 0.5 * item_size;
 
-	painter->setPen(Qt::black);
-	painter->drawRect(QRectF(leftx, centery - item_size / 2, item_size, item_size));
+	// paint the radar glyph
+	if (node->level() == 0) {
+		QPen path_pen;
+		path_pen.setColor(Qt::gray);
+		path_pen.setWidth(2.0);
+
+		painter->setPen(path_pen);
+		painter->drawEllipse(leftx, centery - item_size / 2, item_size, item_size);
+	} else {
+		QPen axis_pen;
+		axis_pen.setColor(Qt::gray);
+		axis_pen.setWidth(2.0);
+		painter->setPen(axis_pen);
+
+		std::vector< float > x_vec;
+		std::vector< float > y_vec;
+
+		for (int i = 0; i < node->average_values.size(); ++i) {
+			float end_arc = i * 3.14159 * 2 / node->average_values.size();
+
+			float temp_radius = item_size / 2 * 0.8;
+			float x = temp_radius * cos(end_arc);
+			float y = temp_radius * sin(end_arc);
+
+			x_vec.push_back(x * node->average_values[i]);
+			y_vec.push_back(y * node->average_values[i]);
+
+			painter->drawLine(centerx, centery, centerx + x, centery + y);
+		}
+
+		axis_pen.setColor(QColor(128, 128, 128));
+		painter->setPen(axis_pen);
+		for (int i = 0; i < node->average_values.size(); ++i) {
+			painter->drawLine(centerx + x_vec[i], centery + y_vec[i], centerx + x_vec[(i + 1) % node->average_values.size()], centery + y_vec[(i + 1) % node->average_values.size()]);
+		}
+
+		if (node->point_count > 5) {
+			
+		} else {
+
+		}
+	}
+
+	QRectF item_rect = QRectF(leftx, centery - item_size / 2, item_size, item_size);
+	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id, item_rect));
+	if (node->is_highlighted) {
+		painter->setPen(Qt::black);
+		painter->drawRect(item_rect);
+	}
 
 	// paint linkage
 	painter->setPen(Qt::red);
@@ -99,4 +151,65 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		temp_path.cubicTo(control_x1, centery, control_x2, linked_pos[i], nextx, linked_pos[i]);
 		painter->drawPath(temp_path);
 	}
+}
+
+void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+	int x = event->pos().x();
+	int y = event->pos().y();
+
+	std::map< int, QRectF >::iterator iter = this->item_pos_map_.begin();
+	int id_index = -1;
+	while (iter != item_pos_map_.end()) {
+		QRectF rect = iter->second;
+		if (x > rect.left() && x < rect.right() && y > rect.top() && y < rect.bottom()) {
+			id_index = iter->first;
+			break;
+		}
+		iter++;
+	}
+
+	if (id_index != -1) {
+		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
+		if (iter != item_map_.end()) {
+			iter->second->is_highlighted = !iter->second->is_highlighted;
+			emit NodeSelected(id_index);
+		}
+	}
+
+	this->update();
+}
+
+void TreeMapItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
+	int x = event->pos().x();
+	int y = event->pos().y();
+
+	std::map< int, QRectF >::iterator iter = this->item_pos_map_.begin();
+	int id_index = -1;
+	while (iter != item_pos_map_.end()) {
+		QRectF rect = iter->second;
+		if (x > rect.left() && x < rect.right() && y > rect.top() && y < rect.bottom()) {
+			id_index = iter->first;
+			break;
+		}
+		iter++;
+	}
+
+	if (id_index != -1) {
+		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
+		if (iter != item_map_.end()) {
+			iter->second->is_expanded = !iter->second->is_expanded;
+			emit NodeSelected(id_index);
+		}
+	}
+
+	this->item_map_.clear();
+	int bottom = 0;
+	int item_width = 0;
+	this->UpdateSize(root_, bottom, item_width);
+
+	this->total_height = bottom;
+	this->total_width = item_width + left_margin;
+
+	this->prepareGeometryChange();
+	this->update(QRectF(0, 0, total_width, total_height));
 }
