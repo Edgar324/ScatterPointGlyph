@@ -96,6 +96,7 @@ protected:
 	void Traverse(CNode* node, std::vector< int >& linked_points);
 	void Traverse(int level, std::vector< CNode* >& nodes);
 	void Traverse(float radius , std::vector< CNode* >& nodes);
+	void ActiveTraverse(std::vector< CNode* >& nodes);
 };
 
 #endif

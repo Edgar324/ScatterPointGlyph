@@ -21,31 +21,33 @@
 #include "vtkRenderer.h"
 #include "vtkSphereSource.h"
 #include "vtkPointData.h"
+#include <vtkPropPicker.h>
 #include <QVTKWidget.h>
 #include "transmap_data.h"
 #include "vtkCellArray.h"
 #include "tree_common.h"
 #include "scatter_point_dataset.h"
+#include "tour_path_generator.h"
 
 TransMap::TransMap() {
 	this->state = TransMap::NORMAL;
 	this->EventCallbackCommand->SetCallback(TransMap::ProcessEvents);
 
-	float picker_tolerence = 1e-10;
-	this->level_one_node_picker = vtkCellPicker::New();
-	this->level_one_node_picker->SetTolerance(picker_tolerence);
+	float picker_tolerence = 1e-4;
+	this->level_one_node_picker = vtkPropPicker::New();
+	//this->level_one_node_picker->SetTolerance(picker_tolerence);
 	this->level_one_node_picker->PickFromListOn();
 	
-	this->level_zero_node_picker = vtkCellPicker::New();
-	this->level_zero_node_picker->SetTolerance(picker_tolerence);
+	this->level_zero_node_picker = vtkPropPicker::New();
+	//this->level_zero_node_picker->SetTolerance(picker_tolerence);
 	this->level_zero_node_picker->PickFromListOn();
 
-	this->trans_picker = vtkCellPicker::New();
-	this->trans_picker->SetTolerance(picker_tolerence);
+	this->trans_picker = vtkPropPicker::New();
+	//this->trans_picker->SetTolerance(picker_tolerence);
 	this->trans_picker->PickFromListOn();
 
-	this->boundary_picker = vtkCellPicker::New();
-	this->boundary_picker->SetTolerance(picker_tolerence);
+	this->boundary_picker = vtkPropPicker::New();
+	//this->boundary_picker->SetTolerance(picker_tolerence);
 	this->boundary_picker->PickFromListOn();
 
 	double bounds[6];
@@ -78,6 +80,9 @@ TransMap::TransMap() {
 	this->selection_brush_actor->SetMapper(this->selection_brush_mapper);
 	this->selection_brush_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 	this->selection_brush_actor->GetProperty()->SetLineWidth(3.0);
+
+	this->path_generator_ = new TourPathGenerator;
+	this->is_map_update_needed = false;
 }
 
 TransMap::TransMap(QVTKWidget* parent) 
@@ -96,13 +101,18 @@ void TransMap::SetOriginalData(ScatterPointDataset* data) {
 void TransMap::SetData(TransMapData* data) {
 	dataset_ = data;
 
+	this->path_generator_->SetData(dataset_);
+	this->path_generator_->GenerateSpanningTree();
+	trans_edges = this->path_generator_->edge_list;
+
 	//this->SetEnabled(false);
 	this->ResizeActors();
 	this->ConstructActors();
 	this->BuildRepresentation();
 	this->SetEnabled(true);
 
-	highlight_node_sequence.clear();
+	this->UpdateHightlightActor();
+	is_map_update_needed = false;
 }
 
 void TransMap::UpdateScale() {
@@ -167,7 +177,7 @@ void TransMap::SetNodeSelected(int node_id) {
 	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
 	while (iter != dataset_->cluster_node_map.end() && iter->second->id != node_id) iter++;
 	if (iter != dataset_->cluster_node_map.end()) {
-		this->SelectNode(iter->second);
+		//this->SelectNode(iter->second);
 		this->UpdateHightlightActor();
 	}
 }
@@ -354,67 +364,59 @@ void TransMap::ConstructActors() {
 		this->level_zero_node_glyph_actors[i]->Modified();
 	}
 
-	/*for (int i = 0; i < dataset_->level_one_nodes.size() - 1; ++i){
-		CNode* node_one = dataset_->level_one_nodes[i];
+	for (int i = 0; i < trans_glyph_actors.size(); ++i){
+		CNode* node_one = dataset_->level_one_nodes[trans_edges[i * 2]];
+		CNode* node_two = dataset_->level_one_nodes[trans_edges[i * 2 + 1]];
 
-		for (int j = i + 1; j < dataset_->level_one_nodes.size(); ++j) {
-			if (dataset_->node_connecting_status[i][j]) {
-				CNode* node_two = dataset_->level_one_nodes[j];
+		float node_one_center_x = node_one->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_one_center_y = node_one->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_two_center_x = node_two->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_two_center_y = node_two->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
-				vtkPoints* points = vtkPoints::New();
-				vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
-				colors->SetNumberOfComponents(3);
+		vtkPoints* points = vtkPoints::New();
+		vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
+		colors->SetNumberOfComponents(3);
 
-				vtkPolyData* polydata = vtkPolyData::New();
-				polydata->SetPoints(points);
-				polydata->GetPointData()->SetScalars(colors);
+		vtkPolyData* polydata = trans_glyph_polys[i];
+		polydata->SetPoints(points);
+		polydata->GetPointData()->SetScalars(colors);
 
-				vtkCellArray* poly_array = vtkCellArray::New();
-				polydata->SetPolys(poly_array);
+		vtkCellArray* poly_array = vtkCellArray::New();
+		polydata->SetPolys(poly_array);
 
-				float band_width = 1.5 * node_radius;
-				float width_per_var = band_width / dataset_->var_num;
-				float dir_vec[2], orth_vec[2];
-				dir_vec[0] = node_two->center_pos[0] - node_one->center_pos[0];
-				dir_vec[1] = node_two->center_pos[1] - node_one->center_pos[1];
-				float dir_length = sqrt(pow(dir_vec[0], 2) + pow(dir_vec[1], 2));
-				dir_vec[0] /= dir_length;
-				dir_vec[1] /= dir_length;
-				orth_vec[0] = -1 * dir_vec[1];
-				orth_vec[1] = dir_vec[0];
+		float band_width = 1.5 * node_radius;
+		float width_per_var = band_width / dataset_->var_num;
+		float dir_vec[2], orth_vec[2];
+		dir_vec[0] = node_two->center_pos[0] - node_one->center_pos[0];
+		dir_vec[1] = node_two->center_pos[1] - node_one->center_pos[1];
+		float dir_length = sqrt(pow(dir_vec[0], 2) + pow(dir_vec[1], 2));
+		dir_vec[0] /= dir_length;
+		dir_vec[1] /= dir_length;
+		orth_vec[0] = -1 * dir_vec[1];
+		orth_vec[1] = dir_vec[0];
 
-				float begin_pos[2], end_pos[2];
-				begin_pos[0] = node_one->center_pos[0] + node_radius * dir_vec[0];
-				begin_pos[1] = node_one->center_pos[1] + node_radius * dir_vec[1];
-				end_pos[0] = node_two->center_pos[0] - node_radius * dir_vec[0];
-				end_pos[1] = node_two->center_pos[1] - node_radius * dir_vec[1];
-				
-				float value_dis = 0;
-				for (int k = 0; k < dataset_->var_num; ++k)
-					value_dis += abs(node_one->average_values[k] - node_two->average_values[k]);
-				value_dis /= dataset_->var_num;
+		float begin_pos[2], end_pos[2];
+		begin_pos[0] = node_one_center_x + node_radius * dir_vec[0];
+		begin_pos[1] = node_one_center_y + node_radius * dir_vec[1];
+		end_pos[0] = node_two_center_x - node_radius * dir_vec[0];
+		end_pos[1] = node_two_center_y - node_radius * dir_vec[1];
 
-				cell_ids[0] = points->InsertNextPoint(begin_pos[0] + 0.5 * node_radius * orth_vec[0] * value_dis, begin_pos[1] + 0.5 * node_radius * orth_vec[1] * value_dis, 0);
-				cell_ids[1] = points->InsertNextPoint(end_pos[0] + 0.5 * node_radius * orth_vec[0] * value_dis, end_pos[1] + 0.5 * node_radius * orth_vec[1] * value_dis, 0);
-				cell_ids[2] = points->InsertNextPoint(end_pos[0], end_pos[1], 0);
-				cell_ids[3] = points->InsertNextPoint(begin_pos[0], begin_pos[1], 0);
+		float value_dis = 0.4;
 
-				polydata->InsertNextCell(VTK_POLYGON, 4, cell_ids);
+		cell_ids[0] = points->InsertNextPoint(begin_pos[0] + 0.5 * node_radius * orth_vec[0] * value_dis, begin_pos[1] + 0.5 * node_radius * orth_vec[1] * value_dis, 0);
+		cell_ids[1] = points->InsertNextPoint(end_pos[0] + 0.5 * node_radius * orth_vec[0] * value_dis, end_pos[1] + 0.5 * node_radius * orth_vec[1] * value_dis, 0);
+		cell_ids[2] = points->InsertNextPoint(end_pos[0], end_pos[1], 0);
+		cell_ids[3] = points->InsertNextPoint(begin_pos[0], begin_pos[1], 0);
 
-				colors->InsertNextTuple3(128, 128, 128);
-				colors->InsertNextTuple3(128, 128, 128);
-				colors->InsertNextTuple3(128, 128, 128);
-				colors->InsertNextTuple3(128, 128, 128);
+		polydata->InsertNextCell(VTK_POLYGON, 4, cell_ids);
 
-				vtkActor* node_actor = vtkActor::New();
-				vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-				mapper->SetInputData(polydata);
-				node_actor->SetMapper(mapper);
+		colors->InsertNextTuple3(163, 82, 82);
+		colors->InsertNextTuple3(163, 82, 82);
+		colors->InsertNextTuple3(163, 82, 82);
+		colors->InsertNextTuple3(163, 82, 82);
 
-				trans_glyph_actors.push_back(node_actor);
-			}
-		}
-	}*/
+		trans_glyph_actors[i]->Modified();
+	}
 }
 
 void TransMap::ResizeActors() {
@@ -443,9 +445,9 @@ void TransMap::ResizeActors() {
 			level_one_node_glyph_actors.push_back(node_actor);
 			level_one_node_glyph_polys.push_back(polydata);
 
-			this->level_one_node_picker->AddPickList(node_actor);
-
 			if (Enabled) this->DefaultRenderer->AddActor(node_actor);
+
+			this->level_one_node_picker->AddPickList(node_actor);
 		}
 	} else {
 		for (int i = dataset_->level_one_nodes.size(); i < level_one_node_glyph_actors.size(); ++i) {
@@ -497,11 +499,38 @@ void TransMap::ResizeActors() {
 		level_zero_node_glyph_polys.resize(dataset_->level_zero_nodes.size());
 	}
 
-	for (int i = 0; i < trans_glyph_actors.size(); ++i) {
-		this->trans_picker->DeletePickList(trans_glyph_actors[i]);
-		trans_glyph_actors[i]->Delete();
+	if (trans_glyph_actors.size() < path_generator_->edge_list.size() / 2) {
+		for (int i = trans_glyph_actors.size(); i < path_generator_->edge_list.size() / 2; ++i) {
+			vtkPoints* points = vtkPoints::New();
+			vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
+			colors->SetNumberOfComponents(4);
+
+			vtkPolyData* polydata = vtkPolyData::New();
+			polydata->SetPoints(points);
+			polydata->GetPointData()->SetScalars(colors);
+
+			vtkCellArray* poly_array = vtkCellArray::New();
+			polydata->SetPolys(poly_array);
+
+			vtkActor* trans_actor = vtkActor::New();
+			vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+			mapper->SetInputData(polydata);
+			trans_actor->SetMapper(mapper);
+			trans_actor->GetProperty()->SetLineWidth(2.0);
+
+			trans_glyph_actors.push_back(trans_actor);
+			trans_glyph_polys.push_back(polydata);
+
+			if (Enabled) this->DefaultRenderer->AddActor(trans_actor);
+		}
+	} else {
+		for (int i = path_generator_->edge_list.size() / 2; i < trans_glyph_actors.size(); ++i) {
+			if (Enabled) this->DefaultRenderer->RemoveActor(trans_glyph_actors[i]);
+			trans_glyph_actors[i]->Delete();
+		}
+		trans_glyph_actors.resize(path_generator_->edge_list.size() / 2);
+		trans_glyph_polys.resize(path_generator_->edge_list.size() / 2);
 	}
-	trans_glyph_actors.clear();
 
 	this->highlight_poly->Initialize();
 	this->highlight_actor->Modified();
@@ -543,7 +572,6 @@ void TransMap::SetEnabled(int enabling) {
 
 		for (int i = 0; i < trans_glyph_actors.size(); ++i) {
 			this->DefaultRenderer->AddActor(trans_glyph_actors[i]);
-			this->trans_picker->AddPickList(trans_glyph_actors[i]);
 		}
 
 		this->DefaultRenderer->AddActor(this->highlight_actor);
@@ -569,7 +597,6 @@ void TransMap::SetEnabled(int enabling) {
 
 		for (int i = 0; i < trans_glyph_actors.size(); ++i) {
 			this->DefaultRenderer->RemoveActor(trans_glyph_actors[i]);
-			this->trans_picker->DeletePickList(trans_glyph_actors[i]);
 		}
 
 		this->DefaultRenderer->RemoveActor(this->highlight_actor);
@@ -649,24 +676,28 @@ void TransMap::OnLeftButtonDown() {
 		return;
 	}
 
-	vtkAssemblyPath* path = this->GetAssemblyPath(X, Y, 0., this->level_one_node_picker);
-	if (path != NULL) {
+	this->level_one_node_picker->Pick(X, Y, 1.0, this->DefaultRenderer);
+	vtkProp* prop = this->level_one_node_picker->GetViewProp();
+	/*vtkAssemblyPath* path = this->GetAssemblyPath(X, Y, 1.0, this->level_one_node_picker);*/
+	if (prop != NULL) {
 		this->state = TransMap::HIGHLIGHT_LEVEL_ONE_NODE;
-		this->HighlightHandle(path->GetFirstNode()->GetViewProp());
+		this->HighlightHandle(prop);
 		return;
 	}
 
-	path = this->GetAssemblyPath(X, Y, 0., this->level_zero_node_picker);
-	if (path != NULL) {
+	this->level_zero_node_picker->Pick(X, Y, 1.0, this->DefaultRenderer);
+	prop = this->level_zero_node_picker->GetViewProp();
+	if (prop != NULL) {
 		this->state = TransMap::HIGHLIGHT_LEVEL_ZERO_NODE;
-		this->HighlightHandle(path->GetFirstNode()->GetViewProp());
+		this->HighlightHandle(prop);
 		return;
 	}
 
-	path = this->GetAssemblyPath(X, Y, 0., this->trans_picker);
-	if (path != NULL) {
+	this->trans_picker->Pick(X, Y, 1.0, this->DefaultRenderer);
+	prop = this->trans_picker->GetViewProp();
+	if (prop != NULL) {
 		this->state = TransMap::HIGHLIGHT_TRANSFER_BAND;
-		this->HighlightHandle(path->GetFirstNode()->GetViewProp());
+		this->HighlightHandle(prop);
 		return;
 	}
 }
@@ -684,6 +715,31 @@ void TransMap::OnLeftButtonUp() {
 }
 
 void TransMap::OnRightButtonDown() {
+	if (!this->DefaultRenderer || this->state == WidgetState::SELECT_CLUSTER) {
+		return;
+	}
+
+	int X = this->Interactor->GetEventPosition()[0];
+	int Y = this->Interactor->GetEventPosition()[1];
+
+	vtkAssemblyPath* path = this->GetAssemblyPath(X, Y, 0., this->level_one_node_picker);
+	if (path != NULL) {
+		vtkActor* actor = dynamic_cast<vtkActor*>(path->GetFirstNode()->GetViewProp());
+		//if (this->current_handle == actor) return;
+		if (actor == NULL) return;
+
+		int node_index = -1;
+		for (int i = 0; i < level_one_node_glyph_actors.size(); ++i)
+			if (level_one_node_glyph_actors[i] == actor) {
+				node_index = i;
+				break;
+			}
+		if (node_index == -1) return;
+		dataset_->level_one_nodes[node_index]->is_expanded = true;
+
+		is_map_update_needed = true;
+		return;
+	}
 }
 
 void TransMap::OnRightButtonUp() {
@@ -738,6 +794,11 @@ void TransMap::HighlightHandle(vtkProp* prop) {
 
 void TransMap::UpdateHightlightActor() {
 	this->highlight_poly->Initialize();
+	this->highlight_node_sequence.clear();
+	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
+		if (dataset_->level_one_nodes[i]->is_highlighted)  this->highlight_node_sequence.push_back(dataset_->level_one_nodes[i]);
+	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i)
+		if (dataset_->level_zero_nodes[i]->is_highlighted) this->highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);
 
 	vtkPoints* points = vtkPoints::New();
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::New();

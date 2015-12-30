@@ -16,7 +16,7 @@ void TreeMapItem::SetData(CNode* data) {
 
 	this->item_map_.clear();
 	int bottom = 0;
-	int item_width = 0;
+	int item_width = left_margin;
 	this->UpdateSize(root_, bottom, item_width);
 
 	this->total_height = bottom;
@@ -44,7 +44,7 @@ void TreeMapItem::UpdateSize(CNode* node, int& bottom, int& item_width) {
 	// paint the item glyph
 	int rightx, centery;
 	if (bottom - temp_bottom < item_size)  bottom += item_size;
-	rightx = node->level() * (item_size + transition_width) + item_size;
+	rightx = node->level() * (item_size + transition_width) + item_size + left_margin;
 	if (rightx > item_width) item_width = rightx;
 }
 
@@ -82,24 +82,32 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		}
 	}
 
+	bool is_child_all_leaf = true;
+	if (node->type() == CNode::BRANCH) {
+		CBranch* branch = dynamic_cast<CBranch*>(node);
+		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+			if (branch->linked_nodes[i]->type() != CNode::LEAF) is_child_all_leaf = false;
+			}
+		}
+
 	// paint the item glyph
 	int leftx, centery, centerx;
 	if (bottom - temp_bottom < item_size)  bottom += item_size;
 	centery = (bottom + temp_bottom) / 2;
-	leftx = node->level() * (item_size + transition_width);
+	leftx = node->level() * (item_size + transition_width) + left_margin;
 	centerx = leftx + 0.5 * item_size;
 
 	// paint the radar glyph
 	if (node->level() == 0) {
-		QPen path_pen;
-		path_pen.setColor(Qt::gray);
-		path_pen.setWidth(2.0);
+		QPen normal_pen;
+		normal_pen.setColor(Qt::gray);
+		normal_pen.setWidth(2.0);
 
-		painter->setPen(path_pen);
+		painter->setPen(normal_pen);
 		painter->drawEllipse(leftx, centery - item_size / 2, item_size, item_size);
 	} else {
-		QPen axis_pen;
-		axis_pen.setColor(Qt::gray);
+		/*QPen axis_pen;
+		axis_pen.setColor(QColor(220, 220, 220));
 		axis_pen.setWidth(2.0);
 		painter->setPen(axis_pen);
 
@@ -123,12 +131,17 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		painter->setPen(axis_pen);
 		for (int i = 0; i < node->average_values.size(); ++i) {
 			painter->drawLine(centerx + x_vec[i], centery + y_vec[i], centerx + x_vec[(i + 1) % node->average_values.size()], centery + y_vec[(i + 1) % node->average_values.size()]);
-		}
+		}*/
 
-		if (node->point_count > 5) {
-			
+		QPen normal_pen;
+		normal_pen.setColor(Qt::gray);
+		normal_pen.setWidth(2.0);
+		painter->setPen(normal_pen);
+
+		if (is_child_all_leaf) {
+			painter->drawRoundedRect(QRectF(leftx, centery - item_size / 2, item_size, item_size), 2, 2);
 		} else {
-
+			painter->drawEllipse(leftx, centery - item_size / 2, item_size, item_size);
 		}
 	}
 
@@ -168,48 +181,42 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 		iter++;
 	}
 
-	if (id_index != -1) {
+	if (id_index == -1) return;
+
+	if (event->button() == Qt::LeftButton) {
 		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
 		if (iter != item_map_.end()) {
 			iter->second->is_highlighted = !iter->second->is_highlighted;
 			emit NodeSelected(id_index);
+			this->update();
+			return;
 		}
-	}
-
-	this->update();
-}
-
-void TreeMapItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-	int x = event->pos().x();
-	int y = event->pos().y();
-
-	std::map< int, QRectF >::iterator iter = this->item_pos_map_.begin();
-	int id_index = -1;
-	while (iter != item_pos_map_.end()) {
-		QRectF rect = iter->second;
-		if (x > rect.left() && x < rect.right() && y > rect.top() && y < rect.bottom()) {
-			id_index = iter->first;
-			break;
-		}
-		iter++;
-	}
-
-	if (id_index != -1) {
+	} else if (event->button() == Qt::RightButton) {
 		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
-		if (iter != item_map_.end()) {
-			iter->second->is_expanded = !iter->second->is_expanded;
-			emit NodeSelected(id_index);
+		if (iter != item_map_.end() && iter->second->type() == CNode::BRANCH) {
+			bool is_all_leaf = true;
+			CBranch* branch = dynamic_cast<CBranch*>(iter->second);
+			for (int i = 0; i < branch->linked_nodes.size(); ++i)
+				if (branch->linked_nodes[i]->type() == CNode::BRANCH) {
+					is_all_leaf = false;
+					break;
+				}
+			if (!is_all_leaf) {
+				iter->second->is_expanded = !iter->second->is_expanded;
+				emit NodeSelected(id_index);
+			}
+			this->item_map_.clear();
+			int bottom = 0;
+			int item_width = 0;
+			this->UpdateSize(root_, bottom, item_width);
+
+			this->total_height = bottom;
+			this->total_width = item_width + left_margin;
+
+			this->prepareGeometryChange();
+			this->update(QRectF(0, 0, total_width, total_height));
+
+			return;
 		}
 	}
-
-	this->item_map_.clear();
-	int bottom = 0;
-	int item_width = 0;
-	this->UpdateSize(root_, bottom, item_width);
-
-	this->total_height = bottom;
-	this->total_width = item_width + left_margin;
-
-	this->prepareGeometryChange();
-	this->update(QRectF(0, 0, total_width, total_height));
 }

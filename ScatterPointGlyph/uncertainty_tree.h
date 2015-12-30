@@ -20,6 +20,8 @@ public:
 
 	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
 	virtual void GetClusterResult(float dis_per_piexl, int& cluster_num, std::vector< int >& cluster_index);
+	void GetActiveClusterResult(std::vector< CNode* >& level_nodes);
+	void GetActiveClusterResult(int& cluster_num, std::vector< int >& cluster_index);
 	void GetClusterResult(float radius, std::vector< CNode* >& level_nodes);
 
 	void SplitCluster(int cluster_index);

@@ -72,6 +72,8 @@ ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 
 	this->InitWidget();
 
+	is_active_retrieval_on_ = false;
+
 	cluster_tree_vec_.resize(5, NULL);
 }
 
@@ -118,6 +120,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateTransmapScale()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
+	connect(main_view_, SIGNAL(RightButtonDown()), this, SLOT(OnMainViewRightButtonDown()));
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
 
 	/*dis_matrix_renderer_ = vtkRenderer::New();
@@ -498,8 +501,15 @@ void ScatterPointGlyph::OnClusterFinished() {
 void ScatterPointGlyph::UpdateTransmap() {
 	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
 	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
-	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
+	if (is_active_retrieval_on_) {
+		un_tree->GetActiveClusterResult(transmap_data_->cluster_nodes);
+		un_tree->GetActiveClusterResult(cluster_num, cluster_index);
+	} else {
+		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
+
+		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
+	}
+	
 
 	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index);
 	original_point_rendering_layer_->SetHighlightCluster(-1);
@@ -651,6 +661,13 @@ void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 	}
 }
 
+void ScatterPointGlyph::OnMainViewRightButtonDown() {
+	if (trans_map_->IsMapUpdateNeeded()) {
+		UpdateTransmap();
+		tree_map_view_->scene()->update();
+	}
+}
+
 void ScatterPointGlyph::OnMouseDragmove(int x, int y) {
 	if (trans_map_ != NULL) trans_map_->SetMouseDragmove(x, y);
 }
@@ -698,6 +715,8 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 
 void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 	trans_map_->SetNodeSelected(node_id);
+
+	//UpdateTransmap();
 
 	this->main_view_->update();
 }

@@ -26,7 +26,7 @@ int CNode::max_id_ = 0;
 
 CNode::CNode() : type_(UNKNOWN), level_(-1) {
 	this->id = max_id_++;
-	is_expanded = true;
+	is_expanded = false;
 	is_highlighted = false;
 }
 
@@ -64,6 +64,7 @@ TreeCommon::TreeCommon(ScatterPointDataset* data)
 	max_level_(0) {
 
 	root_ = new CBranch;
+	root_->is_expanded = true;
 }
 
 TreeCommon::~TreeCommon() {
@@ -239,7 +240,6 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 		if (temp_node->level() == level) {
 			nodes.push_back(temp_node);
 			temp_node->is_expanded = false;
-			temp_node->is_highlighted = false;
 		} else {
 			if (temp_node->type() == CNode::BRANCH && temp_node->level() < level) {
 				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
@@ -253,6 +253,40 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 					nodes.push_back(temp_node);
 					temp_node->is_expanded = false;
 				} else {
+					branch->is_highlighted = false;
+					for (int i = 0; i < branch->linked_nodes.size(); ++i)
+						node_queue.push(branch->linked_nodes[i]);
+				}
+			}
+		}
+	}
+}
+
+void TreeCommon::ActiveTraverse(std::vector< CNode* >& nodes) {
+	nodes.clear();
+
+	std::queue< CNode* > node_queue;
+	node_queue.push(root_);
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (!temp_node->is_expanded) {
+			nodes.push_back(temp_node);
+		}
+		else {
+			if (temp_node->type() == CNode::BRANCH && temp_node->is_expanded) {
+				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+				bool is_all_leaf = true;
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					if (branch->linked_nodes[i]->type() != CNode::LEAF) {
+						is_all_leaf = false;
+						break;
+					}
+				if (is_all_leaf) {
+					nodes.push_back(temp_node);
+				}
+				else {
 					for (int i = 0; i < branch->linked_nodes.size(); ++i)
 						node_queue.push(branch->linked_nodes[i]);
 				}

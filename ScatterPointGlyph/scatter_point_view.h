@@ -17,6 +17,7 @@ signals:
 	void ViewUpdated();
 	void GlyphSelected(int x, int y);
 	void LeftButtonUp();
+	void RightButtonDown();
 	void MouseDrag(int x, int y);
 
 protected:

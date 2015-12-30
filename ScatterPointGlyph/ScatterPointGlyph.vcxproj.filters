@@ -397,6 +397,9 @@
     <CustomBuild Include="tree_map_item.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
+    <CustomBuild Include="uncertainty_tree.h">
+      <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h">
@@ -524,9 +527,6 @@
     </ClInclude>
     <ClInclude Include="change_table_lens.h">
       <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="uncertainty_tree.h">
-      <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="grid_scatter_point_dataset.h">
       <Filter>Header Files\Data</Filter>

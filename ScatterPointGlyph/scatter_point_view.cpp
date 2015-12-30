@@ -37,6 +37,8 @@ void ScatterPointView::wheelEvent(QWheelEvent* event) {
 void ScatterPointView::mousePressEvent(QMouseEvent* event) {
 	QVTKWidget::mousePressEvent(event);
 	emit GlyphSelected(event->x(), this->height() - event->y());
+	if (event->buttons() & Qt::RightButton)
+		emit RightButtonDown();
 }
 
 void ScatterPointView::mouseMoveEvent(QMouseEvent* event) {

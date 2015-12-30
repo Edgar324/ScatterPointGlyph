@@ -107,6 +107,8 @@ private:
 	int cluster_num;
 	std::vector< int > cluster_index;
 
+	bool is_active_retrieval_on_;
+
 	void InitWidget();
 	void AddPointData2View();
 
@@ -137,6 +139,7 @@ private slots:
 	void OnGlyphSelected(int x, int y);
 	void OnBrushSelectionTriggered(bool checked);
 	void OnMainviewLeftButtonUp();
+	void OnMainViewRightButtonDown();
 	void OnMouseDragmove(int x, int y);;
 	void OnSplitClusterTriggered();
 	void OnMergeClusterTriggered();

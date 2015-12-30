@@ -42,7 +42,7 @@ void TreeMapView::SetData(CNode* data) {
 	if (tree_item_ == NULL) {
 		tree_item_ = new TreeMapItem;
 		scene_->addItem(tree_item_);
-		tree_item_->setPos(0, 50);
+		tree_item_->setPos(30, 50);
 
 		connect(tree_item_, SIGNAL(NodeSelected(int)), this, SIGNAL(NodeSelected(int)));
 	}

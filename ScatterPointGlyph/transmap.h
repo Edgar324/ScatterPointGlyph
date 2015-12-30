@@ -15,6 +15,8 @@ class vtkProp;
 class CNode;
 class QVTKWidget;
 class ScatterPointDataset;
+class TourPathGenerator;
+class vtkPropPicker;
 
 class TransMap : public vtk3DWidget
 {
@@ -51,6 +53,8 @@ public:
 	void SetMouseReleased();
 	void SetMouseDragmove(int x, int y);
 
+	bool IsMapUpdateNeeded() { return is_map_update_needed;  }
+
 protected:
 	TransMap();
 	~TransMap();
@@ -85,6 +89,7 @@ protected:
 
 	std::vector< vtkActor* > trans_glyph_actors;
 	std::vector< vtkPolyData* > trans_glyph_polys;
+	std::vector< int > trans_edges;
 
 	std::vector< vtkActor* > boundary_glyph_actors;
 	std::vector< vtkPolyData* > boundary_glyph_polys;
@@ -99,10 +104,10 @@ protected:
 	vtkPolyDataMapper* selection_brush_mapper;
 	vtkPolyData* selection_brush_poly;
 
-	vtkCellPicker* level_one_node_picker;
-	vtkCellPicker* level_zero_node_picker;
-	vtkCellPicker* trans_picker;
-	vtkCellPicker* boundary_picker;
+	vtkPropPicker* level_one_node_picker;
+	vtkPropPicker* level_zero_node_picker;
+	vtkPropPicker* trans_picker;
+	vtkPropPicker* boundary_picker;
 
 	vtkActor* current_handle;
 	CNode* current_node;
@@ -112,6 +117,9 @@ protected:
 	float node_radius;
 	bool is_sequence_selection;
 
+	bool is_map_update_needed;
+
+	TourPathGenerator* path_generator_;
 
 private:
 	TransMapData* dataset_;

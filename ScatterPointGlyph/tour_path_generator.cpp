@@ -104,17 +104,16 @@ bool TourPathGenerator::GenerateSpanningTree() {
 
 	kruskal_minimum_spanning_tree(g, std::back_inserter(spanning_tree));
 
-	edge_list_.clear();
+	edge_list.clear();
 	std::cout << "Print the edges in the MST:" << std::endl;
 	for (std::vector < Edge >::iterator ei = spanning_tree.begin();
 		ei != spanning_tree.end(); ++ei) {
 		std::cout << source(*ei, g) << " <--> " << target(*ei, g)
 			<< " with weight of " << weight[*ei]
 			<< std::endl;
-		edge_list_.push_back(source(*ei, g));
-		edge_list_.push_back(target(*ei, g));
+		edge_list.push_back(source(*ei, g));
+		edge_list.push_back(target(*ei, g));
 	}
-
 
 	return true;
 }
@@ -160,9 +159,9 @@ bool TourPathGenerator::GenerateRoundPath() {
 	std::cout << "Number of edges: " << num_edges(g) << endl;
 	std::cout << "Length of Tour: " << len << endl;
 
-	tour_node_list_.clear();
+	tour_node_list.clear();
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
-		tour_node_list_.push_back(*itr);
+		tour_node_list.push_back(*itr);
 	}
 
 	return true;
@@ -177,16 +176,16 @@ PathRecord* TourPathGenerator::GetPath() {
 	if (trans_data_ == 0) return 0;
 
 	PathRecord* record = new PathRecord;
-	record->item_values.resize(tour_node_list_.size());
-	record->item_color.resize(tour_node_list_.size());
-	for (int i = 0; i < tour_node_list_.size(); ++i) {
-		record->item_values[i] = trans_data_->level_one_nodes[tour_node_list_[i]]->average_values;
-		record->item_color[i] = QColor(trans_data_->level_one_colors[3 * tour_node_list_[i]], trans_data_->level_one_colors[3 * tour_node_list_[i] + 1], trans_data_->level_one_colors[3 * tour_node_list_[i] + 2]);
+	record->item_values.resize(tour_node_list.size());
+	record->item_color.resize(tour_node_list.size());
+	for (int i = 0; i < tour_node_list.size(); ++i) {
+		record->item_values[i] = trans_data_->level_one_nodes[tour_node_list[i]]->average_values;
+		record->item_color[i] = QColor(trans_data_->level_one_colors[3 * tour_node_list[i]], trans_data_->level_one_colors[3 * tour_node_list[i] + 1], trans_data_->level_one_colors[3 * tour_node_list[i] + 2]);
 	}
-	record->change_values.resize(tour_node_list_.size() - 1);
-	for (int i = 0; i < tour_node_list_.size() - 1; ++i) {
-		CNode* current_node = trans_data_->level_one_nodes[tour_node_list_[i]];
-		CNode* next_node = trans_data_->level_one_nodes[tour_node_list_[i + 1]];
+	record->change_values.resize(tour_node_list.size() - 1);
+	for (int i = 0; i < tour_node_list.size() - 1; ++i) {
+		CNode* current_node = trans_data_->level_one_nodes[tour_node_list[i]];
+		CNode* next_node = trans_data_->level_one_nodes[tour_node_list[i + 1]];
 		record->change_values[i].resize(current_node->average_values.size());
 		for (int j = 0; j < current_node->average_values.size(); ++j)
 			record->change_values[i][j] = next_node->average_values[j] - current_node->average_values[j];

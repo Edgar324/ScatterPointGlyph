@@ -23,7 +23,6 @@ protected:
 	QRectF boundingRect() const;
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */);
 
-	void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 private:
@@ -32,10 +31,10 @@ private:
 	std::map< int, QRectF > item_pos_map_;
 	std::map< int, CNode* > item_map_;
 
-	int item_size = 40;
-	int item_margin = 5;
+	int item_size = 15;
+	int item_margin = 3;
 	int transition_width = 70;
-	int left_margin = 10;
+	int left_margin = 30;
 	int total_width = 500;
 	int total_height = 100;
 

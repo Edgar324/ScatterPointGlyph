@@ -19,11 +19,11 @@ public:
 
 	PathRecord* GetPath();
 
+	std::vector< int > edge_list;
+	std::vector< int > tour_node_list;
+
 private:
 	TransMapData* trans_data_;
-
-	std::vector< int > edge_list_;
-	std::vector< int > tour_node_list_;
 };
 
 #endif
