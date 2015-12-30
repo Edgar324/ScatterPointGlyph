@@ -308,7 +308,7 @@ void TransMap::ConstructActors() {
 			float y = node_radius * sin(end_arc);
 
 			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.0001);
-			colors->InsertNextTuple4(100, 100, 100, 255);
+			colors->InsertNextTuple4(200, 200, 200, 255);
 			
 			cell_ids[0] = center_id;
 			cell_ids[1] = pre_id;

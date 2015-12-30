@@ -15,7 +15,7 @@ void TreeMapItem::SetData(CNode* data) {
 	root_ = data;
 
 	this->item_map_.clear();
-	int bottom = 0;
+	int bottom = title_height;
 	int item_width = left_margin;
 	this->UpdateSize(root_, bottom, item_width);
 
@@ -31,21 +31,24 @@ void TreeMapItem::UpdateSize(CNode* node, int& bottom, int& item_width) {
 
 	this->item_map_.insert(std::map< int, CNode* >::value_type(node->id, node));
 
-	int temp_bottom = bottom;
+	int temp_left = item_width;
 	// paint the child nodes
 	if (node->type() == CNode::BRANCH && node->is_expanded) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
 			UpdateSize(branch->linked_nodes[i], bottom, item_width);
-			if (i != branch->linked_nodes.size() - 1) bottom += item_margin;
+			if (i != branch->linked_nodes.size() - 1) item_width += item_margin;
 		}
 	}
 
 	// paint the item glyph
-	int rightx, centery;
-	if (bottom - temp_bottom < item_size)  bottom += item_size;
-	rightx = node->level() * (item_size + transition_width) + item_size + left_margin;
-	if (rightx > item_width) item_width = rightx;
+	if (item_width - temp_left < item_size)  item_width += item_size;
+	int bottom_y = node->level() * (item_size + transition_width) + item_size + title_height;
+	if (bottom_y > bottom) bottom = bottom_y;
+}
+
+QSize TreeMapItem::GetSize() {
+	return QSize(total_width, total_height);
 }
 
 QRectF TreeMapItem::boundingRect() const {
@@ -57,27 +60,33 @@ void TreeMapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 
 	if (root_ == NULL) return;
 
-	int bottom = 0;
+	// paint title
+	QPen title_pen;
+	title_pen.setColor(Qt::black);
+	title_pen.setWidth(2.0);
+	painter->drawText(QRect(0, 0, this->total_width, title_height), Qt::AlignCenter, QString("Path Map"));
 
-	PaintItem(painter, root_, bottom);
+	int item_width = left_margin;
 
-	total_height = bottom;
+	PaintItem(painter, root_, item_width);
+
+	total_width = item_width;
 }
 
-void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
+void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 	if (node == NULL) return;
 
-	int temp_bottom = bottom;
+	int temp_left = item_width;
 	// paint the child nodes
 	std::vector< int > linked_pos;
 	if (node->type() == CNode::BRANCH && node->is_expanded) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-			float item_bottom = bottom;
-			PaintItem(painter, branch->linked_nodes[i], bottom);
-			linked_pos.push_back((item_bottom + bottom) / 2);
+			float item_left = item_width;
+			PaintItem(painter, branch->linked_nodes[i], item_width);
+			linked_pos.push_back((item_left + item_width) / 2);
 			if (i != branch->linked_nodes.size() - 1) {
-				bottom += item_margin;
+				item_width += item_margin;
 			}
 		}
 	}
@@ -91,11 +100,11 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		}
 
 	// paint the item glyph
-	int leftx, centery, centerx;
-	if (bottom - temp_bottom < item_size)  bottom += item_size;
-	centery = (bottom + temp_bottom) / 2;
-	leftx = node->level() * (item_size + transition_width) + left_margin;
-	centerx = leftx + 0.5 * item_size;
+	int topy, center_x, center_y;
+	if (item_width - temp_left < item_size)  item_width += item_size;
+	center_x = (item_width + temp_left) / 2;
+	topy = node->level() * (item_size + transition_width) + left_margin + title_height;
+	center_y = topy + 0.5 * item_size;
 
 	// paint the radar glyph
 	if (node->level() == 0) {
@@ -104,9 +113,9 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		normal_pen.setWidth(2.0);
 
 		painter->setPen(normal_pen);
-		painter->drawEllipse(leftx, centery - item_size / 2, item_size, item_size);
+		painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
 	} else {
-		/*QPen axis_pen;
+		QPen axis_pen;
 		axis_pen.setColor(QColor(220, 220, 220));
 		axis_pen.setWidth(2.0);
 		painter->setPen(axis_pen);
@@ -124,14 +133,14 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 			x_vec.push_back(x * node->average_values[i]);
 			y_vec.push_back(y * node->average_values[i]);
 
-			painter->drawLine(centerx, centery, centerx + x, centery + y);
+			painter->drawLine(center_x, center_y, center_x + x, center_y + y);
 		}
 
 		axis_pen.setColor(QColor(128, 128, 128));
 		painter->setPen(axis_pen);
 		for (int i = 0; i < node->average_values.size(); ++i) {
-			painter->drawLine(centerx + x_vec[i], centery + y_vec[i], centerx + x_vec[(i + 1) % node->average_values.size()], centery + y_vec[(i + 1) % node->average_values.size()]);
-		}*/
+			painter->drawLine(center_x + x_vec[i], center_y + y_vec[i], center_x + x_vec[(i + 1) % node->average_values.size()], center_y + y_vec[(i + 1) % node->average_values.size()]);
+		}
 
 		QPen normal_pen;
 		normal_pen.setColor(Qt::gray);
@@ -139,13 +148,13 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 		painter->setPen(normal_pen);
 
 		if (is_child_all_leaf) {
-			painter->drawRoundedRect(QRectF(leftx, centery - item_size / 2, item_size, item_size), 2, 2);
+			painter->drawRoundedRect(QRectF(center_x - item_size / 2, topy, item_size, item_size), 2, 2);
 		} else {
-			painter->drawEllipse(leftx, centery - item_size / 2, item_size, item_size);
+			painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
 		}
 	}
 
-	QRectF item_rect = QRectF(leftx, centery - item_size / 2, item_size, item_size);
+	QRectF item_rect = QRectF(center_x - item_size / 2, topy, item_size, item_size);
 	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id, item_rect));
 	if (node->is_highlighted) {
 		painter->setPen(Qt::black);
@@ -154,14 +163,14 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& bottom) {
 
 	// paint linkage
 	painter->setPen(Qt::red);
-	int rightx = leftx + item_size;
-	int control_x1 = rightx + transition_width * 0.2;
-	int control_x2 = rightx + transition_width * 0.5;
-	int nextx = rightx + transition_width;
+	int bottom_y = topy + item_size;
+	int control_y1 = bottom_y + transition_width * 0.2;
+	int control_y2 = bottom_y + transition_width * 0.5;
+	int nexty = bottom_y + transition_width;
 	for (int i = 0; i < linked_pos.size(); ++i) {
 		QPainterPath temp_path;
-		temp_path.moveTo(rightx, centery);
-		temp_path.cubicTo(control_x1, centery, control_x2, linked_pos[i], nextx, linked_pos[i]);
+		temp_path.moveTo(center_x, bottom_y);
+		temp_path.cubicTo(center_x, control_y1, linked_pos[i], control_y2, linked_pos[i], nexty);
 		painter->drawPath(temp_path);
 	}
 }

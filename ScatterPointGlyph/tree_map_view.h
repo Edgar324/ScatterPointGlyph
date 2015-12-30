@@ -26,7 +26,6 @@ private:
 	QGraphicsScene* scene_;
 
 	TreeMapItem* tree_item_;
-	QGraphicsTextItem* title_item_;
 };
 
 #endif
