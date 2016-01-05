@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <QThread>
+#include <QtGui/QColor>
 
 class ScatterPointDataset;
 class CBranch;
@@ -32,6 +33,9 @@ public:
 	int point_count;
 	bool is_expanded;
 	bool is_highlighted;
+
+	QColor color;
+	float hstart, hend;
 
 	CBranch* parent = NULL;
 
@@ -97,6 +101,8 @@ protected:
 	void Traverse(int level, std::vector< CNode* >& nodes);
 	void Traverse(float radius , std::vector< CNode* >& nodes);
 	void ActiveTraverse(std::vector< CNode* >& nodes);
+
+	void AssignColor(CNode* node, float hstart, float hend, float factor = 0.75, bool perm = true, bool rev = true);
 };
 
 #endif

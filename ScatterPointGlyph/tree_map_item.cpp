@@ -109,7 +109,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 	// paint the radar glyph
 	if (node->level() == 0) {
 		QPen normal_pen;
-		normal_pen.setColor(Qt::gray);
+		normal_pen.setColor(node->color);
 		normal_pen.setWidth(2.0);
 
 		painter->setPen(normal_pen);
@@ -120,38 +120,49 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 		axis_pen.setWidth(2.0);
 		painter->setPen(axis_pen);
 
-		std::vector< float > x_vec;
-		std::vector< float > y_vec;
+		if (!node->is_expanded) {
+			std::vector< float > x_vec;
+			std::vector< float > y_vec;
 
-		for (int i = 0; i < node->average_values.size(); ++i) {
-			float end_arc = i * 3.14159 * 2 / node->average_values.size();
+			for (int i = 0; i < node->average_values.size(); ++i) {
+				float end_arc = i * 3.14159 * 2 / node->average_values.size();
 
-			float temp_radius = item_size / 2 * 0.8;
-			float x = temp_radius * cos(end_arc);
-			float y = temp_radius * sin(end_arc);
+				float temp_radius = item_size / 2 * 0.8;
+				float x = temp_radius * cos(end_arc);
+				float y = temp_radius * sin(end_arc);
 
-			x_vec.push_back(x * node->average_values[i]);
-			y_vec.push_back(y * node->average_values[i]);
+				x_vec.push_back(x * node->average_values[i]);
+				y_vec.push_back(y * node->average_values[i]);
 
-			painter->drawLine(center_x, center_y, center_x + x, center_y + y);
-		}
+				painter->drawLine(center_x, center_y, center_x + x, center_y + y);
+			}
 
-		axis_pen.setColor(QColor(128, 128, 128));
-		painter->setPen(axis_pen);
-		for (int i = 0; i < node->average_values.size(); ++i) {
-			painter->drawLine(center_x + x_vec[i], center_y + y_vec[i], center_x + x_vec[(i + 1) % node->average_values.size()], center_y + y_vec[(i + 1) % node->average_values.size()]);
+			axis_pen.setColor(node->color);
+			painter->setPen(axis_pen);
+			for (int i = 0; i < node->average_values.size(); ++i) {
+				painter->drawLine(center_x + x_vec[i], center_y + y_vec[i], center_x + x_vec[(i + 1) % node->average_values.size()], center_y + y_vec[(i + 1) % node->average_values.size()]);
+			}
 		}
 
 		QPen normal_pen;
-		normal_pen.setColor(Qt::gray);
+		normal_pen.setColor(QColor(200, 200, 200, 200));
 		normal_pen.setWidth(2.0);
 		painter->setPen(normal_pen);
 
-		if (is_child_all_leaf) {
+		painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
+
+		if (!is_child_all_leaf && !node->is_expanded) {
+			normal_pen.setColor(QColor(128, 128, 128, 255));
+			painter->setPen(normal_pen);
+
+			painter->drawLine(center_x - item_size / 2, topy + 3, center_x - item_size / 2 + 6, topy + 3);
+			painter->drawLine(center_x - item_size / 2 + 3, topy, center_x - item_size / 2 + 3, topy + 6);
+		}
+		/*if (is_child_all_leaf) {
 			painter->drawRoundedRect(QRectF(center_x - item_size / 2, topy, item_size, item_size), 2, 2);
 		} else {
-			painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
-		}
+			
+		}*/
 	}
 
 	QRectF item_rect = QRectF(center_x - item_size / 2, topy, item_size, item_size);
@@ -194,6 +205,7 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 
 	if (event->button() == Qt::LeftButton) {
 		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
+		if (iter->second->is_expanded) return;
 		if (iter != item_map_.end()) {
 			iter->second->is_highlighted = !iter->second->is_highlighted;
 			emit NodeSelected(id_index);

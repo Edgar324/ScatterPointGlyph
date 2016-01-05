@@ -114,16 +114,16 @@ void PointRenderingLayer::SetPointValue(std::vector< float >& values){
 	color_array->Modified();
 }
 
-void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index) {
+void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index, std::vector< QColor >& colors) {
 	this->cluster_count_ = cluster_count;
 	this->point_index_ = point_index;
 
 	srand((unsigned int)time(0));
 	cluster_color_.resize(3 * cluster_count);
 	for (int i = 0; i < cluster_count; ++i) {
-		cluster_color_[3 * i] = 255 * rand() / RAND_MAX;
-		cluster_color_[3 * i + 1] = 255 * rand() / RAND_MAX;
-		cluster_color_[3 * i + 2] = 255 * rand() / RAND_MAX;
+		cluster_color_[3 * i] = colors[i].red();
+		cluster_color_[3 * i + 1] = colors[i].green();
+		cluster_color_[3 * i + 2] = colors[i].blue();
 	}
 
 	if (is_category_on_) SetCategoryOn();
@@ -141,7 +141,11 @@ void PointRenderingLayer::SetHighlightCluster(int index) {
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < point_index_.size(); ++i)
 		if (point_index_[i] == index) {
-			color_array->SetTuple4(i, 255, 0.0, 0.0, 255);
+			int cindex = point_index_[i] * 3;
+			if (cindex < 0)
+				color_array->SetTuple4(i, 0, 0, 0, 255);
+			else
+				color_array->SetTuple4(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
 		}
 	color_array->Modified();
 }
@@ -155,7 +159,11 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 	for (int i = 0; i < current_selection_index_.size(); ++i) {
 		for (int j = 0; j < point_index_.size(); ++j)
 			if (point_index_[j] == current_selection_index_[i]) {
-				color_array->SetTuple4(j, 255, 0.0, 0.0, 255);
+				int cindex = point_index_[j] * 3;
+				if (cindex < 0)
+					color_array->SetTuple4(j, 0, 0, 0, 255);
+				else
+					color_array->SetTuple4(j, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
 			}
 	}
 	

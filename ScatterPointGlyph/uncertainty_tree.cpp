@@ -196,7 +196,7 @@ void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
 			}
 
 			ProgressNodeAndParent(new_branch);
-			UpdateChildLevel(new_branch);
+			UpdateChildLevel(new_branch->parent);
 		}
 		return;
 	}
@@ -239,8 +239,9 @@ void UncertaintyTree::UpdateChildLevel(CBranch* node) {
 		}
 		//temp_node->radius = temp_node->parent->radius / factor_;
 		temp_node->set_level(temp_node->parent->level() + 1);
-		
 	}
+
+	AssignColor(node, node->hstart, node->hend);
 }
 
 int UncertaintyTree::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
@@ -351,6 +352,8 @@ void UncertaintyTree::run() {
 				node_queue.push(branch->linked_nodes[i]);
 		}
 	}
+
+	AssignColor(root_, 0, 1.0);
 }
 
 void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {

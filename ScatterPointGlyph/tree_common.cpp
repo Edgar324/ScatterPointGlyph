@@ -404,3 +404,52 @@ void TreeCommon::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std
 	}
 #endif // DEBUG_ON
 }
+
+void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor, bool perm, bool rev) {
+	node->color.setHsl((hstart + hend) / 2 * 255, 0.6 * 255, 0.7 * 255);
+	node->hstart = hstart;
+	node->hend = hend;
+	if (node->type() == CNode::LEAF) return;
+
+	CBranch* branch = (CBranch*)node;
+	int count = branch->linked_nodes.size();
+
+	float step = (hend - hstart) / count;
+	std::vector< float > temp_start, temp_end;
+	temp_start.resize(count);
+	temp_end.resize(count);
+
+	for (int i = 0; i < count; ++i){
+		temp_start[i] = hstart + i * step;
+		temp_end[i] = hstart + (i + 1) * step;
+	}
+
+	if (perm) {
+		for (int i = 0; i < count / 2; ++i) {
+			float temp = temp_start[i];
+			temp_start[i] = temp_start[count - i - 1];
+			temp_start[count - i - 1] = temp;
+
+			temp = temp_end[i];
+			temp_end[i] = temp_end[count - i - 1];
+			temp_end[count - i - 1] = temp;
+		}
+	}
+
+	if (rev) {
+		int temp_count = (count - 1) / 4;
+		for (int i = 0; i < temp_count; ++i) {
+			float temp = temp_start[i * 2];
+			temp_start[i * 2] = temp_start[temp_count * 4 - i * 2];
+			temp_start[temp_count * 4 - i * 2] = temp;
+
+			temp = temp_end[i * 2];
+			temp_end[i * 2] = temp_end[temp_count * 4 - i * 2];
+			temp_end[temp_count * 4 - i * 2] = temp;
+		}
+	}
+
+	for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+		AssignColor(branch->linked_nodes[i], temp_start[i] + (1.0 - factor) / 2.0 * step, temp_end[i] - (1.0 - factor) / 2.0 * step, factor, perm, rev);
+	}
+}

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <vtk3DWidget.h>
+#include <QtGui/QColor>
 
 class ScatterPointDataset;
 class vtkActor;
@@ -31,7 +32,7 @@ public:
 	void SetData(ScatterPointDataset* data);
 	void SetPointValue(std::vector< float >& values);
 
-	void SetClusterIndex(int cluster_count, std::vector< int >& point_index);
+	void SetClusterIndex(int cluster_count, std::vector< int >& point_index, std::vector< QColor >& colors);
 	void SetHighlightCluster(int index);
 	void SetHighlightClusters(std::vector< int >& index);
 

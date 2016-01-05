@@ -184,9 +184,10 @@ void TransMap::SetNodeSelected(int node_id) {
 }
 
 int TransMap::GetSelectedClusterIndex() {
-	if (this->current_node != NULL) {
+	if (highlight_node_sequence.size() != 0) {
+		std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
 		std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
-		while (iter != dataset_->cluster_node_map.end() && iter->second != this->current_node) iter++;
+		while (iter != dataset_->cluster_node_map.end() && iter->second != *node_iter) iter++;
 		if (iter != dataset_->cluster_node_map.end()) {
 			return iter->first;
 		}
@@ -250,7 +251,7 @@ void TransMap::ConstructActors() {
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 
-			float temp_radius = node_radius * (node->average_values[j] - node->value_variance[j]);
+			float temp_radius = node_radius * (node->average_values[j] - node->value_variance[j]) * 0.8;
 			if (temp_radius < 0) temp_radius = 0;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
@@ -258,7 +259,7 @@ void TransMap::ConstructActors() {
 			vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.00001);
 			colors->InsertNextTuple4(128, 128, 128, 128);
 
-			temp_radius = node_radius * (node->average_values[j] + node->value_variance[j]);
+			temp_radius = node_radius * (node->average_values[j] + node->value_variance[j]) * 0.8;
 			if (temp_radius > 1.0) temp_radius = 1.0;
 			x = temp_radius * cos(end_arc);
 			y = temp_radius * sin(end_arc);
@@ -285,13 +286,14 @@ void TransMap::ConstructActors() {
 		std::vector< vtkIdType > value_pos_ids;
 		value_pos_ids.resize(dataset_->var_num);
 		for (int j = 0; j < dataset_->var_num; ++j) {
-			float temp_radius = node_radius * node->average_values[j]/* * 0.8 + node_radius * 0.2*/;
+			float temp_radius = node_radius * node->average_values[j] * 0.8;
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 			float x = temp_radius * cos(end_arc);
 			float y = temp_radius * sin(end_arc);
 
 			value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0);
-			colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
+			//colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
+			colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 255);
 		}
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			cell_ids[0] = value_pos_ids[j];
@@ -305,8 +307,8 @@ void TransMap::ConstructActors() {
 		colors->InsertNextTuple4(200, 200, 200, 255);
 		for (int j = 0; j < dataset_->var_num; ++j) {
 			float end_arc = j * 3.14159 * 2 / dataset_->var_num;
-			float x = node_radius * cos(end_arc);
-			float y = node_radius * sin(end_arc);
+			float x = node_radius * cos(end_arc) * 0.8;
+			float y = node_radius * sin(end_arc) * 0.8;
 
 			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.0001);
 			colors->InsertNextTuple4(200, 200, 200, 255);
@@ -315,6 +317,26 @@ void TransMap::ConstructActors() {
 			cell_ids[1] = pre_id;
 			polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
 		}
+
+		float x = node_radius * 0.9;
+		float y = 0;
+		float end_arc = 0;
+
+		vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0001);
+		for (int k = 1; k <= 20; ++k) {
+			end_arc = (float)k / 20 * 3.14159 * 2;
+			x = node_radius * cos(end_arc) * 0.9;
+			y = node_radius * sin(end_arc) * 0.9;
+			vtkIdType current_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0001);
+
+			cell_ids[0] = pre_id;
+			cell_ids[1] = current_id;
+			polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
+
+			pre_id = current_id;
+		}
+
+		for (int k = 0; k < 21; ++k) colors->InsertNextTuple4(200, 200, 200, 200);
 
 		this->level_one_node_glyph_actors[i]->Modified();
 	}
@@ -360,7 +382,9 @@ void TransMap::ConstructActors() {
 			pre_id = current_id;
 		}
 
-		for (int k = 0; k < 22; ++k) colors->InsertNextTuple3(dataset_->level_zero_colors[3 * i], dataset_->level_zero_colors[3 * i + 1], dataset_->level_zero_colors[3 * i + 2]);
+		for (int k = 0; k < 22; ++k) 
+			//colors->InsertNextTuple3(dataset_->level_zero_colors[3 * i], dataset_->level_zero_colors[3 * i + 1], dataset_->level_zero_colors[3 * i + 2]);
+			colors->InsertNextTuple3(node->color.red(), node->color.green(), node->color.blue());
 
 		this->level_zero_node_glyph_actors[i]->Modified();
 	}
@@ -415,6 +439,7 @@ void TransMap::ConstructActors() {
 		colors->InsertNextTuple3(163, 82, 82);
 		colors->InsertNextTuple3(163, 82, 82);
 		colors->InsertNextTuple3(163, 82, 82);
+			
 
 		trans_glyph_actors[i]->Modified();
 	}

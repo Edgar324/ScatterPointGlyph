@@ -515,8 +515,11 @@ void ScatterPointGlyph::UpdateTransmap() {
 		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
 	}
 	
+	std::vector< QColor > colors;
+	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+		colors.push_back(transmap_data_->cluster_nodes[i]->color);
 
-	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index);
+	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index, colors);
 	original_point_rendering_layer_->SetHighlightCluster(-1);
 
 	transmap_data_->ClearData();
@@ -721,7 +724,15 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 	trans_map_->SetNodeSelected(node_id);
 
-	//UpdateTransmap();
+	std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
+	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
+		original_point_rendering_layer_->SetHighlightClusters(selection_index);
+	}
+
+	this->GenerateParallelDataset(parallel_dataset_, selection_index);
+
+	parallel_coordinate_->update();
 
 	this->main_view_->update();
 }
