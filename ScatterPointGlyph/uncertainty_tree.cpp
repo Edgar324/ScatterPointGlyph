@@ -2,6 +2,7 @@
 #include "scatter_point_dataset.h"
 #include "multi_label_processor.h"
 #include <queue>
+#include "tour_path_generator.h"
 
 UncertaintyTree::UncertaintyTree(ScatterPointDataset* data)
 	: TreeCommon(data),
@@ -430,9 +431,24 @@ void UncertaintyTree::GenerateCluster(CBranch* node) {
 	common_parent_node_ = node;
 
 	node->linked_nodes.clear();
-	for (int i = 0; i < node_cluster_index.size(); ++i) 
+
+	std::vector< CNode* > linked_nodes;
+	for (int i = 0; i < node_cluster_index.size(); ++i)
+		if (label_nodes[i] != NULL) {
+			node->linked_nodes.push_back(label_nodes[i]);
+			linked_nodes.push_back(label_nodes[i]);
+		}
+	for (int i = 0; i < linked_nodes.size(); ++i)
+		ProgressNodeAndParent(linked_nodes[i]);
+	std::vector< int > tour_list;
+	TourPathGenerator::GenerateRoundPath(linked_nodes, tour_list);
+	node->linked_nodes.clear();
+	for (int i = 0; i < tour_list.size(); ++i)
+		node->linked_nodes.push_back(linked_nodes[tour_list[i]]);
+
+	/*for (int i = 0; i < node_cluster_index.size(); ++i) 
 		if (label_nodes[i] != NULL) {
 			node->linked_nodes.push_back(label_nodes[i]);
 			ProgressNodeAndParent(label_nodes[i]);
-		}
+		}*/
 }

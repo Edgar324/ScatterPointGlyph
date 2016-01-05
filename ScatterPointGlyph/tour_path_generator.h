@@ -2,6 +2,7 @@
 #define TOUR_PATH_GENERATOR_H_
 
 #include <vector>
+#include "tree_common.h"
 
 class TransMapData;
 class PathRecord;
@@ -16,6 +17,8 @@ public:
 	bool GenerateRoundPath();
 	bool GenerateSpanningTree();
 	bool GeneratePath(int begin_index = -1, int end_index = -1);
+	
+	static bool GenerateRoundPath(std::vector< CNode* >& nodes, std::vector< int >& tour_list);
 
 	PathRecord* GetPath();
 
