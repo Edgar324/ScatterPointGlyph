@@ -49,7 +49,7 @@ class CLeaf : public CNode
 {
 public:
 	CLeaf();
-	~CLeaf();
+	virtual ~CLeaf();
 
 	std::vector< int > linked_points;
 };
@@ -58,7 +58,7 @@ class CBranch : public CNode
 {
 public:
 	CBranch();
-	~CBranch();
+	virtual ~CBranch();
 
 	std::vector< CNode* > linked_nodes;
 

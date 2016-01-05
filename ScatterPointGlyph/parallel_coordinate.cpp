@@ -17,7 +17,7 @@ bool ParallelDataset::CompleteInput(){
         subset_colors.clear();
         /// TODO:select colors here
 		for (int i = 0; i < subset_names.size(); ++i)
-			subset_colors.push_back(QColor(i, i, i));
+			subset_colors.push_back(QColor(200, 200, 200));
     }
 
 	if (subset_colors.size() == subset_names.size()) {

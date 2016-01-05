@@ -119,12 +119,35 @@ void UncertaintyTree::SplitCluster(int cluster_index) {
 			is_child_leaf = false;
 			break;
 		}
-	if (!is_child_leaf) {
-		std::cout << "Cluster has already been split!" << std::endl;
-		return;
+	if (is_child_leaf) this->GenerateCluster(branch);
+
+	CBranch* temp_parent = branch->parent;
+	if (temp_parent == NULL) return;
+
+	int node_index = -1;
+	for (int j = 0; j < temp_parent->linked_nodes.size(); ++j)
+		if (temp_parent->linked_nodes[j] == branch) {
+			node_index = j;
+			break;
+		}
+	if (node_index != -1) {
+		for (int j = node_index; j < temp_parent->linked_nodes.size() - 1; ++j)
+			temp_parent->linked_nodes[j] = temp_parent->linked_nodes[j + 1];
+		int original_size = temp_parent->linked_nodes.size();
+		temp_parent->linked_nodes.resize(temp_parent->linked_nodes.size() - 1 + branch->linked_nodes.size());
+		for (int i = original_size - 1; i > node_index; --i)
+			temp_parent->linked_nodes[i + branch->linked_nodes.size() - 1] = temp_parent->linked_nodes[i];
+		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+			temp_parent->linked_nodes[i + node_index] = branch->linked_nodes[i];
+			branch->linked_nodes[i]->parent = temp_parent;
+		}
+
+		UpdateChildLevel(temp_parent);
+
+		//ProgressNodeAndParent(temp_parent);
+		/*id_node_map_.erase(branch->id);
+		delete branch;*/
 	}
-	
-	this->GenerateCluster(branch);
 }
 
 void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
@@ -148,17 +171,17 @@ void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
 
 	if (is_all_branch) {
 		// find the minimum level node
-		int min_level_index = 10000;
-		CNode* min_level_node = NULL;
+		int max_level_index = -10000;
+		CNode* max_level_node = NULL;
 		for (int i = 0; i < cluster_nodes.size(); ++i) 
-			if (cluster_nodes[i]->level() < min_level_index) {
-				min_level_index = cluster_nodes[i]->level();
-				min_level_node = cluster_nodes[i];
+			if (cluster_nodes[i]->level() > max_level_index) {
+				max_level_index = cluster_nodes[i]->level();
+				max_level_node = cluster_nodes[i];
 			}
-		if (min_level_node != NULL) {
-			CBranch* parent_node = min_level_node->parent;
+		if (max_level_node != NULL) {
+			CBranch* parent_node = max_level_node->parent;
 			CBranch* new_branch = new CBranch;
-			new_branch->set_level(min_level_node->level());
+			new_branch->set_level(max_level_node->level());
 			new_branch->radius = parent_node->radius / factor_;
 			new_branch->parent = parent_node;
 			parent_node->linked_nodes.push_back(new_branch);
@@ -214,7 +237,7 @@ void UncertaintyTree::UpdateChildLevel(CBranch* node) {
 			for (int i = 0; i < temp_branch->linked_nodes.size(); ++i)
 				node_queue.push(temp_branch->linked_nodes[i]);
 		}
-		temp_node->radius = temp_node->parent->radius / factor_;
+		//temp_node->radius = temp_node->parent->radius / factor_;
 		temp_node->set_level(temp_node->parent->level() + 1);
 		
 	}
