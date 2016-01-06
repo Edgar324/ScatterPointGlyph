@@ -48,6 +48,8 @@ void ScatterPointDataset::DirectConstruct() {
 		node_sample_map.insert(std::map< int, int >::value_type(i, i));
 	}
 
+	point_num = point_pos.size();
+
 	NormalizePosition(this->point_pos, this->original_pos_ranges);
 	NormalizeValues(this->point_values, this->original_value_ranges);
 }

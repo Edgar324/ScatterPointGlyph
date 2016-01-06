@@ -117,7 +117,7 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	main_renderer_->SetViewport(0.0, 0.0, 1.0, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
-	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(UpdateTransmapScale()));
+	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
 	connect(main_view_, SIGNAL(RightButtonDown()), this, SLOT(OnMainViewRightButtonDown()));
@@ -168,7 +168,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
-	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(UpdateClusterView()));
+	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnExecClusteringTriggered()));
 	connect(ui_.actionBrush_Cluster, SIGNAL(toggled(bool)), this, SLOT(OnBrushSelectionTriggered(bool)));
 	connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
 	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
@@ -285,12 +285,26 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 				input_file >> temp;
 	}
 
+	/*std::ifstream input_file("E:/Projects/DataProcessing/MdsConverter/dingpao_1.txt");
+	int record_num, value_num;
+	input_file >> record_num >> value_num;
+	dataset_->original_point_pos.resize(record_num);
+	dataset_->original_point_values.resize(record_num);
+	for (int i = 0; i < record_num; ++i) {
+		dataset_->original_point_pos[i].resize(2);
+		dataset_->original_point_values[i].resize(value_num);
+
+		float temp;
+		input_file >> dataset_->original_point_pos[i][0] >> dataset_->original_point_pos[i][1];
+		for (int j = 0; j < value_num; ++j)
+			if (j < 7)
+				input_file >> dataset_->original_point_values[i][j];
+			else
+				input_file >> temp;
+	}*/
+
 	dataset_->DirectConstruct();
 	this->AddPointData2View();
-}
-
-void ScatterPointGlyph::OnActionExtractDataTriggered() {
-	
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
@@ -311,7 +325,7 @@ void ScatterPointGlyph::OnSysmodeChanged() {
 	}
 }
 
-void ScatterPointGlyph::UpdateClusterView() {
+void ScatterPointGlyph::OnExecClusteringTriggered() {
 	if (dataset_ == NULL) {
 		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
 		return;
@@ -414,42 +428,6 @@ void ScatterPointGlyph::AddPointData2View() {
 
 	main_renderer_->ResetCamera();
 
-	// For test
-	for (int i = 0; i < dataset_->weights.size(); ++i) {
-		FieldRenderingLayer* field_layer = new FieldRenderingLayer;
-		field_layer->SetFieldData(dataset_, i);
-		std::vector< ColorMappingGenerator::ColorIndex > color_index;
-		bool b;
-		ColorMappingGenerator::GetInstance()->GetColorIndex(RMS_MAPPING, color_index, b);
-		std::vector< float > values;
-		std::vector< double > rgb;
-		for (int i = 0; i < color_index.size(); ++i) {
-			values.push_back(color_index[i].value_index);
-			rgb.push_back(color_index[i].color.redF());
-			rgb.push_back(color_index[i].color.greenF());
-			rgb.push_back(color_index[i].color.blueF());
-			rgb.push_back(1.0);
-		}
-		for (int j = 0; j < values.size(); ++j) values[j] /= values[values.size() - 1];
-		field_layer->SetColorScalar(values, rgb);
-		field_layer->SetInteractor(this->main_view_->GetInteractor());
-		field_layer->SetDefaultRenderer(this->main_renderer_);
-		rendering_layer_model_->AddLayer(QString("Field Layer"), field_layer, false);
-	}
-
-	/*DistanceMatrixLayer* matrix = new DistanceMatrixLayer;
-	std::vector< std::string > names;
-	std::vector< std::vector< float > > distance;
-	for (int i = 0; i < 5; ++i) names.push_back(std::string("test"));
-	distance.resize(5);
-	for (int i = 0; i < 5; ++i) {
-		for (int j = 0; j < 5; ++j) distance[i].push_back((float)rand() / RAND_MAX);
-	}
-	matrix->SetData(names, distance);
-	matrix->SetInteractor(this->main_view_->GetInteractor());
-	matrix->SetDefaultRenderer(this->dis_matrix_renderer_);
-	matrix->SetEnabled(true);*/
-
 	this->UpdateParallelCoordinate();
 
 	main_view_->update();
@@ -462,8 +440,8 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->subset_records.resize(1);
 		parallel_dataset_->axis_anchors.resize(dataset_->original_point_values[0].size());
 		for (int i = 0; i < dataset_->original_point_values[0].size(); ++i) {
-			parallel_dataset_->axis_anchors[i].push_back(QString("0"));
-			parallel_dataset_->axis_anchors[i].push_back(QString("1"));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][0]));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][1]));
 			parallel_dataset_->axis_names.push_back(QString("v"));
 		}
 
@@ -474,103 +452,22 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		}
 		parallel_dataset_->CompleteInput();
 		parallel_coordinate_->SetDataset(parallel_dataset_);
-	}
-}
 
-void ScatterPointGlyph::OnClusterFinished() {
-	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
+		QString str = QString("%0 points.").arg(dataset_->original_point_pos.size());
+		ui_.statusBar->showMessage(str);
 
-	if (sys_mode_ == IMMEDIATE_PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
-
-	if (sys_mode_ == IMMEDIATE_GESTALT_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_GESTALT_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
-
-	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		UpdateTransmap();
-		UpdatePathMap();
-	}
-}
-
-void ScatterPointGlyph::UpdateTransmap() {
-	if (transmap_data_ != NULL) {
-		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
-			transmap_data_->cluster_nodes[i]->is_highlighted = false;
-	}
-
-	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
-	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	if (is_active_retrieval_on_) {
-		un_tree->GetActiveClusterResult(transmap_data_->cluster_nodes);
-		un_tree->GetActiveClusterResult(cluster_num, cluster_index);
 	} else {
-		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
-		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
+		std::vector< int > selection_index;
+		trans_map_->GetSelectedClusterIndex(selection_index);
+		this->GenerateParallelDataset(parallel_dataset_, selection_index);
+		parallel_coordinate_->update();
+
+		int selected_count = 0;
+		for (int i = 0; i < parallel_dataset_->subset_records.size(); ++i)
+			selected_count += parallel_dataset_->subset_records[i].size();
+		QString str = QString("%0 out of %1 (%2%) points are selected.").arg(selected_count).arg(dataset_->original_point_pos.size()).arg((int)selected_count * 100 / dataset_->original_point_pos.size());
+		ui_.statusBar->showMessage(str);
 	}
-	
-	std::vector< QColor > colors;
-	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
-		colors.push_back(transmap_data_->cluster_nodes[i]->color);
-
-	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index, colors);
-	original_point_rendering_layer_->SetHighlightCluster(-1);
-
-	transmap_data_->ClearData();
-	transmap_data_->cluster_num = cluster_num;
-	transmap_data_->var_num = dataset_->weights.size();
-
-	// TODO: update the cluster color
-	transmap_data_->cluster_reprentative_color = original_point_rendering_layer_->GetClusterColor();
-	transmap_data_->dataset = dataset_;
-	transmap_data_->ProcessData();
-
-	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
-	trans_map_->SetOriginalData(dataset_);
-	trans_map_->SetData(transmap_data_);
-
-	tree_map_view_->SetData(un_tree->root());
-
-	main_view_->update();
-}
-
-void ScatterPointGlyph::UpdateTransmapScale() {
-	this->UpdateTransmap();
-	//dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	//trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
-	//trans_map_->SetData(transmap_data_);
-	// TODO: update the polydata
-	//trans_map_->UpdateScale();
-
-	//main_view_->update();
-}
-
-void ScatterPointGlyph::UpdatePathMap() {
-	//path_generator_->SetData(transmap_data_);
-	//if (path_generator_->GenerateRoundPath()) {
-	//	path_generator_->GenerateSpanningTree();
-	//	// for test
-	//	for (int i = 0; i < pathset_->path_records.size(); ++i)
-	//		delete pathset_->path_records[i];
-	//	pathset_->path_records.clear();
-
-	//	PathRecord* record = path_generator_->GetPath();
-	//	pathset_->path_records.push_back(record);
-
-	//	path_explore_view_->SetData(pathset_);
-	//}
-
-	change_table_lens_view_->SetData(transmap_data_);
-}
-
-void ScatterPointGlyph::UpdateSortingLens() {
-
 }
 
 void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids) {
@@ -603,6 +500,82 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 	parallel_dataset_->UpdateGaussian();
 
 	pdata->is_updating = false;
+}
+
+void ScatterPointGlyph::OnClusterFinished() {
+	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
+	}
+
+	if (sys_mode_ == IMMEDIATE_PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
+	}
+
+	if (sys_mode_ == IMMEDIATE_GESTALT_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_GESTALT_MODE];
+		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
+	}
+
+	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		UpdateTransmap();
+		UpdateParallelCoordinate();
+		UpdateTreemap();
+		UpdatePathMap();
+	}
+}
+
+void ScatterPointGlyph::OnMainViewUpdated() {
+	this->UpdateTransmap();
+	this->UpdateTreemap();
+}
+
+void ScatterPointGlyph::UpdateTransmap() {
+	if (transmap_data_ != NULL) {
+		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+			transmap_data_->cluster_nodes[i]->is_highlighted = false;
+	}
+
+	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
+	if (is_active_retrieval_on_) {
+		un_tree->GetActiveClusterResult(transmap_data_->cluster_nodes);
+		un_tree->GetActiveClusterResult(cluster_num, cluster_index);
+	} else {
+		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
+		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
+	}
+	
+	std::vector< QColor > colors;
+	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+		colors.push_back(transmap_data_->cluster_nodes[i]->color);
+
+	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index, colors);
+	original_point_rendering_layer_->SetHighlightCluster(-1);
+
+	transmap_data_->ClearData();
+	transmap_data_->cluster_num = cluster_num;
+	transmap_data_->var_num = dataset_->weights.size();
+	transmap_data_->dataset = dataset_;
+	transmap_data_->ProcessData();
+
+	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
+	trans_map_->SetOriginalData(dataset_);
+	trans_map_->SetData(transmap_data_);
+
+	main_view_->update();
+}
+
+
+void ScatterPointGlyph::UpdatePathMap() {
+	change_table_lens_view_->SetData(transmap_data_);
+}
+
+void ScatterPointGlyph::UpdateTreemap() {
+	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+	tree_map_view_->SetData(un_tree->root());
+	tree_map_view_->scene()->update();
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {
@@ -642,10 +615,8 @@ void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
 	}
 
-	this->GenerateParallelDataset(parallel_dataset_, selection_index);
-	parallel_coordinate_->update();
-
-	tree_map_view_->scene()->update();
+	UpdateParallelCoordinate();
+	UpdateTreemap();
 }
 
 void ScatterPointGlyph::OnMainviewLeftButtonUp() {
@@ -658,11 +629,8 @@ void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 				original_point_rendering_layer_->SetHighlightClusters(selection_index);
 			}
 
-			this->GenerateParallelDataset(parallel_dataset_, selection_index);
-
-			parallel_coordinate_->update();
-
-			tree_map_view_->scene()->update();
+			UpdateParallelCoordinate();
+			UpdateTreemap();
 
 			this->main_view_->update();
 		}
@@ -685,18 +653,11 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
 
 		int temp_cluster_index = trans_map_->GetSelectedClusterIndex();
-		if (temp_cluster_index == -1) {
-			// check if the original data has been clustered
-			// if yes return
-			// else do the clustering
-
-		} else {
+		if (temp_cluster_index != -1) {
 			un_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id);
 			UpdateTransmap();
-
-			tree_map_view_->scene()->update();
-
-			UpdatePathMap();
+			UpdateTreemap();
+			UpdateParallelCoordinate();
 		}
 	}
 }
@@ -714,10 +675,8 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 		un_tree->MergeClusters(cluster_ids);
 
 		UpdateTransmap();
-
-		tree_map_view_->scene()->update();
-
-		UpdatePathMap();
+		UpdateTreemap();
+		UpdateParallelCoordinate();
 	}
 }
 

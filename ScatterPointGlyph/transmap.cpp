@@ -21,6 +21,8 @@
 #include "vtkRenderer.h"
 #include "vtkSphereSource.h"
 #include "vtkPointData.h"
+#include <vtkTextActor3D.h>
+#include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
 #include <QVTKWidget.h>
 #include "transmap_data.h"
@@ -825,6 +827,27 @@ void TransMap::UpdateHightlightActor() {
 		if (dataset_->level_one_nodes[i]->is_highlighted)  this->highlight_node_sequence.push_back(dataset_->level_one_nodes[i]);
 	for (int i = 0; i < dataset_->level_zero_nodes.size(); ++i)
 		if (dataset_->level_zero_nodes[i]->is_highlighted) this->highlight_node_sequence.push_back(dataset_->level_zero_nodes[i]);*/
+	if (seqence_text_actors.size() < highlight_node_sequence.size()) {
+		for (int i = 0; i < highlight_node_sequence.size() - seqence_text_actors.size(); ++i) {
+			vtkTextActor3D* actor = vtkTextActor3D::New();
+			actor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+			actor->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
+			actor->GetTextProperty()->SetBold(true);
+			actor->GetTextProperty()->SetFontFamilyToArial();
+			//actor->GetTextProperty()->SetFontSize(20);
+			//actor->SetPosition(0, 0, 0.01);
+			//actor->SetInput("Test");
+			//actor->Modified();
+			this->DefaultRenderer->AddActor(actor);
+			seqence_text_actors.push_back(actor);
+		}
+	} else {
+		for (int i = seqence_text_actors.size(); i >= highlight_node_sequence.size() + 1; --i) {
+			this->DefaultRenderer->RemoveActor(seqence_text_actors[i - 1]);
+			seqence_text_actors[i - 1]->Delete();
+		}
+		seqence_text_actors.resize(highlight_node_sequence.size());
+	}
 
 	vtkPoints* points = vtkPoints::New();
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::New();
@@ -842,6 +865,7 @@ void TransMap::UpdateHightlightActor() {
 	vtkIdType cell_ids[5];
 
 	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	int hightlight_node_index = 0;
 	while (iter != highlight_node_sequence.end()) {
 		int node_index = -1;
 		for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
@@ -868,8 +892,19 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(128, 128, 128);
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
 			iter++;
+
+			char buffer[20];
+			itoa(hightlight_node_index, buffer, 10);
+			seqence_text_actors[hightlight_node_index]->SetInput(buffer);
+			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius, node_center_y + node_radius * 0.5, 0.001);
+			seqence_text_actors[hightlight_node_index]->GetTextProperty()->SetFontSize(20);
+			float scale = node_radius * 0.5 / 20;
+			seqence_text_actors[hightlight_node_index]->SetScale(scale, scale, scale);
+			seqence_text_actors[hightlight_node_index]->Modified();
+			hightlight_node_index++;
+
 			continue;
 		}
 
@@ -897,8 +932,19 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(128, 128, 128);
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
 			iter++;
+
+			char buffer[20];
+			itoa(hightlight_node_index, buffer, 10);
+			seqence_text_actors[hightlight_node_index]->SetInput(buffer);
+			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius, node_center_y + node_radius * 0.5, 0.001);
+			seqence_text_actors[hightlight_node_index]->GetTextProperty()->SetFontSize(20);
+			float scale = node_radius * 0.5 / 20;
+			seqence_text_actors[hightlight_node_index]->SetScale(scale, scale, scale);
+			seqence_text_actors[hightlight_node_index]->Modified();
+			hightlight_node_index++;
+
 			continue;
 		}
 

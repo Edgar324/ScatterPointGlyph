@@ -119,7 +119,7 @@ private:
 	void UpdateParallelCoordinate();
 	void UpdateTransmap();
 	void UpdatePathMap();
-	void UpdateSortingLens();
+	void UpdateTreemap();
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
@@ -128,13 +128,10 @@ private slots:
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
 
-	void OnActionExtractDataTriggered();
-
 	void OnSysmodeChanged();
-	void UpdateClusterView();
-	void UpdateTransmapScale();
-	
+	void OnExecClusteringTriggered();
 	void OnClusterFinished();
+	void OnMainViewUpdated();
 
 	void OnGlyphSelected(int x, int y);
 	void OnBrushSelectionTriggered(bool checked);

@@ -96,8 +96,9 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
 			if (branch->linked_nodes[i]->type() != CNode::LEAF) is_child_all_leaf = false;
-			}
+			break;
 		}
+	}
 
 	// paint the item glyph
 	int topy, center_x, center_y;
@@ -109,7 +110,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 	// paint the radar glyph
 	if (node->level() == 0) {
 		QPen normal_pen;
-		normal_pen.setColor(node->color);
+		normal_pen.setColor(QColor(200, 200, 200, 200));
 		normal_pen.setWidth(2.0);
 
 		painter->setPen(normal_pen);
@@ -168,12 +169,12 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 	QRectF item_rect = QRectF(center_x - item_size / 2, topy, item_size, item_size);
 	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id, item_rect));
 	if (node->is_highlighted) {
-		painter->setPen(Qt::black);
+		painter->setPen(Qt::red);
 		painter->drawRect(item_rect);
 	}
 
 	// paint linkage
-	painter->setPen(Qt::red);
+	painter->setPen(QColor(220, 220, 220));
 	int bottom_y = topy + item_size;
 	int control_y1 = bottom_y + transition_width * 0.2;
 	int control_y2 = bottom_y + transition_width * 0.5;

@@ -17,6 +17,7 @@ class QVTKWidget;
 class ScatterPointDataset;
 class TourPathGenerator;
 class vtkPropPicker;
+class vtkTextActor3D;
 
 class TransMap : public vtk3DWidget
 {
@@ -101,6 +102,7 @@ protected:
 	vtkActor* highlight_actor;
 	vtkPolyDataMapper* hightlight_mapper;
 	vtkPolyData* highlight_poly;
+	std::vector< vtkTextActor3D* > seqence_text_actors;
 
 	vtkActor* selection_brush_actor;
 	vtkPolyDataMapper* selection_brush_mapper;

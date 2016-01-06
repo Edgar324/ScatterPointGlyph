@@ -32,12 +32,9 @@ void TransMapData::ClearData() {
 	cluster_num = 0;
 	var_num = 0;
 	min_point_num = 5;
-	cluster_reprentative_color.clear();
 	cluster_node_map.clear();
 
-	level_one_colors.clear();
 	level_one_nodes.clear();
-	level_zero_colors.clear();
 	level_zero_nodes.clear();
 }
 
@@ -50,14 +47,9 @@ void TransMapData::ProcessData() {
 	for (int i = 0; i < cluster_nodes.size(); ++i)
 		if (cluster_nodes[i]->point_count >= min_point_num) {
 			level_one_nodes.push_back(cluster_nodes[i]);
-			level_one_colors.push_back(this->cluster_reprentative_color[3 * i]);
-			level_one_colors.push_back(this->cluster_reprentative_color[3 * i + 1]);
-			level_one_colors.push_back(this->cluster_reprentative_color[3 * i + 2]);
-		} else {
+		}
+		else {
 			level_zero_nodes.push_back(cluster_nodes[i]);
-			level_zero_colors.push_back(this->cluster_reprentative_color[3 * i]);
-			level_zero_colors.push_back(this->cluster_reprentative_color[3 * i + 1]);
-			level_zero_colors.push_back(this->cluster_reprentative_color[3 * i + 2]);
 		}
 
 	this->UpdateConnectingStatus();

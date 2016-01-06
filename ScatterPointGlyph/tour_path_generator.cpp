@@ -284,7 +284,7 @@ PathRecord* TourPathGenerator::GetPath() {
 	record->item_color.resize(tour_node_list.size());
 	for (int i = 0; i < tour_node_list.size(); ++i) {
 		record->item_values[i] = trans_data_->level_one_nodes[tour_node_list[i]]->average_values;
-		record->item_color[i] = QColor(trans_data_->level_one_colors[3 * tour_node_list[i]], trans_data_->level_one_colors[3 * tour_node_list[i] + 1], trans_data_->level_one_colors[3 * tour_node_list[i] + 2]);
+		record->item_color[i] = trans_data_->level_one_nodes[tour_node_list[i]]->color;
 	}
 	record->change_values.resize(tour_node_list.size() - 1);
 	for (int i = 0; i < tour_node_list.size() - 1; ++i) {

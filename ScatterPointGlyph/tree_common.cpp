@@ -153,7 +153,7 @@ void TreeCommon::ConstructDirectly() {
 			neighbour_list.push_back(i);
 			for (int j = i + 1; j < dataset_->point_pos.size(); ++j){
 				float dis = sqrt(pow(dataset_->point_pos[j][0] - dataset_->point_pos[i][0], 2) + pow(dataset_->point_pos[j][1] - dataset_->point_pos[i][1], 2));
-				if (dis < 1e-5) {
+				if (dis < 1e-10) {
 					neighbour_list.push_back(j);
 					is_used[j] = true;
 				}

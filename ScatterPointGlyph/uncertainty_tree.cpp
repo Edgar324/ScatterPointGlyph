@@ -53,6 +53,7 @@ void UncertaintyTree::GetClusterResult(float dis_per_pixel, int& cluster_num, st
 		temp_radius /= factor_;
 		level++;
 	}
+	if (level == 0) level = 1;
 
 	std::vector< CNode* > level_node;
 	this->Traverse(level, level_node);
@@ -143,10 +144,6 @@ void UncertaintyTree::SplitCluster(int cluster_index) {
 		}
 
 		UpdateChildLevel(temp_parent);
-
-		//ProgressNodeAndParent(temp_parent);
-		/*id_node_map_.erase(branch->id);
-		delete branch;*/
 	}
 }
 
@@ -315,14 +312,17 @@ void UncertaintyTree::run() {
 		root_->linked_nodes.clear();
 	}
 	
-	if (dataset_->point_num < sample_num_)
+	this->ConstructDirectly();
+
+	/*if (dataset_->point_num < sample_num_)
 		this->ConstructDirectly();
-	else
-		this->ConstructOnKmeans(sample_num_);
+		else
+		this->ConstructOnRandomSample(sample_num_);*/
 
 	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id, root_));
 
 	root_->set_level(0);
+	root_->is_expanded = true;
 	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
 		root_->linked_nodes[i]->set_level(1);
 		root_->linked_nodes[i]->parent = root_;
