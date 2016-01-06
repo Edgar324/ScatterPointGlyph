@@ -95,22 +95,26 @@ void ScatterPointGlyph::InitWidget() {
 	transmap_widget_splitter->setStretchFactor(0, 2);
 	transmap_widget_splitter->setStretchFactor(1, 1);
 
+	this->setDockOptions(QMainWindow::AllowNestedDocks);
+
 	tree_map_view_ = new TreeMapView;
+	tree_map_view_->setFixedWidth(700);
+	tree_map_panel_ = new QDockWidget(QString("Tree Map Panel"), this);
+	tree_map_panel_->setWidget(tree_map_view_);
+	this->addDockWidget(Qt::RightDockWidgetArea, tree_map_panel_);
+	ui_.menuView->addAction(tree_map_panel_->toggleViewAction());
+	tree_map_panel_->setVisible(false);
+
 	path_explore_view_ = new PathExploreWidget;
-	change_table_lens_view_ = new ChangeTableLens;
-	QSplitter* path_explore_splitter = new QSplitter(Qt::Vertical);
-	path_explore_splitter->addWidget(tree_map_view_);
-	path_explore_splitter->addWidget(path_explore_view_);
-	path_explore_splitter->setSizes(temp_sizes);
-	path_explore_splitter->setStretchFactor(0, 2);
-	path_explore_splitter->setStretchFactor(1, 1);
-	connect(tree_map_view_, SIGNAL(NodeSelected(int)), this, SLOT(OnTreemapNodeSelected(int)));
+	path_explore_view_->setFixedWidth(700);
+	path_explore_panel_ = new QDockWidget(QString("Path Explore Panel"), this);
+	path_explore_panel_->setWidget(path_explore_view_);
+	this->tabifyDockWidget(tree_map_panel_, path_explore_panel_);
+	ui_.menuView->addAction(path_explore_panel_->toggleViewAction());
+	path_explore_panel_->setVisible(false);
 
 	QHBoxLayout* main_layout = new QHBoxLayout;
 	main_layout->addWidget(transmap_widget_splitter);
-	main_layout->addWidget(path_explore_splitter);
-	main_layout->setStretch(0, 3);
-	main_layout->setStretch(1, 2);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -143,8 +147,9 @@ void ScatterPointGlyph::InitWidget() {
 	layer_control_widget_->SetRenderingLayerModel(rendering_layer_model_);
 	layer_control_panel_ = new QDockWidget(QString("Layer Control Panel"), this);
 	layer_control_panel_->setWidget(layer_control_widget_);
-	this->addDockWidget(Qt::RightDockWidgetArea, layer_control_panel_);
+	this->tabifyDockWidget(tree_map_panel_, layer_control_panel_);
 	ui_.menuView->addAction(layer_control_panel_->toggleViewAction());
+	layer_control_panel_->setVisible(false);
 	connect(rendering_layer_model_, SIGNAL(LayerPropertyChanged()), main_view_, SLOT(update()));
 
 	trans_map_ = new TransMap(main_view_);
@@ -157,7 +162,7 @@ void ScatterPointGlyph::InitWidget() {
 	hier_para_panel_ = new QDockWidget(QString("Hierarchical Clustering Panel"), this);
 	hier_para_panel_->setWidget(hier_para_widget_);
 	hier_para_panel_->setVisible(false);
-	//this->addDockWidget(Qt::RightDockWidgetArea, hier_para_panel_);
+	this->tabifyDockWidget(tree_map_panel_, hier_para_panel_);
 	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
 
 	sys_mode_action_group_ = new QActionGroup(this);
@@ -569,7 +574,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 
 void ScatterPointGlyph::UpdatePathMap() {
-	change_table_lens_view_->SetData(transmap_data_);
+
 }
 
 void ScatterPointGlyph::UpdateTreemap() {

@@ -78,6 +78,7 @@ protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
+	void mouseDoubleClickEvent(QMouseEvent *);
 
 private:
     ParallelDataset* dataset_;

@@ -72,10 +72,10 @@ private:
 	ParallelDataset* parallel_dataset_;
 
 	PathExploreWidget* path_explore_view_;
+	QDockWidget* path_explore_panel_;
 
 	TreeMapView* tree_map_view_;
-
-	ChangeTableLens* change_table_lens_view_;
+	QDockWidget* tree_map_panel_;
 
 	QActionGroup* sys_mode_action_group_;
 

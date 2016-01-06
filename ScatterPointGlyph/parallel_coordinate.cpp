@@ -91,7 +91,7 @@ void ParallelDataset::UpdateGaussian() {
 		}
 	}
 
-	if (subset_names.size() >= 1) is_gaussian_enabled = true;
+	//if (subset_names.size() >= 1) is_gaussian_enabled = true;
 }
 
 bool ParallelDataset::ClearData(){
@@ -322,4 +322,11 @@ void ParallelCoordinate::PaintSubsetIdentifyItems(){
 
 void ParallelCoordinate::PaintWeightCircles(){
 
+}
+
+void ParallelCoordinate::mouseDoubleClickEvent(QMouseEvent *event) {
+	if (dataset_ != NULL) {
+		dataset_->is_gaussian_enabled = !dataset_->is_gaussian_enabled;
+		this->update();
+	}
 }
