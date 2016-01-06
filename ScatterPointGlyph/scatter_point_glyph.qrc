@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/merge.png</file>
+    <file>images/plus.png</file>
+    <file>images/scissors9.png</file>
     <file>images/pick.png</file>
     <file>images/sequence.png</file>
     <file>images/painter.png</file>
