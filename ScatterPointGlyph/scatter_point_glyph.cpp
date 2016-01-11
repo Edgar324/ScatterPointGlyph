@@ -456,15 +456,19 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 			parallel_dataset_->subset_records[0].push_back(record);
 		}
 		parallel_dataset_->CompleteInput();
+		parallel_dataset_->UpdateGaussian();
 		parallel_coordinate_->SetDataset(parallel_dataset_);
 
 		QString str = QString("%0 points.").arg(dataset_->original_point_pos.size());
 		ui_.statusBar->showMessage(str);
-
 	} else {
 		std::vector< int > selection_index;
 		trans_map_->GetSelectedClusterIndex(selection_index);
+		if (selection_index.size() == 0) {
+			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) selection_index.push_back(i);
+		}
 		this->GenerateParallelDataset(parallel_dataset_, selection_index);
+		//parallel_coordinate_->SetDataset(parallel_dataset_);
 		parallel_coordinate_->update();
 
 		int selected_count = 0;
@@ -533,6 +537,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 
 void ScatterPointGlyph::OnMainViewUpdated() {
 	this->UpdateTransmap();
+	this->UpdateParallelCoordinate();
 	this->UpdateTreemap();
 }
 
@@ -590,6 +595,8 @@ void ScatterPointGlyph::UpdateTreemap() {
 		std::vector< bool > is_selected;
 		is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
+		std::vector< int > var_order = parallel_coordinate_->GetAxisOrder();
+
 		std::vector< CNode* > selected_nodes;
 		if (selected_ids.size() != 0) {
 			for (int i = 0; i < selection_index.size(); ++i) {
@@ -598,11 +605,11 @@ void ScatterPointGlyph::UpdateTreemap() {
 			}
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 				if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size());
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size(), var_order);
 		}
 		else {
 			selected_nodes = transmap_data_->cluster_nodes;
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size());
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size(), var_order);
 		}
 
 		tree_map_view_->scene()->update();

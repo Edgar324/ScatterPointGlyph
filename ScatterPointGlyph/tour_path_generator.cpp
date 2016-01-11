@@ -271,6 +271,93 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vec
 	return true;
 }
 
+bool TourPathGenerator::GenerateRoundPath(std::vector< std::vector< float > >& node_dis, std::vector< int >& tour_list) {
+	typedef std::vector< simple_point< double > > PositionVec;
+	typedef adjacency_matrix < undirectedS, no_property, property < edge_weight_t, double> > Graph;
+	typedef graph_traits< Graph >::vertex_descriptor Vertex;
+
+	typedef std::vector< Vertex > Container;
+	typedef property_map< Graph, edge_weight_t >::type WeightMap;
+	typedef property_map< Graph, vertex_index_t >::type VertexMap;
+
+	int ncount = node_dis.size();
+
+	PositionVec position_vec;
+	position_vec.resize(ncount);
+	for (int i = 0; i < ncount; ++i) {
+		simple_point< double > temp;
+		temp.x = 0;
+		temp.y = 0;
+		position_vec[i] = temp;
+	}
+
+	Graph g(ncount);
+	WeightMap weight_map(get(edge_weight, g));
+	VertexMap v_map = get(vertex_index, g);
+	//connectAllEuclidean(g, position_vec, weight_map, v_map, ncount);
+
+	typedef graph_traits< Graph >::vertex_iterator VItr;
+	typedef graph_traits< Graph >::edge_descriptor Edge;
+
+	Edge e;
+	bool inserted;
+
+	pair<VItr, VItr> verts(vertices(g));
+	int x = 0;
+	for (VItr src(verts.first); src != verts.second; src++)
+	{	
+		int y = 0;
+		for (VItr dest(src); dest != verts.second; dest++)
+		{
+			if (dest != src)
+			{
+				boost::tie(e, inserted) = add_edge(*src, *dest, g);
+
+				weight_map[e] = node_dis[x][y];
+			}
+			y++;
+		}
+		x++;
+	}
+
+	Container c;
+
+	double len(0.0);
+	try {
+		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
+	}
+	catch (const bad_graph& e) {
+		std::cerr << "bad_graph: " << e.what() << endl;
+		return -1;
+	}
+
+	std::cout << "Number of points: " << num_vertices(g) << endl;
+	std::cout << "Number of edges: " << num_edges(g) << endl;
+	std::cout << "Length of Tour: " << len << endl;
+
+	std::vector< int > temp_list;
+	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
+		temp_list.push_back(*itr);
+	}
+
+	int max_index = 0;
+	float max_dis = -1e10;
+	for (int i = 0; i < temp_list.size() - 1; ++i) {
+		float temp_dis = node_dis[temp_list[i]][temp_list[i + 1]];
+		if (temp_dis > max_dis) {
+			max_dis = temp_dis;
+			max_index = i;
+		}
+	}
+	tour_list.clear();
+	for (int i = max_index + 1; i < temp_list.size() - 1; ++i)
+		tour_list.push_back(temp_list[i]);
+	for (int i = 0; i <= max_index; ++i)
+		tour_list.push_back(temp_list[i]);
+
+	return true;
+}
+
 bool TourPathGenerator::GeneratePath(int begin_index /* = -1 */, int end_index /* = -1 */) {
 	if (begin_index == -1 || end_index == -1) return false;
 	return true;

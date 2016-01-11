@@ -15,7 +15,7 @@ TreeMapView::~TreeMapView() {
 
 }
 
-void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count) {
+void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order) {
 	this->root_node_ = data;
 	this->var_num_ = var_num;
 
@@ -55,13 +55,15 @@ void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selec
 		}
 	}
 
+	var_order_ = order;
+
 	tree_item_->SetData(root_node_);
 	this->UpdateVariableItems(selected_nodes, selected_count);
 
 	QSize temp = tree_item_->GetSize();
 	int var_height = 30;
 	for (int i = 0; i < var_items_.size(); ++i)
-		var_items_[i]->setPos(0, (var_height + 5) * i + temp.height() + 20);
+		var_items_[var_order_[i]]->setPos(0, (var_height + 5) * i + temp.height() + 20);
 
 	scene_->setSceneRect(-50, 0, temp.width() + 50, temp.height() + var_items_.size() * (var_height + 5));
 

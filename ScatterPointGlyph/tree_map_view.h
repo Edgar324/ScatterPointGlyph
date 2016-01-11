@@ -16,7 +16,7 @@ public:
 	TreeMapView();
 	~TreeMapView();
 
-	void SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count);
+	void SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order);
 
 signals:
 	void NodeSelected(int node_id);
@@ -24,6 +24,7 @@ signals:
 private:
 	CNode* root_node_;
 	int var_num_;
+	std::vector< int > var_order_;
 
 	QGraphicsScene* scene_;
 

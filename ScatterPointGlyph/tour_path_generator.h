@@ -19,6 +19,7 @@ public:
 	bool GeneratePath(int begin_index = -1, int end_index = -1);
 	
 	static bool GenerateRoundPath(std::vector< CNode* >& nodes, std::vector< int >& tour_list);
+	static bool GenerateRoundPath(std::vector< std::vector< float > >& node_dis, std::vector< int >& tour_list);
 
 	PathRecord* GetPath();
 

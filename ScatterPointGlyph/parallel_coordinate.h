@@ -35,6 +35,7 @@ public:
     // attributes which can be set automatically
 	std::vector< std::vector< float > > var_centers;
 	std::vector< std::vector< float > > var_width;
+	std::vector< std::vector< float > > var_std_dev;
     std::vector< std::vector< QColor > > record_color;
     std::vector< std::vector< bool > > is_record_selected;
 
@@ -73,6 +74,7 @@ public:
 
 
     void SetDataset(ParallelDataset* dataset_t);
+	std::vector< int > GetAxisOrder() { return axis_order_; }
 
 protected:
     void initializeGL();
@@ -94,6 +96,8 @@ private:
 
     GLuint setting_texture_;
     float icon_width_, icon_height_;
+
+	std::vector< int > axis_order_;
 
     void UpdateViewLayoutParameters();
 

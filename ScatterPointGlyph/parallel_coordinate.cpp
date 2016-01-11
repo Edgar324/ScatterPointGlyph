@@ -1,4 +1,5 @@
 #include "parallel_coordinate.h"
+#include "tour_path_generator.h"
 
 ParallelDataset::ParallelDataset()
 	: is_edge_bundling_enabled(false), is_correlation_analysis_enabled(false),
@@ -64,11 +65,14 @@ void ParallelDataset::UpdateGaussian() {
 	// gausian analysis
 	var_centers.resize(subset_names.size());
 	var_width.resize(subset_names.size());
+	var_std_dev.resize(subset_names.size());
 	for (int i = 0; i < subset_names.size(); ++i) {
 		var_centers[i].resize(axis_names.size());
 		var_centers[i].assign(axis_names.size(), 0);
 		var_width[i].resize(axis_names.size());
 		var_width[i].assign(axis_names.size(), 0);
+		var_std_dev[i].resize(axis_names.size());
+		var_std_dev[i].assign(axis_names.size(), 0);
 
 		for (int j = 0; j < axis_names.size(); ++j) {
 			float average = 0;
@@ -88,6 +92,10 @@ void ParallelDataset::UpdateGaussian() {
 			var_centers[i][j] = average;
 			var_width[i][j] = sub_value[(int)(0.8 * (accu_count - 1))];
 			if (var_width[i][j] < 0.01) var_width[i][j] = 0.01;
+			for (int k = 0; k < sub_value.size(); ++k)
+				var_std_dev[i][j] += pow(sub_value[k], 2);
+			var_std_dev[i][j] = sqrt(var_std_dev[i][j] / sub_value.size());
+			if (var_std_dev[i][j] < 0.01) var_std_dev[i][j] = 0.01;
 		}
 	}
 
@@ -127,6 +135,26 @@ void ParallelCoordinate::SetDataset(ParallelDataset* dataset_t){
     dataset_ = dataset_t;
 
     UpdateViewLayoutParameters();
+
+	axis_order_.resize(dataset_->axis_names.size());
+	for (int i = 0; i < dataset_->axis_names.size(); ++i) axis_order_[i] = i;
+	std::vector< std::vector< float > > corr_values;
+	corr_values.resize(dataset_->axis_names.size());
+	for (int i = 0; i < dataset_->axis_names.size(); ++i) {
+		corr_values[i].resize(dataset_->axis_names.size(), 0);
+	}
+	if (dataset_->subset_records.size() == 1) {
+		for (int i = 0; i < dataset_->axis_names.size() - 1; ++i)
+			for (int j = i + 1; j < dataset_->axis_names.size(); ++j) {
+				float temp_corr = 0;
+				for (int k = 0; k < dataset_->subset_records[0].size(); ++k)
+					temp_corr += (dataset_->subset_records[0][k]->values[i] - dataset_->var_centers[0][i]) * (dataset_->subset_records[0][k]->values[j] - dataset_->var_centers[0][j]);
+				corr_values[i][j] = temp_corr / (dataset_->subset_records[0].size() * dataset_->var_std_dev[0][i] * dataset_->var_std_dev[0][j]);
+				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
+				corr_values[j][i] = corr_values[i][j];
+			}
+		TourPathGenerator::GenerateRoundPath(corr_values, axis_order_);
+	}
 
     this->updateGL();
 }
@@ -246,7 +274,7 @@ void ParallelCoordinate::PaintLines(){
             }
             glBegin(GL_LINE_STRIP);
             for ( int k = 0; k < record->values.size(); ++k )
-                glVertex3f(axis_x_pos_values_[k], axis_bottom_y_value_ + record->values[k] * axis_y_size_, 0);
+				glVertex3f(axis_x_pos_values_[k], axis_bottom_y_value_ + record->values[axis_order_[k]] * axis_y_size_, 0);
             glEnd();
         }
     }
@@ -268,15 +296,15 @@ void ParallelCoordinate::PaintGaussianCurve() {
 		glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 
 		for (int j = 0; j < dataset_->axis_names.size() - 1; ++j){
-			float bottom_y = dataset_->var_centers[i][j] - dataset_->var_width[i][j];
+			float bottom_y = dataset_->var_centers[i][axis_order_[j]] - dataset_->var_width[i][axis_order_[j]];
 			if (bottom_y < 0) bottom_y = 0;
-			float top_y = dataset_->var_centers[i][j] + dataset_->var_width[i][j];
+			float top_y = dataset_->var_centers[i][axis_order_[j]] + dataset_->var_width[i][axis_order_[j]];
 			if (top_y > 1) top_y = 1;
 
-			float next_bottom_y = dataset_->var_centers[i][j + 1] - dataset_->var_width[i][j + 1];
-			if (next_bottom_y < 0) bottom_y = 0;
-			float next_top_y = dataset_->var_centers[i][j + 1] + dataset_->var_width[i][j + 1];
-			if (next_top_y > 1) top_y = 1;
+			float next_bottom_y = dataset_->var_centers[i][axis_order_[j + 1]] - dataset_->var_width[i][axis_order_[j + 1]];
+			if (next_bottom_y < 0) next_bottom_y = 0;
+			float next_top_y = dataset_->var_centers[i][axis_order_[j + 1]] + dataset_->var_width[i][axis_order_[j + 1]];
+			if (next_top_y > 1) next_top_y = 1;
 
 			glBegin(GL_TRIANGLES);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + bottom_y * axis_y_size_, 0);
@@ -301,9 +329,9 @@ void ParallelCoordinate::PaintText(){
     glColor3f(0.0, 0.0, 0.0);
     for ( int i = 0; i < axis_x_pos_values_.size(); ++i ){
         int axis_x = (int)(axis_x_pos_values_[i] * this->width());
-        this->renderText(axis_x - dataset_->axis_names[i].length() * 3, y_axis_name, dataset_->axis_names[i]);
-        this->renderText(axis_x - dataset_->axis_anchors[i][1].length() * 3, y_max, dataset_->axis_anchors[i][1]);
-        this->renderText(axis_x - dataset_->axis_anchors[i][0].length() * 3, y_min, dataset_->axis_anchors[i][0]);
+		this->renderText(axis_x - dataset_->axis_names[axis_order_[i]].length() * 3, y_axis_name, dataset_->axis_names[axis_order_[i]]);
+		this->renderText(axis_x - dataset_->axis_anchors[axis_order_[i]][1].length() * 3, y_max, dataset_->axis_anchors[axis_order_[i]][1]);
+		this->renderText(axis_x - dataset_->axis_anchors[axis_order_[i]][0].length() * 3, y_min, dataset_->axis_anchors[axis_order_[i]][0]);
     }
 }
 
