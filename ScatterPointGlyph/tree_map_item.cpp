@@ -73,20 +73,20 @@ void TreeMapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 	total_width = item_width;
 }
 
-void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
+void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	if (node == NULL) return;
 
-	int temp_left = item_width;
+	int temp_left = max_width;
 	// paint the child nodes
 	std::vector< int > linked_pos;
 	if (node->type() == CNode::BRANCH && node->is_expanded) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-			float item_left = item_width;
-			PaintItem(painter, branch->linked_nodes[i], item_width);
-			linked_pos.push_back((item_left + item_width) / 2);
+			float item_left = max_width;
+			PaintItem(painter, branch->linked_nodes[branch->sorting_index[i]], max_width);
+			linked_pos.push_back((item_left + max_width) / 2);
 			if (i != branch->linked_nodes.size() - 1) {
-				item_width += item_margin;
+				max_width += item_margin;
 			}
 		}
 	}
@@ -101,9 +101,13 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 	}
 
 	// paint the item glyph
-	int topy, center_x, center_y;
-	if (item_width - temp_left < item_size)  item_width += item_size;
-	center_x = (item_width + temp_left) / 2;
+	int topy, center_x, center_y, temp_item_size = item_size;
+	if (max_width - temp_left < item_size)  {
+		if (node->point_count < 5) temp_item_size = 0.5 * item_size;
+		else temp_item_size = item_size;
+		max_width += temp_item_size;
+	}
+	center_x = (max_width + temp_left) / 2;
 	topy = node->level() * (item_size + transition_width) + left_margin + title_height;
 	center_y = topy + 0.5 * item_size;
 
@@ -128,7 +132,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 			for (int i = 0; i < node->average_values.size(); ++i) {
 				float end_arc = i * 3.14159 * 2 / node->average_values.size();
 
-				float temp_radius = item_size / 2 * 0.8;
+				float temp_radius = temp_item_size / 2 * 0.8;
 				float x = temp_radius * cos(end_arc);
 				float y = temp_radius * sin(end_arc);
 
@@ -150,15 +154,16 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 		normal_pen.setWidth(2.0);
 		painter->setPen(normal_pen);
 
-		painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
+		painter->drawEllipse(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
 
 		if (!is_child_all_leaf && !node->is_expanded) {
 			normal_pen.setColor(QColor(128, 128, 128, 255));
 			painter->setPen(normal_pen);
 
-			painter->drawLine(center_x - item_size / 2, topy + 3, center_x - item_size / 2 + 6, topy + 3);
-			painter->drawLine(center_x - item_size / 2 + 3, topy, center_x - item_size / 2 + 3, topy + 6);
+			painter->drawLine(center_x - temp_item_size / 2, topy + 3, center_x - temp_item_size / 2 + 6, topy + 3);
+			painter->drawLine(center_x - temp_item_size / 2 + 3, topy, center_x - temp_item_size / 2 + 3, topy + 6);
 		}
+
 		/*if (is_child_all_leaf) {
 			painter->drawRoundedRect(QRectF(center_x - item_size / 2, topy, item_size, item_size), 2, 2);
 		} else {
@@ -166,7 +171,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& item_width) {
 		}*/
 	}
 
-	QRectF item_rect = QRectF(center_x - item_size / 2, topy, item_size, item_size);
+	QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
 	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id, item_rect));
 	if (node->is_highlighted) {
 		painter->setPen(Qt::red);

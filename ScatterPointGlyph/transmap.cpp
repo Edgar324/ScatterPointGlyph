@@ -211,6 +211,26 @@ void TransMap::GetSelectedClusterIndex(std::vector< int >& index) {
 	}
 }
 
+void TransMap::GetSelectedClusterIds(std::vector< int >& ids) {
+	ids.clear();
+
+	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	while (node_iter != highlight_node_sequence.end()) {
+		ids.push_back((*node_iter)->id);
+		node_iter++;
+	}
+}
+
+void TransMap::GetSelectedClusterNodes(std::vector< CNode* >& nodes) {
+	nodes.clear();
+
+	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	while (node_iter != highlight_node_sequence.end()) {
+		nodes.push_back(*node_iter);
+		node_iter++;
+	}
+}
+
 void TransMap::ConstructActors() {
 	vtkIdType cell_ids[5];
 

@@ -145,6 +145,8 @@ void UncertaintyTree::SplitCluster(int cluster_index) {
 
 		UpdateChildLevel(temp_parent);
 	}
+
+	this->InitializeSortingIndex();
 }
 
 void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
@@ -197,6 +199,8 @@ void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
 		}
 		return;
 	}
+
+	this->InitializeSortingIndex();
 }
 
 void UncertaintyTree::RemoveChildNode(CNode* node, bool is_empty_deleted) {
@@ -354,6 +358,8 @@ void UncertaintyTree::run() {
 	}
 
 	AssignColor(root_, 0, 1.0);
+
+	this->InitializeSortingIndex();
 }
 
 void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {

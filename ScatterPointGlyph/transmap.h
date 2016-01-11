@@ -47,6 +47,8 @@ public:
 
 	int GetSelectedClusterIndex();
 	void GetSelectedClusterIndex(std::vector< int >& index);
+	void GetSelectedClusterIds(std::vector< int >& ids);
+	void GetSelectedClusterNodes(std::vector< CNode* >& nodes);
 	void SetSequenceSelectionOn();
 	void SetSequenceSelectionOff();
 

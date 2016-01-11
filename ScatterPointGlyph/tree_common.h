@@ -65,6 +65,7 @@ public:
 	virtual ~CBranch();
 
 	std::vector< CNode* > linked_nodes;
+	std::vector< int > sorting_index;
 
 	CNode* FindNearestNode(float x, float y);
 	CNode* FindNearestValue(std::vector< float >& values);
@@ -85,6 +86,10 @@ public:
 	virtual void GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index);
 
 	CBranch* root() { return root_; }
+	void InitializeSortingIndex();
+	void SortTree(std::vector< int >& node_index);
+
+	void Traverse(CNode* node, std::vector< int >& linked_points);
 
 protected:
 	ScatterPointDataset* dataset_;
@@ -97,12 +102,15 @@ protected:
 	virtual void GenerateCluster(CBranch* node = NULL);
 
 	void VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status);
-	void Traverse(CNode* node, std::vector< int >& linked_points);
+	
 	void Traverse(int level, std::vector< CNode* >& nodes);
+	void Traverse(int level, CNode* root, std::vector< CNode* >& nodes);
 	void Traverse(float radius , std::vector< CNode* >& nodes);
 	void ActiveTraverse(std::vector< CNode* >& nodes);
 
 	void AssignColor(CNode* node, float hstart, float hend, float factor = 0.75, bool perm = true, bool rev = true);
+	int SortNode(CNode* node, std::vector< int >& node_index, int& node_count);
+	void Sort(std::vector< int >& index_one, std::vector< int >& index_two);
 };
 
 #endif

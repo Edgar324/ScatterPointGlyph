@@ -335,6 +335,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_tree_map_item.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="variable_item.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -399,6 +402,9 @@
     </CustomBuild>
     <CustomBuild Include="uncertainty_tree.h">
       <Filter>Header Files\Tree</Filter>
+    </CustomBuild>
+    <CustomBuild Include="variable_item.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

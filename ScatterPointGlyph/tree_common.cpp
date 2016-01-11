@@ -229,8 +229,8 @@ void TreeCommon::GenerateCluster(CBranch* node /* = NULL */) {
 
 void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 	nodes.clear();
-
-	std::queue< CNode* > node_queue;
+	Traverse(level, root_, nodes);
+	/*std::queue< CNode* > node_queue;
 	node_queue.push(root_);
 	while (node_queue.size() != 0) {
 		CNode* temp_node = node_queue.front();
@@ -257,6 +257,35 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 					for (int i = 0; i < branch->linked_nodes.size(); ++i)
 						node_queue.push(branch->linked_nodes[i]);
 				}
+			}
+		}
+	}*/
+}
+
+void TreeCommon::Traverse(int level, CNode* root, std::vector< CNode* >& nodes) {
+	root->is_expanded = true;
+
+	if (root->level() == level) {
+		nodes.push_back(root);
+		root->is_expanded = false;
+	}
+	else {
+		if (root->type() == CNode::BRANCH && root->level() < level) {
+			CBranch* branch = dynamic_cast<CBranch*>(root);
+			bool is_all_leaf = true;
+			for (int i = 0; i < branch->linked_nodes.size(); ++i)
+				if (branch->linked_nodes[i]->type() != CNode::LEAF) {
+					is_all_leaf = false;
+					break;
+				}
+			if (is_all_leaf && level != max_level_) {
+				nodes.push_back(root);
+				root->is_expanded = false;
+			}
+			else {
+				branch->is_highlighted = false;
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					Traverse(level, branch->linked_nodes[branch->sorting_index[i]], nodes);
 			}
 		}
 	}
@@ -452,4 +481,85 @@ void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor
 	for (int i = 0; i < branch->linked_nodes.size(); ++i) {
 		AssignColor(branch->linked_nodes[i], temp_start[i] + (1.0 - factor) / 2.0 * step, temp_end[i] - (1.0 - factor) / 2.0 * step, factor, perm, rev);
 	}
+}
+
+void TreeCommon::InitializeSortingIndex() {
+	std::queue< CNode* > node_queue;
+	node_queue.push(root_);
+
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (temp_node->type() == CNode::BRANCH) {
+			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+			if (branch != NULL) {
+				branch->sorting_index.resize(branch->linked_nodes.size());
+				for (int i = 0; i < branch->sorting_index.size(); ++i)
+					branch->sorting_index[i] = i;
+
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					if (branch->linked_nodes[i]->type() == CNode::BRANCH) node_queue.push(branch->linked_nodes[i]);
+			}
+		}
+	}
+}
+
+void TreeCommon::SortTree(std::vector< int >& node_index) {
+	int node_count = 0;
+	this->SortNode(root_, node_index, node_count);
+}
+
+int TreeCommon::SortNode(CNode* node, std::vector< int >& node_index, int& node_count) {
+	if (node_count > node_index.size()) return 9999;
+
+	// find all the nodes in the linked_nodes that exist in the node_index
+	if (node->type() == CNode::BRANCH) {
+		CBranch* branch = dynamic_cast<CBranch*>(node);
+		for (int i = 0; i < node_index.size(); ++i)
+			if (node_index[i] == node->id) return i;
+
+		std::vector< bool > is_node_exist;
+		std::vector< int > new_sequence;
+		std::vector< int > node_min_index;
+		node_min_index.resize(branch->linked_nodes.size(), 9999);
+		is_node_exist.resize(branch->linked_nodes.size(), false);
+
+		for (int i = 0; i < branch->linked_nodes.size(); ++i)
+			if (node_count < node_index.size()) node_min_index[i] = SortNode(branch->linked_nodes[i], node_index, node_count);
+		for (int i = 0; i < node_min_index.size(); ++i)
+			if (node_min_index[i] < 9999) is_node_exist[i] = true;
+
+		new_sequence.resize(branch->linked_nodes.size());
+		for (int i = 0; i < branch->linked_nodes.size(); ++i) new_sequence[i] = i;
+		Sort(node_min_index, new_sequence);
+
+		branch->sorting_index.clear();
+		for (int i = 0; i < new_sequence.size(); ++i)
+			if (node_min_index[i] < 9999) 
+				branch->sorting_index.push_back(new_sequence[i]);
+			else 
+				break;
+
+		for (int i = 0; i < is_node_exist.size(); ++i)
+			if (!is_node_exist[i]) branch->sorting_index.push_back(i);
+
+		return node_min_index[0];
+	}
+
+	return 9999;
+}
+
+void TreeCommon::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
+	for (int i = 0; i < index_one.size() - 1; ++i)
+		for (int j = i + 1; j < index_one.size(); ++j)
+			if (index_one[i] > index_one[j]){
+				float temp_value = index_one[j];
+				index_one[j] = index_one[i];
+				index_one[i] = temp_value;
+
+				int temp_index = index_two[i];
+				index_two[i] = index_two[j];
+				index_two[j] = temp_index;
+			}
 }

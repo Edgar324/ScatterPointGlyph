@@ -578,9 +578,35 @@ void ScatterPointGlyph::UpdatePathMap() {
 }
 
 void ScatterPointGlyph::UpdateTreemap() {
-	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
-	tree_map_view_->SetData(un_tree->root());
-	tree_map_view_->scene()->update();
+	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+		std::vector< int > selected_ids;
+		trans_map_->GetSelectedClusterIds(selected_ids);
+
+		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+		un_tree->SortTree(selected_ids);
+
+		std::vector< int > selection_index;
+		trans_map_->GetSelectedClusterIndex(selection_index);
+		std::vector< bool > is_selected;
+		is_selected.resize(transmap_data_->cluster_nodes.size(), false);
+
+		std::vector< CNode* > selected_nodes;
+		if (selected_ids.size() != 0) {
+			for (int i = 0; i < selection_index.size(); ++i) {
+				selected_nodes.push_back(transmap_data_->cluster_nodes[selection_index[i]]);
+				is_selected[selection_index[i]] = true;
+			}
+			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+				if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size());
+		}
+		else {
+			selected_nodes = transmap_data_->cluster_nodes;
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size());
+		}
+
+		tree_map_view_->scene()->update();
+	}
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {
