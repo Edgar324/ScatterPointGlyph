@@ -118,18 +118,18 @@ void TreeCommon::ConstructOnRandomSample(int sample_num) {
 			temp_leaf->center_pos.resize(2);
 			temp_leaf->center_pos[0] = 0;
 			temp_leaf->center_pos[1] = 0;
-			temp_leaf->average_values.resize(dataset_->weights.size());
-			for (int j = 0; j < dataset_->weights.size(); ++j)
+			temp_leaf->average_values.resize(dataset_->var_weights.size());
+			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] = 0;
 			for (int j = 0; j < neighbour_list.size(); ++j) {
 				temp_leaf->center_pos[0] += dataset_->point_pos[neighbour_list[j]][0];
 				temp_leaf->center_pos[1] += dataset_->point_pos[neighbour_list[j]][1];
-				for (int k = 0; k < dataset_->weights.size(); ++k)
+				for (int k = 0; k < dataset_->var_weights.size(); ++k)
 					temp_leaf->average_values[k] += dataset_->point_values[neighbour_list[j]][k];
 			}
 			temp_leaf->center_pos[0] /= neighbour_list.size();
 			temp_leaf->center_pos[1] /= neighbour_list.size();
-			for (int j = 0; j < dataset_->weights.size(); ++j)
+			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
 
 			root_->linked_nodes.push_back(temp_leaf);
@@ -164,18 +164,18 @@ void TreeCommon::ConstructDirectly() {
 			temp_leaf->center_pos.resize(2);
 			temp_leaf->center_pos[0] = 0;
 			temp_leaf->center_pos[1] = 0;
-			temp_leaf->average_values.resize(dataset_->weights.size());
-			for (int j = 0; j < dataset_->weights.size(); ++j)
+			temp_leaf->average_values.resize(dataset_->var_weights.size());
+			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] = 0;
 			for (int j = 0; j < neighbour_list.size(); ++j) {
 				temp_leaf->center_pos[0] += dataset_->point_pos[neighbour_list[j]][0];
 				temp_leaf->center_pos[1] += dataset_->point_pos[neighbour_list[j]][1];
-				for (int k = 0; k < dataset_->weights.size(); ++k)
+				for (int k = 0; k < dataset_->var_weights.size(); ++k)
 					temp_leaf->average_values[k] += dataset_->point_values[neighbour_list[j]][k];
 			}
 			temp_leaf->center_pos[0] /= neighbour_list.size();
 			temp_leaf->center_pos[1] /= neighbour_list.size();
-			for (int j = 0; j < dataset_->weights.size(); ++j)
+			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
 			temp_leaf->point_count = temp_leaf->linked_points.size();
 

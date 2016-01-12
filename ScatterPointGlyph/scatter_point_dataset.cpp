@@ -1,4 +1,5 @@
 #include "scatter_point_dataset.h"
+#include "SimpleMatrix.h"
 
 ScatterPointDataset::ScatterPointDataset() {
 }
@@ -13,8 +14,7 @@ void ScatterPointDataset::Sample(float left, float right, float bottom, float to
 	point_pos.clear();
 	point_values.clear();
 	sample_index.clear();
-	node_sample_map.clear();
-	weights.clear();
+	var_weights.clear();
 
 	for (int i = 0; i < original_point_pos.size(); ++i)
 		if ((original_point_pos[i][0] - left) * (original_point_pos[i][0] - right) <= 0  
@@ -22,12 +22,11 @@ void ScatterPointDataset::Sample(float left, float right, float bottom, float to
 			point_pos.push_back(original_point_pos[i]);
 			point_values.push_back(original_point_values[i]);
 			sample_index.push_back(i);
-			node_sample_map.insert(std::map< int, int >::value_type(i, (int)sample_index.size() - 1));
 		}
 	if (point_values.size() == 0) return;
 
-	weights.resize(point_values[0].size());
-	weights.assign(point_values[0].size(), 1.0 / point_values[0].size());
+	var_weights.resize(point_values[0].size());
+	var_weights.assign(point_values[0].size(), 1.0 / point_values[0].size());
 	var_num = point_values[0].size();
 	point_num = point_values.size();
 
@@ -35,17 +34,80 @@ void ScatterPointDataset::Sample(float left, float right, float bottom, float to
 	NormalizeValues(this->point_values, this->original_value_ranges);
 }
 
+void ScatterPointDataset::AutoDimReduction(int dim_num) {
+
+}
+
+void ScatterPointDataset::SelectDim(std::vector< bool >& is_dim_selected) {
+	int accu_num = 0;
+	for (int i = 0; i < is_dim_selected.size(); ++i) {
+		if (is_dim_selected[i]) {
+			for (int j = 0; j < original_point_values.size(); ++j)
+				original_point_values[j][accu_num] = original_point_values[j][i];
+			var_names[accu_num] = var_names[i];
+			accu_num++;
+		}
+	}
+
+	for (int i = 0; i < original_point_values.size(); ++i)
+		original_point_values[i].resize(accu_num);
+	var_names.resize(accu_num);
+}
+
+void ScatterPointDataset::ExecMds() {
+	smat::Matrix<double> *X0 = new smat::Matrix<double>(original_point_values.size(), var_names.size(), 0.0);
+
+	for (int i = 0; i < var_names.size(); ++i) {
+		float min_value = 1e30;
+		float max_value = -1e30;
+		for (int j = 0; j < original_point_values.size(); ++j) {
+			if (original_point_values[j][i] > max_value) max_value = original_point_values[j][i];
+			if (original_point_values[j][i] < min_value) min_value = original_point_values[j][i];
+		}
+
+		for (int j = 0; j < original_point_values.size(); ++j) {
+			float scale_value = (original_point_values[j][i] - min_value) / (max_value - min_value);
+			X0->set(j, i, scale_value);
+		}
+	}
+
+	smat::Matrix<double> *D = new smat::Matrix<double>(original_point_values.size(), original_point_values.size(), 0.0);
+	float total_weight = 0;
+	for (int i = 0; i < var_weights.size(); ++i) total_weight += var_weights[i];
+	for (int i = 0; i < original_point_values.size() - 1; ++i){
+		D->set(i, i, 0);
+		for (int j = i + 1; j < original_point_values.size(); ++j) {
+			float dis = 0;
+			for (int k = 0; k < var_names.size(); ++k)
+				dis += pow((X0->get(i, k) - X0->get(j, k)) * var_weights[k], 2);
+			dis = sqrt(dis / total_weight);
+			D->set(i, j, dis);
+			D->set(j, i, dis);
+		}
+	}
+
+	int dim = 2;
+	int iteration = 20;
+
+	smat::Matrix<double> * X1 = MDS_UCF(D, NULL, dim, iteration); // without initialization
+
+	original_point_pos.resize(original_point_values.size());
+	for (int i = 0; i < original_point_values.size(); ++i) {
+		original_point_pos[i].resize(2);
+		original_point_pos[i][0] = X1->get(i, 0);
+		original_point_pos[i][1] = X1->get(i, 1);
+	}
+}
+
 void ScatterPointDataset::DirectConstruct() {
+	var_num = var_names.size();
+	point_num = original_point_values.size();
 	point_pos = original_point_pos;
 	point_values = original_point_values;
-	weights.resize(point_values[0].size());
-	weights.assign(point_values[0].size(), 1.0 / point_values[0].size());
 	sample_index.resize(point_pos.size());
 
-	node_sample_map.clear();
 	for (int i = 0; i < point_pos.size(); ++i) {
 		sample_index[i] = i;
-		node_sample_map.insert(std::map< int, int >::value_type(i, i));
 	}
 
 	point_num = point_pos.size();

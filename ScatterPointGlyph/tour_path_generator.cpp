@@ -118,6 +118,10 @@ bool TourPathGenerator::GenerateSpanningTree() {
 	return true;
 }
 
+bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list) {
+	return true;
+}
+
 bool TourPathGenerator::GenerateRoundPath() {
 	if (trans_data_ == NULL) return false;
 	typedef std::vector< simple_point< double > > PositionVec;

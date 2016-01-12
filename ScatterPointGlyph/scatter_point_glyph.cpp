@@ -29,6 +29,7 @@
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QActionGroup>
 #include <QtWidgets/QSplitter>
+#include <QtWidgets/QFileDialog>
 
 #include "layer_control_widget.h"
 #include "rendering_layer_model.h"
@@ -58,6 +59,7 @@
 #include "tour_path_generator.h"
 #include "change_table_lens.h"
 #include "tree_map_view.h"
+#include "variable_selection_dialog.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
@@ -126,7 +128,6 @@ void ScatterPointGlyph::InitWidget() {
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
-	connect(main_view_, SIGNAL(RightButtonDown()), this, SLOT(OnMainViewRightButtonDown()));
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
 
 	/*dis_matrix_renderer_ = vtkRenderer::New();
@@ -173,13 +174,21 @@ void ScatterPointGlyph::InitWidget() {
 	sys_mode_action_group_->addAction(ui_.actionImmediate_Gestalts);
 	sys_mode_action_group_->setExclusive(true);
 
+	main_view_interaction_mode_group_ = new QActionGroup(this);
+	main_view_interaction_mode_group_->addAction(ui_.actionSingle_Selection);
+	main_view_interaction_mode_group_->addAction(ui_.actionSequence_Selection);
+	main_view_interaction_mode_group_->addAction(ui_.actionSelect_Minimum_Path);
+	main_view_interaction_mode_group_->addAction(ui_.actionBrush_Path_Sequence);
+	main_view_interaction_mode_group_->addAction(ui_.actionBrush_Cluster);
+	main_view_interaction_mode_group_->setExclusive(true);
+	connect(main_view_interaction_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMainViewInteractionModeChanged()));
+
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
 	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnExecClusteringTriggered()));
-	connect(ui_.actionBrush_Cluster, SIGNAL(toggled(bool)), this, SLOT(OnBrushSelectionTriggered(bool)));
 	connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
 	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
-	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnAddPathSequenceTriggered()));
+	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnSavePathSequenceTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -274,43 +283,63 @@ void ScatterPointGlyph::OnActionOpenRawGridFileTriggered() {
 void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	if (dataset_ == NULL) dataset_ = new ScatterPointDataset;
 
-	std::ifstream input_file("E:/Projects/DataProcessing/MdsConverter/mds_result.txt");
-	int record_num, value_num;
-	input_file >> record_num >> value_num;
-	dataset_->original_point_pos.resize(record_num);
-	dataset_->original_point_values.resize(record_num);
-	for (int i = 0; i < record_num; ++i) {
-		dataset_->original_point_pos[i].resize(2);
-		dataset_->original_point_values[i].resize(7);
+	//QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
+	//if (file_path.length() == 0) return;
 
-		float temp;
-		input_file >> dataset_->original_point_pos[i][0] >> dataset_->original_point_pos[i][1];
-		for (int j = 0; j < value_num; ++j)
-			if (j < 7)
-				input_file >> dataset_->original_point_values[i][j];
-			else
-				input_file >> temp;
+	//std::ifstream input_file(file_path.toLocal8Bit());
+	std::ifstream input_file("./TestData/mds_result.txt");
+	int record_num, var_num;
+	input_file >> record_num >> var_num;
+	char var_names[1000];
+	input_file >> var_names;
+	QString var_name_str = QString::fromLocal8Bit(var_names);
+	QStringList name_list = var_name_str.split(' ');
+	for (int i = 0; i < name_list.size(); ++i) dataset_->var_names.push_back(name_list.at(i));
+	if (dataset_->var_names.size() < var_num)
+		for (int i = dataset_->var_names.size(); i < var_num; ++i)
+			dataset_->var_names.push_back(QString("V%0").arg(i));
+
+	VariableSelectionDialog var_dialog;
+	var_dialog.SetDatasetInfo(record_num, var_num, dataset_->var_names);
+	if (var_dialog.exec() != QDialog::Accepted) {
+		input_file.close();
+		return;
 	}
 
-	/*std::ifstream input_file("E:/Projects/DataProcessing/MdsConverter/dingpao_1.txt");
-	int record_num, value_num;
-	input_file >> record_num >> value_num;
 	dataset_->original_point_pos.resize(record_num);
 	dataset_->original_point_values.resize(record_num);
 	for (int i = 0; i < record_num; ++i) {
-		dataset_->original_point_pos[i].resize(2);
-		dataset_->original_point_values[i].resize(value_num);
+		dataset_->original_point_values[i].resize(var_num);
 
 		float temp;
-		input_file >> dataset_->original_point_pos[i][0] >> dataset_->original_point_pos[i][1];
-		for (int j = 0; j < value_num; ++j)
-			if (j < 7)
-				input_file >> dataset_->original_point_values[i][j];
-			else
-				input_file >> temp;
-	}*/
+		input_file >> temp >> temp;
+		for (int j = 0; j < var_num; ++j)
+			input_file >> dataset_->original_point_values[i][j];
+	}
+	input_file.close();
 
+	if (var_dialog.IsAutomaticDimReduction()) {
+		int dim_num = var_dialog.GetDimNumber();
+		if (dim_num <= 0 && dim_num > var_num) return;
+		dataset_->AutoDimReduction(dim_num);
+	} else {
+		std::vector< float > dim_weights;
+		std::vector< bool > is_dim_selected;
+		var_dialog.GetSelectionResult(dim_weights);
+		dataset_->var_weights.clear();
+		for (int i = 0; i < dim_weights.size(); ++i)
+			if (dim_weights[i] >= 0) {
+				dataset_->var_weights.push_back(dim_weights[i]);
+				is_dim_selected.push_back(true);
+			}
+			else
+				is_dim_selected.push_back(false);
+		dataset_->SelectDim(is_dim_selected);
+	}
+
+	dataset_->ExecMds();
 	dataset_->DirectConstruct();
+
 	this->AddPointData2View();
 }
 
@@ -568,13 +597,12 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 	transmap_data_->ClearData();
 	transmap_data_->cluster_num = cluster_num;
-	transmap_data_->var_num = dataset_->weights.size();
+	transmap_data_->var_num = dataset_->var_weights.size();
 	transmap_data_->dataset = dataset_;
 	transmap_data_->ProcessData();
 
 	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
-	trans_map_->SetOriginalData(dataset_);
-	trans_map_->SetData(transmap_data_);
+	trans_map_->SetData(dataset_, transmap_data_);
 
 	main_view_->update();
 }
@@ -639,15 +667,6 @@ void ScatterPointGlyph::GetSceneRange(float& left, float& right, float& bottom, 
 	top = point_two[1];
 }
 
-void ScatterPointGlyph::OnBrushSelectionTriggered(bool checked) {
-	if (checked)
-		trans_map_->SetBrushSelectionOn();
-	else {
-		trans_map_->SetBrushSelectionOff();
-		this->main_view_->update();
-	}
-}
-
 void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 	std::vector< int > selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
@@ -661,7 +680,7 @@ void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 
 void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 	if (trans_map_ != NULL) {
-		trans_map_->SetMouseReleased();
+		trans_map_->OnMouseReleased();
 		if (ui_.actionBrush_Cluster->isChecked()) {
 			std::vector< int > selection_index;
 			trans_map_->GetSelectedClusterIndex(selection_index);
@@ -678,14 +697,10 @@ void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 }
 
 void ScatterPointGlyph::OnMainViewRightButtonDown() {
-	if (trans_map_->IsMapUpdateNeeded()) {
-		UpdateTransmap();
-		tree_map_view_->scene()->update();
-	}
 }
 
 void ScatterPointGlyph::OnMouseDragmove(int x, int y) {
-	if (trans_map_ != NULL) trans_map_->SetMouseDragmove(x, y);
+	if (trans_map_ != NULL) trans_map_->OnMouseMove(x, y);
 }
 
 void ScatterPointGlyph::OnSplitClusterTriggered() {
@@ -721,7 +736,7 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 }
 
 void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
-	trans_map_->SetNodeSelected(node_id);
+	trans_map_->OnNodeSelected(node_id);
 
 	std::vector< int > selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
@@ -736,7 +751,23 @@ void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 	this->main_view_->update();
 }
 
-void ScatterPointGlyph::OnAddPathSequenceTriggered() {
+void ScatterPointGlyph::OnMainViewInteractionModeChanged() {
+	if (ui_.actionSingle_Selection->isChecked()) {
+		trans_map_->SetInteractionState(TransMap::SELECT_SINGLE_CLUSTER);
+	} else if (ui_.actionSequence_Selection->isChecked()) {
+		trans_map_->SetInteractionState(TransMap::SELECT_MULTI_CLUSTERS);
+	} else if (ui_.actionSelect_Minimum_Path->isChecked()) {
+		trans_map_->SetInteractionState(TransMap::SELECT_MINIMUM_PATH);
+	} else if (ui_.actionBrush_Path_Sequence->isChecked()) {
+		trans_map_->SetInteractionState(TransMap::SELECT_BRUSHED_PATH_SEQUENCE);
+	} else if (ui_.actionBrush_Cluster->isChecked()) {
+		trans_map_->SetInteractionState(TransMap::SELECT_BRUSHED_CLUSTERS);
+	} else {
+		trans_map_->SetInteractionState(TransMap::NORMAL);
+	}
+}
+
+void ScatterPointGlyph::OnSavePathSequenceTriggered() {
 	std::list< CNode* > node_seq = trans_map_->GetNodeSequence();
 
 	PathRecord* record = new PathRecord;

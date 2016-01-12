@@ -27,6 +27,15 @@ public:
 	vtkTypeMacro(TransMap, vtk3DWidget);
 	void PrintSelf(ostream& os, vtkIndent indent) {}
 
+	enum WidgetState {
+		NORMAL = 0x0,
+		SELECT_SINGLE_CLUSTER,
+		SELECT_MULTI_CLUSTERS,
+		SELECT_MINIMUM_PATH,
+		SELECT_BRUSHED_PATH_SEQUENCE,
+		SELECT_BRUSHED_CLUSTERS,
+	};
+
 	virtual void SetEnabled(int);
 	virtual void PlaceWidget(double bounds[6]) {}
 	void PlaceWidget() {
@@ -37,69 +46,46 @@ public:
 		this->Superclass::PlaceWidget(xmin, xmax, ymin, ymax, zmin, zmax);
 	}
 
-	void SetOriginalData(ScatterPointDataset* data);
-	void SetData(TransMapData* data);
-	void UpdateScale();
-	void SetNodeRadius(float r) { this->node_radius = r; }
+	void SetData(ScatterPointDataset* ori_data, TransMapData* data);
+	void SetNodeRadius(float r) { this->node_radius_ = r; }
+	void SetInteractionState(WidgetState s);
 
-	void SetBrushSelectionOn();
-	void SetBrushSelectionOff();
+	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
+
+	void ShowMinimumSpanningTree();
+	void OnNodeSelected(int node_id);
+	void OnMouseReleased(bool is_left_button = true);
+	void OnMouseMove(int x, int y);
 
 	int GetSelectedClusterIndex();
 	void GetSelectedClusterIndex(std::vector< int >& index);
 	void GetSelectedClusterIds(std::vector< int >& ids);
 	void GetSelectedClusterNodes(std::vector< CNode* >& nodes);
-	void SetSequenceSelectionOn();
-	void SetSequenceSelectionOff();
-
-	void SetNodeSelected(int node_id);
-	void SetMouseReleased();
-	void SetMouseDragmove(int x, int y);
-
-	bool IsMapUpdateNeeded() { return is_map_update_needed;  }
-
-	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
 
 protected:
 	TransMap();
 	~TransMap();
 
-	std::vector< int > state_vec;
 	int state;
-	enum WidgetState {
-		NORMAL = 0x0,
-		HIGHLIGHT_LEVEL_ZERO_NODE,
-		HIGHLIGHT_LEVEL_ONE_NODE,
-		HIGHLIGHT_TRANSFER_BAND,
-		SELECT_PATH_SEQUENCE,
-		SELECT_CLUSTER,
-		SELECTION_BRUSH_BEGIN,
-	};
 	
 	static void ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata);
 
-	virtual void OnMouseMove();
+	virtual void OnMouseMove() {}
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
-	virtual void OnRightButtonDown();
-	virtual void OnRightButtonUp();
+	virtual void OnRightButtonDown() {}
+	virtual void OnRightButtonUp() {}
 
 	void BuildRepresentation();
 
-	std::vector< vtkActor* > level_one_node_glyph_actors;
-	std::vector< vtkPolyData* > level_one_node_glyph_polys;
-
-	std::vector< vtkActor* > level_zero_node_glyph_actors;
-	std::vector< vtkPolyData* > level_zero_node_glyph_polys;
-
-	std::vector< vtkActor* > trans_glyph_actors;
-	std::vector< vtkPolyData* > trans_glyph_polys;
-	std::vector< int > trans_edges;
-
-	std::vector< vtkActor* > boundary_glyph_actors;
-	std::vector< vtkPolyData* > boundary_glyph_polys;
-
 	QVTKWidget* parent_view;
+
+	std::vector< vtkActor* > node_glyph_actors;
+	std::vector< vtkPolyData* > node_glyph_polys;
+
+	vtkActor* trans_glyph_actors;
+	vtkPolyDataMapper* trans_glyph_mapper;
+	vtkPolyData* trans_glyph_polys;
 
 	vtkActor* highlight_actor;
 	vtkPolyDataMapper* hightlight_mapper;
@@ -110,34 +96,31 @@ protected:
 	vtkPolyDataMapper* selection_brush_mapper;
 	vtkPolyData* selection_brush_poly;
 
-	vtkPropPicker* level_one_node_picker;
-	vtkPropPicker* level_zero_node_picker;
-	vtkPropPicker* trans_picker;
-	vtkPropPicker* boundary_picker;
+	vtkPropPicker* node_picker;
 
-	vtkActor* current_handle;
-	CNode* current_node;
-
+	std::vector< int > trans_edges;
 	std::list< CNode* > highlight_node_sequence;
-
-	float node_radius;
-	bool is_sequence_selection;
-
-	bool is_map_update_needed;
 
 	TourPathGenerator* path_generator_;
 
 private:
 	TransMapData* dataset_;
 	ScatterPointDataset* scatter_data_;
+	float node_radius_;
 
-	void ResizeActors();
+	CNode* current_node_;
 
-	void ConstructActors();
-	void HighlightHandle(vtkProp* prop);
-	void SelectNode(CNode* node);
+	void UpdateNodeActors();
+	void UpdateTransEdgeActor();
 	void UpdateHightlightActor();
-	void UpdateBrushSelectionResult();
+	void UpdateTipActor();
+
+	void OnNodeSelected(CNode* node);
+
+	CNode* GetSelectedNode(int x, int y);
+	int GetLevelOneNodeIndex(CNode* node);
+	bool IsLevelOneNode(CNode* node);
+
 	bool IsInsideSelection(float x, float y);
 };
 

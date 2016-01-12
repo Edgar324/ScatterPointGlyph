@@ -79,6 +79,7 @@ private:
 	QDockWidget* tree_map_panel_;
 
 	QActionGroup* sys_mode_action_group_;
+	QActionGroup* main_view_interaction_mode_group_;
 
 	QDockWidget* layer_control_panel_;
 	LayerControlWidget* layer_control_widget_;
@@ -135,14 +136,15 @@ private slots:
 	void OnMainViewUpdated();
 
 	void OnGlyphSelected(int x, int y);
-	void OnBrushSelectionTriggered(bool checked);
 	void OnMainviewLeftButtonUp();
 	void OnMainViewRightButtonDown();
 	void OnMouseDragmove(int x, int y);;
 	void OnSplitClusterTriggered();
 	void OnMergeClusterTriggered();
 	void OnTreemapNodeSelected(int node_id);
-	void OnAddPathSequenceTriggered();
+
+	void OnMainViewInteractionModeChanged();
+	void OnSavePathSequenceTriggered();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

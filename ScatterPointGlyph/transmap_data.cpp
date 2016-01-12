@@ -35,7 +35,6 @@ void TransMapData::ClearData() {
 	cluster_node_map.clear();
 
 	level_one_nodes.clear();
-	level_zero_nodes.clear();
 }
 
 void TransMapData::ProcessData() {
@@ -47,9 +46,6 @@ void TransMapData::ProcessData() {
 	for (int i = 0; i < cluster_nodes.size(); ++i)
 		if (cluster_nodes[i]->point_count >= min_point_num) {
 			level_one_nodes.push_back(cluster_nodes[i]);
-		}
-		else {
-			level_zero_nodes.push_back(cluster_nodes[i]);
 		}
 
 	this->UpdateConnectingStatus();

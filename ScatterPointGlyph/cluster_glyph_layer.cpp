@@ -81,7 +81,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 	center_y_.assign(cluster_count, 0);
 	std::vector< std::vector< float > > average_values;
 	average_values.resize(cluster_count);
-	for (int i = 0; i < cluster_count; ++i) average_values[i].resize(dataset_->weights.size(), 0);
+	for (int i = 0; i < cluster_count; ++i) average_values[i].resize(dataset_->var_weights.size(), 0);
 
 	std::vector< int > cluster_point_count;
 	cluster_point_count.resize(cluster_count);
@@ -91,7 +91,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		if (cluster_index < 0) continue;
 		center_x_[cluster_index] += dataset_->original_point_pos[i][0];
 		center_y_[cluster_index] += dataset_->original_point_pos[i][1];
-		for (int j = 0; j < dataset_->weights.size(); ++j)
+		for (int j = 0; j < dataset_->var_weights.size(); ++j)
 			average_values[cluster_index][j] += (dataset_->original_point_values[i][j] - dataset_->original_value_ranges[j][0]) / (dataset_->original_value_ranges[j][1] - dataset_->original_value_ranges[j][0]);
 		cluster_point_count[cluster_index]++;
 	}
@@ -99,7 +99,7 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		if (cluster_point_count[i] != 0) {
 			center_x_[i] /= cluster_point_count[i];
 			center_y_[i] /= cluster_point_count[i];
-			for (int j = 0; j < dataset_->weights.size(); ++j)
+			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				average_values[i][j] /= cluster_point_count[i];
 		} else {
 			std::cout << "Empty cluster detected." << std::endl;
@@ -154,9 +154,9 @@ void ClusterGlyphLayer::SetClusterIndex(int cluster_count, std::vector< int >& p
 		else*/
 		colors->InsertNextTuple3(red[0], green[0], blue[0]);
 		vtkIdType cell_ids[3];
-		for (int j = 1; j <= 20 * dataset_->weights.size(); ++j) {
+		for (int j = 1; j <= 20 * dataset_->var_weights.size(); ++j) {
 			int var_index = (j - 1) / 20;
-			float end_arc = 2 * 3.14159 * j / (20 * dataset_->weights.size());
+			float end_arc = 2 * 3.14159 * j / (20 * dataset_->var_weights.size());
 			int current_id = poly_data_->GetPoints()->InsertNextPoint(center_x_[i] + r * cos(end_arc) * average_values[i][var_index] + base_r * cos(end_arc), center_y_[i] + r * sin(end_arc) * average_values[i][var_index] + base_r * sin(end_arc), 0.000001);
 			/*if (cluster_point_count[i] <= thresh)
 				colors->InsertNextTuple3(0, 255, 0);

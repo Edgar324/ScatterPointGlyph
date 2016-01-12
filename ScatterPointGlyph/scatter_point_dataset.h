@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+#include <QtCore/QString>
 
 class ScatterPointDataset
 {
@@ -14,18 +15,27 @@ public:
 	void DirectConstruct();
 	virtual const char* type() { return "Scatter"; }
 	
+	// sampled data
 	int var_num;
 	int point_num;
 	std::vector< int > sample_index;
-	std::map< int, int > node_sample_map;
 	std::vector< std::vector< float > > point_pos;
 	std::vector< std::vector< float > > point_values;
-	std::vector< float > weights;
 
+	// mds result
 	std::vector< std::vector< float > > original_point_pos;
 	std::vector< std::vector< float > > original_pos_ranges;
+
+	// original data
+	std::vector< QString > var_names;
+	std::vector< float > var_weights;
 	std::vector< std::vector< float > > original_point_values;
 	std::vector< std::vector< float > > original_value_ranges;
+
+	void AutoDimReduction(int dim_num);
+	void SelectDim(std::vector< bool >& is_dim_selected);
+
+	void ExecMds();
 
 private:
 	void NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);

@@ -338,6 +338,15 @@
     <ClCompile Include="variable_item.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_variable_selection_dialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_variable_selection_dialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="variable_selection_dialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -405,6 +414,12 @@
     </CustomBuild>
     <CustomBuild Include="variable_item.h">
       <Filter>Header Files\Rendering Layer</Filter>
+    </CustomBuild>
+    <CustomBuild Include="variable_selection_dialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="variable_selection_dialog.h">
+      <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -535,6 +550,12 @@
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
     <ClInclude Include="grid_scatter_point_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h">
+      <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleMatrix.h">
       <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>

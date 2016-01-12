@@ -17,6 +17,7 @@ public:
 	bool GenerateRoundPath();
 	bool GenerateSpanningTree();
 	bool GeneratePath(int begin_index = -1, int end_index = -1);
+	bool GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list);
 	
 	static bool GenerateRoundPath(std::vector< CNode* >& nodes, std::vector< int >& tour_list);
 	static bool GenerateRoundPath(std::vector< std::vector< float > >& node_dis, std::vector< int >& tour_list);

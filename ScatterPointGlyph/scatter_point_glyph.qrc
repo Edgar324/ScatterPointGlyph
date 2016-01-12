@@ -1,11 +1,13 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/min_path.png</file>
+    <file>images/painter1.png</file>
+    <file>images/painter2.png</file>
     <file>images/merge.png</file>
-    <file>images/plus.png</file>
     <file>images/scissors9.png</file>
+    <file>images/save.png</file>
     <file>images/pick.png</file>
     <file>images/sequence.png</file>
-    <file>images/painter.png</file>
     <file>images/exec.png</file>
     <file>images/hier.png</file>
     <file>images/perception.png</file>

@@ -364,9 +364,9 @@ void UncertaintyTree::run() {
 
 void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {
 	std::vector< std::vector< int > > var_labels;
-	var_labels.resize(dataset_->weights.size());
+	var_labels.resize(dataset_->var_weights.size());
 
-	for (int v = 0; v < dataset_->weights.size(); ++v) {
+	for (int v = 0; v < dataset_->var_weights.size(); ++v) {
 		std::vector< std::vector< float > > pos;
 		std::vector< std::vector< float > > value;
 		value.resize(nodes.size());
@@ -394,9 +394,9 @@ void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, s
 		for (int j = i + 1; j < nodes.size(); ++j)
 			if (connecting_status[i][j]) {
 				float average = 0;
-				for (int k = 0; k < dataset_->weights.size(); ++k)
+				for (int k = 0; k < dataset_->var_weights.size(); ++k)
 					average += (var_labels[k][i] == var_labels[k][j] ? 0 : 1);
-				average /= dataset_->weights.size();
+				average /= dataset_->var_weights.size();
 				edge_weight[i][j] = average;
 				edge_weight[j][i] = edge_weight[i][j];
 			}
@@ -433,7 +433,7 @@ void UncertaintyTree::GenerateCluster(CBranch* node) {
 		edge_weights[i].resize(node->linked_nodes.size(), 0.5);
 
 	processor_->SetLabelEstimationRadius(node->radius / factor_);
-	processor_->SetData(pos, value, dataset_->weights, connecting_status);
+	processor_->SetData(pos, value, dataset_->var_weights, connecting_status);
 	if (is_segment_uncertainty_applied_)
 		this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
 	processor_->SetEdgeWeights(edge_weights);

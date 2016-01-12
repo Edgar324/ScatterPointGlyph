@@ -12,16 +12,16 @@ public:
 	TransMapData();
 	~TransMapData();
 
+	// determine level one node or level zero node
+	int min_point_num;
+
 	// data that must be initialized
 	ScatterPointDataset* dataset;
 	int cluster_num, var_num;
 	std::vector< CNode* > cluster_nodes;
 
-	int min_point_num;
-
 	// data that can be completed in ProcessData
 	std::vector< CNode* > level_one_nodes;
-	std::vector< CNode* > level_zero_nodes;
 	std::vector< std::vector< bool > > node_connecting_status;
 	std::map< int, CNode* > cluster_node_map;
 

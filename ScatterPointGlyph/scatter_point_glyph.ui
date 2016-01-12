@@ -48,6 +48,11 @@
     <addaction name="actionSplit"/>
     <addaction name="actionMerge"/>
     <addaction name="separator"/>
+    <addaction name="actionSingle_Selection"/>
+    <addaction name="actionSequence_Selection"/>
+    <addaction name="actionSelect_Minimum_Path"/>
+    <addaction name="actionBrush_Path_Sequence"/>
+    <addaction name="actionBrush_Cluster"/>
     <addaction name="actionAdd_Path_Sequence"/>
    </widget>
    <widget class="QMenu" name="menuSetting">
@@ -87,7 +92,8 @@
    <addaction name="separator"/>
    <addaction name="actionSingle_Selection"/>
    <addaction name="actionSequence_Selection"/>
-   <addaction name="separator"/>
+   <addaction name="actionSelect_Minimum_Path"/>
+   <addaction name="actionBrush_Path_Sequence"/>
    <addaction name="actionBrush_Cluster"/>
    <addaction name="actionAdd_Path_Sequence"/>
    <addaction name="separator"/>
@@ -190,7 +196,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
@@ -205,7 +211,7 @@
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
@@ -221,7 +227,7 @@
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
-     <normaloff>:/ScatterPointGlyph/images/painter.png</normaloff>:/ScatterPointGlyph/images/painter.png</iconset>
+     <normaloff>:/ScatterPointGlyph/images/painter2.png</normaloff>:/ScatterPointGlyph/images/painter2.png</iconset>
    </property>
    <property name="text">
     <string>Brush Cluster</string>
@@ -248,10 +254,34 @@
   <action name="actionAdd_Path_Sequence">
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
-     <normaloff>:/ScatterPointGlyph/images/plus.png</normaloff>:/ScatterPointGlyph/images/plus.png</iconset>
+     <normaloff>:/ScatterPointGlyph/images/save.png</normaloff>:/ScatterPointGlyph/images/save.png</iconset>
    </property>
    <property name="text">
     <string>Add Path Sequence</string>
+   </property>
+  </action>
+  <action name="actionBrush_Path_Sequence">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/painter1.png</normaloff>:/ScatterPointGlyph/images/painter1.png</iconset>
+   </property>
+   <property name="text">
+    <string>Brush Path Sequence</string>
+   </property>
+  </action>
+  <action name="actionSelect_Minimum_Path">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/min_path.png</normaloff>:/ScatterPointGlyph/images/min_path.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Minimum Path</string>
    </property>
   </action>
  </widget>
