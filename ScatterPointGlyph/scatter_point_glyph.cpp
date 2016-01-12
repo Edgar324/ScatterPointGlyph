@@ -88,17 +88,19 @@ void ScatterPointGlyph::InitWidget() {
 
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
-	parallel_coordinate_ = new ParallelCoordinate;
-	QSplitter* transmap_widget_splitter = new QSplitter(Qt::Vertical);
-	transmap_widget_splitter->addWidget(main_view_);
-	transmap_widget_splitter->addWidget(parallel_coordinate_);
-	transmap_widget_splitter->setStretchFactor(0, 2);
-	transmap_widget_splitter->setStretchFactor(1, 1);
 
 	this->setDockOptions(QMainWindow::AllowNestedDocks);
 
+	parallel_coordinate_ = new ParallelCoordinate;
+	parallel_coordinate_->setMinimumHeight(200);
+	parallel_coordinate_panel_ = new QDockWidget(QString("Parallel Coordinate"), this);
+	parallel_coordinate_panel_->setWidget(parallel_coordinate_);
+	this->addDockWidget(Qt::BottomDockWidgetArea, parallel_coordinate_panel_);
+	ui_.menuView->addAction(parallel_coordinate_panel_->toggleViewAction());
+	parallel_coordinate_panel_->setVisible(false);
+
 	tree_map_view_ = new TreeMapView;
-	tree_map_view_->setFixedWidth(700);
+	tree_map_view_->setMinimumWidth(700);
 	tree_map_panel_ = new QDockWidget(QString("Tree Map Panel"), this);
 	tree_map_panel_->setWidget(tree_map_view_);
 	this->addDockWidget(Qt::RightDockWidgetArea, tree_map_panel_);
@@ -106,7 +108,7 @@ void ScatterPointGlyph::InitWidget() {
 	tree_map_panel_->setVisible(false);
 
 	path_explore_view_ = new PathExploreWidget;
-	path_explore_view_->setFixedWidth(700);
+	path_explore_view_->setMinimumWidth(700);
 	path_explore_panel_ = new QDockWidget(QString("Path Explore Panel"), this);
 	path_explore_panel_->setWidget(path_explore_view_);
 	this->tabifyDockWidget(tree_map_panel_, path_explore_panel_);
@@ -114,7 +116,7 @@ void ScatterPointGlyph::InitWidget() {
 	path_explore_panel_->setVisible(false);
 
 	QHBoxLayout* main_layout = new QHBoxLayout;
-	main_layout->addWidget(transmap_widget_splitter);
+	main_layout->addWidget(main_view_);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -491,7 +493,7 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 	parallel_dataset_->axis_anchors.resize(dataset_->original_value_ranges.size());
 
 	for (int i = 0; i < cluster_ids.size(); ++i) {
-		parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(cluster_ids[i]);
+		parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(i);
 		parallel_dataset_->subset_colors[i] = QColor(cluster_color[3 * cluster_ids[i]], cluster_color[3 * cluster_ids[i] + 1], cluster_color[3 * cluster_ids[i] + 2]);
 		for (int j = 0; j < dataset_->sample_index.size(); ++j)
 			if (cluster_index[dataset_->sample_index[j]] == cluster_ids[i]) {

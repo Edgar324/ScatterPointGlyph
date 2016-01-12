@@ -278,7 +278,7 @@ void TreeCommon::Traverse(int level, CNode* root, std::vector< CNode* >& nodes) 
 					is_all_leaf = false;
 					break;
 				}
-			if (is_all_leaf && level != max_level_) {
+			if (is_all_leaf) {
 				nodes.push_back(root);
 				root->is_expanded = false;
 			}

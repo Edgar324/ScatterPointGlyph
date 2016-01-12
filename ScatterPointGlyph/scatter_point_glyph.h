@@ -70,6 +70,7 @@ private:
 
 	ParallelCoordinate* parallel_coordinate_;
 	ParallelDataset* parallel_dataset_;
+	QDockWidget* parallel_coordinate_panel_;
 
 	PathExploreWidget* path_explore_view_;
 	QDockWidget* path_explore_panel_;

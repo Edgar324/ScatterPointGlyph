@@ -262,8 +262,8 @@ void TransMap::ConstructActors() {
 			float x = node_radius * cos(end_arc);
 			float y = node_radius * sin(end_arc);
 
-			background_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.00002));
-			colors->InsertNextTuple4(128, 128, 128, 10);
+			background_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, -0.003));
+			colors->InsertNextTuple4(128, 128, 128, 20);
 		}
 		polydata->InsertNextCell(VTK_POLYGON, dataset_->var_num, background_ids.data());
 

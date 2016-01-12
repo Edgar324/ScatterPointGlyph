@@ -65,7 +65,7 @@ void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selec
 	for (int i = 0; i < var_items_.size(); ++i)
 		var_items_[var_order_[i]]->setPos(0, (var_height + 5) * i + temp.height() + 20);
 
-	scene_->setSceneRect(-50, 0, temp.width() + 50, temp.height() + var_items_.size() * (var_height + 5));
+	scene_->setSceneRect(-50, 0, temp.width(), temp.height() + var_items_.size() * (var_height + 5) + 50);
 
 	scene_->update();
 	this->update();
