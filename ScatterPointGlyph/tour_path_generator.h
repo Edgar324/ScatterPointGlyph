@@ -29,6 +29,7 @@ public:
 
 private:
 	TransMapData* trans_data_;
+	std::vector< std::vector< float > > node_dis_;
 };
 
 #endif

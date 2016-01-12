@@ -681,7 +681,7 @@ void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 	if (trans_map_ != NULL) {
 		trans_map_->OnMouseReleased();
-		if (ui_.actionBrush_Cluster->isChecked()) {
+		if (ui_.actionBrush_Cluster->isChecked() || ui_.actionBrush_Path_Sequence->isChecked()) {
 			std::vector< int > selection_index;
 			trans_map_->GetSelectedClusterIndex(selection_index);
 			if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {

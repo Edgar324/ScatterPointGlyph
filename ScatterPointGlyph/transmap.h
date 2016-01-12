@@ -111,6 +111,7 @@ private:
 	CNode* current_node_;
 
 	void UpdateNodeActors();
+	void GenerateTransEdgeFromHighlight();
 	void UpdateTransEdgeActor();
 	void UpdateHightlightActor();
 	void UpdateTipActor();
@@ -119,9 +120,11 @@ private:
 
 	CNode* GetSelectedNode(int x, int y);
 	int GetLevelOneNodeIndex(CNode* node);
+	int GetClusterNodeIndex(CNode* node);
 	bool IsLevelOneNode(CNode* node);
 
 	bool IsInsideSelection(float x, float y);
+	void Sort(std::vector< int >& index_one, std::vector< int >& index_two);
 };
 
 #endif

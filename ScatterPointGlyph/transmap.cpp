@@ -91,6 +91,8 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 	this->scatter_data_ = ori_data;
 	this->dataset_ = data;
 
+	this->path_generator_->SetData(dataset_);
+
 	this->highlight_node_sequence.clear();
 	this->current_node_ = NULL;
 
@@ -99,9 +101,12 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 }
 
 void TransMap::ShowMinimumSpanningTree() {
-	this->path_generator_->SetData(dataset_);
 	this->path_generator_->GenerateSpanningTree();
-	this->trans_edges = this->path_generator_->edge_list;
+	this->trans_edges.clear();
+	for (int i = 0; i < this->path_generator_->edge_list.size(); ++i) {
+		int node_index = GetClusterNodeIndex(dataset_->level_one_nodes[this->path_generator_->edge_list[i]]);
+		this->trans_edges.push_back(node_index);
+	}
 
 	this->UpdateTransEdgeActor();
 }
@@ -115,6 +120,9 @@ void TransMap::SetInteractionState(WidgetState s){
 	}
 	this->current_node_ = NULL;
 	this->UpdateHightlightActor();
+
+	this->trans_edges.clear();
+	this->UpdateTransEdgeActor();
 
 	this->parent_view->update();
 }
@@ -398,8 +406,8 @@ void TransMap::UpdateTransEdgeActor() {
 	vtkIdType cell_ids[5];
 
 	for (int i = 0; i < trans_edges.size() / 2; ++i){
-		CNode* node_one = dataset_->level_one_nodes[trans_edges[i * 2]];
-		CNode* node_two = dataset_->level_one_nodes[trans_edges[i * 2 + 1]];
+		CNode* node_one = dataset_->cluster_nodes[trans_edges[i * 2]];
+		CNode* node_two = dataset_->cluster_nodes[trans_edges[i * 2 + 1]];
 
 		float node_one_center_x = node_one->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
 		float node_one_center_y = node_one->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
@@ -721,6 +729,34 @@ void TransMap::OnMouseMove(int x, int y) {
 
 		this->parent_view->update();
 	}
+
+	if (this->state == WidgetState::SELECT_BRUSHED_PATH_SEQUENCE) {
+		double display_pos[4];
+		display_pos[0] = x;
+		display_pos[1] = y;
+		display_pos[2] = 0;
+		display_pos[3] = 1;
+		this->DefaultRenderer->SetDisplayPoint(display_pos);
+		this->DefaultRenderer->DisplayToWorld();
+		double* world_pos = this->DefaultRenderer->GetWorldPoint();
+
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0);
+
+		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
+		line_array->Initialize();
+		int pnum = this->selection_brush_poly->GetPoints()->GetNumberOfPoints();
+		vtkIdType cell_ids[2];
+		for (int i = 0; i < pnum - 1; ++i){
+			cell_ids[0] = i;
+			cell_ids[1] = i + 1;
+			this->selection_brush_poly->InsertNextCell(VTK_LINE, 2, cell_ids);
+		}
+
+		this->selection_brush_poly->Modified();
+		this->selection_brush_actor->Modified();
+
+		this->parent_view->update();
+	}
 }
 
 void TransMap::OnMouseReleased(bool is_left_button) {
@@ -754,7 +790,59 @@ void TransMap::OnLeftButtonUp() {
 	} 
 
 	if (this->state == WidgetState::SELECT_BRUSHED_PATH_SEQUENCE) {
+		while (this->highlight_node_sequence.size() > 0) {
+			this->highlight_node_sequence.front()->is_highlighted = false;
+			this->highlight_node_sequence.pop_front();
+		}
 
+		std::vector< int > min_dis_index_seq;
+		std::vector< int > node_index;
+
+		for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
+			CNode* node = dataset_->cluster_nodes[i];
+			float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+			float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+
+			int min_dis_index = -1;
+			float temp_min_dis = 1e10;
+			float temp_radius = 0;
+			if (node->point_count >= dataset_->min_point_num) {
+				temp_radius = node_radius_;
+			} else {
+				temp_radius = node_radius_ * 0.2;
+			}
+			
+			int count = this->selection_brush_poly->GetPoints()->GetNumberOfPoints();
+			double p1[2];
+			for (int j = 0; j < count; ++j) {
+				double* temp_pos = this->selection_brush_poly->GetPoint(j);
+				p1[0] = temp_pos[0] - node_center_x;
+				p1[1] = temp_pos[1] - node_center_y;
+				double dis = sqrt(pow(p1[0], 2) + pow(p1[1], 2));
+				if (dis < temp_radius && dis < temp_min_dis) {
+					temp_min_dis = dis;
+					min_dis_index = j;
+				}
+			}
+			if (min_dis_index != -1) {
+				min_dis_index_seq.push_back(min_dis_index);
+				node_index.push_back(i);
+			}
+		}
+
+		Sort(min_dis_index_seq, node_index);
+		for (int i = 0; i < node_index.size(); ++i) {
+			dataset_->cluster_nodes[node_index[i]]->is_highlighted = true;
+			this->highlight_node_sequence.push_back(dataset_->cluster_nodes[node_index[i]]);
+		}
+
+		this->UpdateHightlightActor();
+
+		this->selection_brush_poly->Initialize();
+		this->selection_brush_actor->Modified();
+
+		this->GenerateTransEdgeFromHighlight();
+		this->UpdateTransEdgeActor();
 	}
 }
 
@@ -764,8 +852,15 @@ void TransMap::OnNodeSelected(CNode* node) {
 	if (iter != this->highlight_node_sequence.end()) {
 		(*iter)->is_highlighted = false;
 		this->highlight_node_sequence.erase(iter);
-
 		this->UpdateHightlightActor();
+
+		if (this->state == WidgetState::SELECT_MULTI_CLUSTERS
+			|| this->state == WidgetState::SELECT_MINIMUM_PATH 
+			|| this->state == WidgetState::SELECT_BRUSHED_PATH_SEQUENCE) {
+			this->GenerateTransEdgeFromHighlight();
+			this->UpdateTransEdgeActor();
+		}
+
 		return;
 	}
 
@@ -786,6 +881,9 @@ void TransMap::OnNodeSelected(CNode* node) {
 		this->current_node_ = node;
 		this->current_node_->is_highlighted = true;
 		this->highlight_node_sequence.push_back(node);
+		this->GenerateTransEdgeFromHighlight();
+		this->UpdateTransEdgeActor();
+
 		break;
 	}
 	case SELECT_MINIMUM_PATH: {
@@ -812,10 +910,12 @@ void TransMap::OnNodeSelected(CNode* node) {
 			this->path_generator_->GenerateMinimumPath(index_one, index_two, tour_list);
 
 			for (int i = 0; i < tour_list.size(); ++i) {
-				dataset_->cluster_nodes[i]->is_highlighted = true;
-				this->highlight_node_sequence.push_back(dataset_->cluster_nodes[i]);
+				dataset_->level_one_nodes[tour_list[i]]->is_highlighted = true;
+				this->highlight_node_sequence.push_back(dataset_->level_one_nodes[tour_list[i]]);
 			}
 		}
+		this->GenerateTransEdgeFromHighlight();
+		this->UpdateTransEdgeActor();
 		break;
 	}
 	default:
@@ -825,10 +925,37 @@ void TransMap::OnNodeSelected(CNode* node) {
 	this->UpdateHightlightActor();
 }
 
+void TransMap::GenerateTransEdgeFromHighlight() {
+	this->trans_edges.clear();
+	if (this->highlight_node_sequence.size() <= 1) return;
+
+	std::list< CNode* >::iterator iter = this->highlight_node_sequence.begin();
+	int pre_index = GetClusterNodeIndex(*iter);
+	iter++;
+	while (iter != this->highlight_node_sequence.end()) {
+		int c_index = GetClusterNodeIndex(*iter);
+		this->trans_edges.push_back(pre_index);
+		this->trans_edges.push_back(c_index);
+
+		pre_index = c_index;
+		iter++;
+	}
+}
+
 int TransMap::GetLevelOneNodeIndex(CNode* node) {
 	int node_index = -1;
 	for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
 		if (dataset_->level_one_nodes[i] == node) {
+			node_index = i;
+			break;
+		}
+	return node_index;
+}
+
+int TransMap::GetClusterNodeIndex(CNode* node) {
+	int node_index = -1;
+	for (int i = 0; i < dataset_->cluster_nodes.size(); ++i)
+		if (dataset_->cluster_nodes[i] == node) {
 			node_index = i;
 			break;
 		}
@@ -895,4 +1022,19 @@ bool TransMap::IsInsideSelection(float x, float y) {
 		return true;
 	else
 		return false;
+}
+
+void TransMap::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
+	if (index_one.size() == 0) return;
+	for (int i = 0; i < index_one.size() - 1; ++i)
+		for (int j = i + 1; j < index_one.size(); ++j)
+			if (index_one[i] > index_one[j]){
+				float temp_value = index_one[j];
+				index_one[j] = index_one[i];
+				index_one[i] = temp_value;
+
+				int temp_index = index_two[i];
+				index_two[i] = index_two[j];
+				index_two[j] = temp_index;
+			}
 }

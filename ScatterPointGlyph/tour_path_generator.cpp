@@ -6,6 +6,7 @@
 #include <fstream>
 #include <set>
 #include <ctime>
+#include "scatter_point_dataset.h"
 
 #include <boost/assert.hpp>
 #include <boost/lexical_cast.hpp>
@@ -71,6 +72,21 @@ TourPathGenerator::~TourPathGenerator() {
 
 void TourPathGenerator::SetData(TransMapData* data) {
 	trans_data_ = data;
+
+	node_dis_.resize(trans_data_->level_one_nodes.size());
+	for (int i = 0; i < trans_data_->level_one_nodes.size(); ++i) {
+		node_dis_[i].resize(trans_data_->level_one_nodes.size());
+		node_dis_[i].assign(trans_data_->level_one_nodes.size(), 0);
+	}
+
+	for (int i = 0; i < node_dis_.size() - 1; ++i)
+		for (int j = i + 1; j < node_dis_.size(); ++j) {
+			/*for (int k = 0; k < trans_data_->dataset->var_weights.size(); ++k)
+				node_dis_[i][j] += abs(trans_data_->level_one_nodes[i]->average_values[k] - trans_data_->level_one_nodes[j]->average_values[k]) * trans_data_->dataset->var_weights[k];*/
+			node_dis_[i][j] = sqrt(pow(trans_data_->level_one_nodes[i]->center_pos[0] - trans_data_->level_one_nodes[j]->center_pos[0], 2)
+				+ pow(trans_data_->level_one_nodes[i]->center_pos[1] - trans_data_->level_one_nodes[j]->center_pos[1], 2));
+			node_dis_[j][i] = node_dis_[i][j];
+		}
 }
 
 bool TourPathGenerator::GenerateSpanningTree() {
@@ -119,6 +135,53 @@ bool TourPathGenerator::GenerateSpanningTree() {
 }
 
 bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list) {
+	tour_list.clear();
+
+	std::vector< bool > is_node_used;
+	is_node_used.resize(trans_data_->level_one_nodes.size(), false);
+
+	std::vector< float > min_dis;
+	min_dis.resize(trans_data_->level_one_nodes.size(), 99999);
+	min_dis[begin] = 0;
+
+	std::vector< int > pre_node;
+	pre_node.resize(trans_data_->level_one_nodes.size(), -1);
+
+
+	for (int i = 0; i < is_node_used.size(); ++i) {
+		// find the minimum
+		float temp_min_dis = 9999;
+		float temp_min_index = -1;
+		for (int j = 0; j < is_node_used.size(); ++j)
+			if (!is_node_used[j] && min_dis[j] < temp_min_dis) {
+				temp_min_dis = min_dis[j];
+				temp_min_index = j;
+			}
+		if (temp_min_index == end) break;
+		if (temp_min_index == -1) return false;
+
+		is_node_used[temp_min_index] = true;
+		// update the other
+		for (int j = 0; j < is_node_used.size(); ++j)
+			if (!is_node_used[j] && trans_data_->node_connecting_status[temp_min_index][j] && min_dis[temp_min_index] + node_dis_[temp_min_index][j] < min_dis[j]) {
+				min_dis[j] = min_dis[temp_min_index] + node_dis_[temp_min_index][j];
+				pre_node[j] = temp_min_index;
+			}
+	}
+
+	tour_list.clear();
+	tour_list.push_back(end);
+	int cIndex = end;
+	while (pre_node[cIndex] != -1) {
+		tour_list.push_back(pre_node[cIndex]);
+		cIndex = pre_node[cIndex];
+	}
+	for (int i = 0; i < tour_list.size() / 2; ++i) {
+		int temp = tour_list[i];
+		tour_list[i] = tour_list[tour_list.size() - i - 1];
+		tour_list[tour_list.size() - i - 1] = temp;
+	}
+
 	return true;
 }
 
