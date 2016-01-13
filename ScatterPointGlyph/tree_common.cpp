@@ -426,11 +426,11 @@ void TreeCommon::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std
 	min_edge_length_ = min_dis;
 
 #ifdef DEBUG_ON
-	for (int i = 0; i < connecting_status.size(); ++i){
+	/*for (int i = 0; i < connecting_status.size(); ++i){
 		bool is_connecting = false;
 		for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
 		assert(is_connecting);
-	}
+	}*/
 #endif // DEBUG_ON
 }
 

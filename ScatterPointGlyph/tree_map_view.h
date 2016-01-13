@@ -16,7 +16,7 @@ public:
 	TreeMapView();
 	~TreeMapView();
 
-	void SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order);
+	void SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names);
 
 signals:
 	void NodeSelected(int node_id);
@@ -31,7 +31,7 @@ private:
 	TreeMapItem* tree_item_;
 	std::vector< VariableItem* > var_items_;
 
-	void UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count);
+	void UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names);
 };
 
 #endif

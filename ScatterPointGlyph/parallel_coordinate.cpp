@@ -154,6 +154,32 @@ void ParallelCoordinate::SetDataset(ParallelDataset* dataset_t){
 				corr_values[j][i] = corr_values[i][j];
 			}
 		TourPathGenerator::GenerateRoundPath(corr_values, axis_order_);
+	} else {
+		std::vector< float > center_values;
+		std::vector< float > std_dev_values;
+		center_values.resize(dataset_->axis_names.size(), 0);
+		std_dev_values.resize(dataset_->axis_names.size(), 0);
+		for (int i = 0; i < dataset_->axis_names.size(); ++i) {
+			for (int j = 0; j < dataset_->subset_records.size(); ++j)
+				center_values[i] += dataset_->var_centers[j][i];
+			center_values[i] /= dataset_->subset_records.size();
+		}
+		for (int i = 0; i < dataset_->axis_names.size(); ++i) {
+			for (int j = 0; j < dataset_->subset_records.size(); ++j)
+				std_dev_values[i] += pow(dataset_->var_centers[j][i] - center_values[i], 2);
+			std_dev_values[i] = sqrt(std_dev_values[i] / dataset_->subset_records.size());
+		}
+
+		for (int i = 0; i < dataset_->axis_names.size() - 1; ++i)
+			for (int j = i + 1; j < dataset_->axis_names.size(); ++j) {
+				float temp_corr = 0;
+				for (int k = 0; k < dataset_->subset_records.size(); ++k)
+					temp_corr += (dataset_->var_centers[k][i] - center_values[i]) * (dataset_->var_centers[k][j] - center_values[j]);
+				corr_values[i][j] = temp_corr / (dataset_->subset_records.size() * std_dev_values[i] * std_dev_values[j]);
+				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
+				corr_values[j][i] = corr_values[i][j];
+			}
+		TourPathGenerator::GenerateRoundPath(corr_values, axis_order_);
 	}
 
     this->updateGL();
@@ -306,21 +332,21 @@ void ParallelCoordinate::PaintGaussianCurve() {
 			glBegin(GL_TRIANGLE_STRIP);
 				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j]] * axis_y_size_, 0);
-				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + bottom_y * axis_y_size_, 0);
 				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
 				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j + 1]] * axis_y_size_, 0);
-				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_bottom_y * axis_y_size_, 0);
 			glEnd();
 			glBegin(GL_TRIANGLE_STRIP);
 				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j]] * axis_y_size_, 0);
-				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + top_y * axis_y_size_, 0);
 				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
 				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j + 1]] * axis_y_size_, 0);
-				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_top_y * axis_y_size_, 0);
 			glEnd();
 		}

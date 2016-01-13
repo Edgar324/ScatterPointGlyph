@@ -294,17 +294,20 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	//if (file_path.length() == 0) return;
 
 	//std::ifstream input_file(file_path.toLocal8Bit());
-	std::ifstream input_file("./TestData/mds_result.txt");
+	std::ifstream input_file("./TestData/wine.sc");
+	char char_str[1000];
+	input_file.getline(char_str, 1000);
+	QString value_str = QString::fromLocal8Bit(char_str);
+	QStringList value_list = value_str.split(' ');
+
 	int record_num, var_num;
-	input_file >> record_num >> var_num;
-	char var_names[1000];
-	input_file >> var_names;
-	QString var_name_str = QString::fromLocal8Bit(var_names);
-	QStringList name_list = var_name_str.split(' ');
-	for (int i = 0; i < name_list.size(); ++i) dataset_->var_names.push_back(name_list.at(i));
-	if (dataset_->var_names.size() < var_num)
-		for (int i = dataset_->var_names.size(); i < var_num; ++i)
-			dataset_->var_names.push_back(QString("V%0").arg(i));
+	record_num = value_list.at(0).toInt();
+	var_num = value_list.at(1).toInt();
+
+	input_file.getline(char_str, 1000);
+	value_str = QString::fromLocal8Bit(char_str);
+	value_list = value_str.split(' ');
+	for (int i = 0; i < value_list.size(); ++i) dataset_->var_names.push_back(value_list.at(i));
 
 	VariableSelectionDialog var_dialog;
 	var_dialog.SetDatasetInfo(record_num, var_num, dataset_->var_names);
@@ -318,10 +321,12 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	for (int i = 0; i < record_num; ++i) {
 		dataset_->original_point_values[i].resize(var_num);
 
-		float temp;
-		input_file >> temp >> temp;
+		input_file.getline(char_str, 1000);
+		value_str = QString::fromLocal8Bit(char_str);
+		value_list = value_str.split(',');
+
 		for (int j = 0; j < var_num; ++j)
-			input_file >> dataset_->original_point_values[i][j];
+			dataset_->original_point_values[i][j] = value_list.at(j).toFloat();
 	}
 	input_file.close();
 
@@ -431,8 +436,8 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		ImmediateGestaltTree* immediate_tree = dynamic_cast< ImmediateGestaltTree* >(cluster_tree_vec_[IMMEDIATE_GESTALT_MODE]);
 		if (immediate_tree != NULL) {
 			float left, right, bottom, top;
-			this->GetSceneRange(left, right, bottom, top);
-			dataset_->Sample(left, right, bottom, top);
+			//this->GetSceneRange(left, right, bottom, top);
+			//dataset_->Sample(left, right, bottom, top);
 			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (160 * 160)));
 			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
 			immediate_tree->start();
@@ -487,7 +492,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		for (int i = 0; i < dataset_->original_point_values[0].size(); ++i) {
 			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][0]));
 			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][1]));
-			parallel_dataset_->axis_names.push_back(QString("v"));
+			parallel_dataset_->axis_names.push_back(dataset_->var_names[i]);
 		}
 
 		for (int i = 0; i < dataset_->point_values.size(); ++i) {
@@ -508,7 +513,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) selection_index.push_back(i);
 		}
 		this->GenerateParallelDataset(parallel_dataset_, selection_index);
-		//parallel_coordinate_->SetDataset(parallel_dataset_);
+		parallel_coordinate_->SetDataset(parallel_dataset_);
 		parallel_coordinate_->update();
 
 		int selected_count = 0;
@@ -541,7 +546,7 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 			}
 	}
 	for (int i = 0; i < dataset_->original_value_ranges.size(); ++i) {
-		parallel_dataset_->axis_names[i] = "v";
+		parallel_dataset_->axis_names[i] = dataset_->var_names[i];
 		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][0]));
 		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(dataset_->original_value_ranges[i][1]));
 	}
@@ -635,6 +640,7 @@ void ScatterPointGlyph::UpdateTreemap() {
 		is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
 		std::vector< int > var_order = parallel_coordinate_->GetAxisOrder();
+		trans_map_->SetAxisOrder(var_order);
 
 		std::vector< CNode* > selected_nodes;
 		if (selected_ids.size() != 0) {
@@ -644,11 +650,11 @@ void ScatterPointGlyph::UpdateTreemap() {
 			}
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 				if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size(), var_order);
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size(), var_order, dataset_->var_names);
 		}
 		else {
 			selected_nodes = transmap_data_->cluster_nodes;
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size(), var_order);
+			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size(), var_order, dataset_->var_names);
 		}
 
 		tree_map_view_->scene()->update();

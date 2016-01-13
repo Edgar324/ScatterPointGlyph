@@ -91,10 +91,17 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 	this->scatter_data_ = ori_data;
 	this->dataset_ = data;
 
+	axis_order_.resize(this->scatter_data_->var_num);
+	for (int i = 0; i < this->scatter_data_->var_num; ++i) axis_order_[i] = i;
+
 	this->path_generator_->SetData(dataset_);
 
 	this->highlight_node_sequence.clear();
 	this->current_node_ = NULL;
+	this->trans_edges.clear();
+
+	if (is_mst_fixed_) this->path_generator_->GenerateSpanningTree();
+	if (is_var_trend_fixed_ && var_trend_index_ != -1) this->path_generator_->GenerateVarTrend(var_trend_index_);
 
 	this->BuildRepresentation();
 	this->SetEnabled(true);
@@ -102,7 +109,11 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 
 void TransMap::ShowMinimumSpanningTree(bool enabled) {
 	this->trans_edges.clear();
-	this->is_trans_edge_fixed_ = enabled;
+	this->is_mst_fixed_ = enabled;
+	if (this->is_var_trend_fixed_ && this->is_mst_fixed_) {
+		this->is_var_trend_fixed_ = false;
+		var_trend_index_ = -1;
+	}
 	if (enabled) this->path_generator_->GenerateSpanningTree();
 	this->UpdateTransEdgeActor();
 }
@@ -110,12 +121,15 @@ void TransMap::ShowMinimumSpanningTree(bool enabled) {
 void TransMap::ShowVarTrend(int var_index) {
 	this->trans_edges.clear();
 	if (var_index < 0)
-		this->is_trans_edge_fixed_ = false;
+		this->is_var_trend_fixed_ = false;
 	else
-		this->is_trans_edge_fixed_ = true;
+		this->is_var_trend_fixed_ = true;
+
+	if (this->is_var_trend_fixed_ && this->is_mst_fixed_)
+		this->is_mst_fixed_ = false;
+	var_trend_index_ = var_index;
 	if (var_index >= 0) this->path_generator_->GenerateVarTrend(var_index);
 	this->UpdateTransEdgeActor();
-	this->HighlightVar(var_index);
 }
 
 void TransMap::HighlightVar(int var_index) {
@@ -138,6 +152,11 @@ void TransMap::SetInteractionState(WidgetState s){
 	this->UpdateTransEdgeActor();
 
 	this->parent_view->update();
+}
+
+void TransMap::SetAxisOrder(std::vector< int >& order) {
+	axis_order_ = order;
+	this->UpdateNodeActors();
 }
 
 void TransMap::OnNodeSelected(int node_id) {
@@ -385,7 +404,9 @@ void TransMap::UpdateNodeActors() {
 				float end_arc = (j + 1) * 3.14159 * 2 / dataset_->var_num;
 				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
 
-				if (j == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
+				int var_index = axis_order_[j];
+
+				if (var_index == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
 				else alpha = 0.05;
 
 				float temp_arc = begin_arc;
@@ -394,7 +415,7 @@ void TransMap::UpdateNodeActors() {
 					float sin_value = sin(temp_arc);
 
 					// insert the outer polygon
-					float temp_radius = node_radius_ * (node->average_values[j] + node->value_variance[j]) * 0.8 + node_radius_ * 0.1;
+					float temp_radius = node_radius_ * (node->average_values[var_index] + node->value_variance[var_index]) * 0.8 + node_radius_ * 0.1;
 					if (temp_radius > 1.0) temp_radius = 1.0;
 					float x = temp_radius * cos_value;
 					float y = temp_radius * sin_value;
@@ -403,7 +424,7 @@ void TransMap::UpdateNodeActors() {
 					var_point_ids1[2 * k + 1] = id_one;
 
 					// insert the inner polygon
-					temp_radius = node_radius_ * (node->average_values[j] - node->value_variance[j]) * 0.8 + node_radius_ * 0.1;
+					temp_radius = node_radius_ * (node->average_values[var_index] - node->value_variance[var_index]) * 0.8 + node_radius_ * 0.1;
 					if (temp_radius < 0) temp_radius = 0;
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
@@ -418,7 +439,7 @@ void TransMap::UpdateNodeActors() {
 					gray_region_ids[k] = id_four;
 
 					// insert the average value
-					temp_radius = node_radius_ * node->average_values[j] * 0.8 + node_radius_ * 0.1;
+					temp_radius = node_radius_ * node->average_values[var_index] * 0.8 + node_radius_ * 0.1;
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
 					vtkIdType id_three = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
@@ -490,7 +511,7 @@ void TransMap::UpdateNodeActors() {
 }
 
 void TransMap::UpdateTransEdgeActor() {
-	if (is_trans_edge_fixed_) {
+	if (is_mst_fixed_ || is_var_trend_fixed_) {
 		this->trans_edges.clear();
 		for (int i = 0; i < this->path_generator_->edge_list.size(); ++i) {
 			int node_index = GetClusterNodeIndex(dataset_->level_one_nodes[this->path_generator_->edge_list[i]]);
@@ -821,11 +842,11 @@ void TransMap::OnRightButtonDown() {
 		float length = sqrt(pow(xt, 2) + pow(yt, 2));
 		float degree = acos(xt / length);
 		if (yt < 0) degree = 2 * 3.14159 - degree;
-		int temp_index = (int)degree / (2 * 3.1416) * dataset_->var_num;
+		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
 		if (temp_index == this->highlight_var_index_)
 			this->highlight_var_index_ = -1;
 		else
-			this->highlight_var_index_ = temp_index;
+			this->highlight_var_index_ = axis_order_[temp_index];
 	} else {
 		this->highlight_var_index_ = -1;
 	}

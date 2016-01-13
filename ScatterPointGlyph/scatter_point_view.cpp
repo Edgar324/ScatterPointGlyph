@@ -50,7 +50,8 @@ void ScatterPointView::mouseMoveEvent(QMouseEvent* event) {
 
 void ScatterPointView::mouseReleaseEvent(QMouseEvent* event) {
 	QVTKWidget::mouseReleaseEvent(event);
-	emit LeftButtonUp();
+	if (event->button() == Qt::LeftButton)
+		emit LeftButtonUp();
 }
 
 void ScatterPointView::OnTimeout() {

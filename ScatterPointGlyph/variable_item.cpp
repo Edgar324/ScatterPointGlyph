@@ -33,14 +33,14 @@ void VariableItem::SetData(QString var_name, std::vector< float >& var_values, s
 }
 
 QRectF VariableItem::boundingRect() const {
-	return QRectF(-50, 0, total_width + 50, total_height);
+	return QRectF(-150, 0, total_width + 150, total_height);
 }
 
 void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
 	QPen name_pen;
 	name_pen.setColor(Qt::black);
 	painter->setPen(name_pen);
-	painter->drawText(QRectF(-50, 0, 50, total_height), var_name_, Qt::AlignBottom | Qt::AlignHCenter);
+	painter->drawText(QRectF(-150, 0, 150, total_height), var_name_, Qt::AlignBottom | Qt::AlignHCenter);
 
 	if (true) {
 		int temp_width = 0, temp_bar_width = 0;

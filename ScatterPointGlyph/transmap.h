@@ -49,6 +49,7 @@ public:
 	void SetData(ScatterPointDataset* ori_data, TransMapData* data);
 	void SetNodeRadius(float r) { this->node_radius_ = r; }
 	void SetInteractionState(WidgetState s);
+	void SetAxisOrder(std::vector< int >& order);
 
 	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
 
@@ -110,10 +111,13 @@ private:
 	TransMapData* dataset_;
 	ScatterPointDataset* scatter_data_;
 	float node_radius_;
+	std::vector< int > axis_order_;
 
 	CNode* current_node_;
 
-	bool is_trans_edge_fixed_ = false;
+	bool is_mst_fixed_ = false;
+	bool is_var_trend_fixed_ = false;
+	int var_trend_index_ = -1;
 	int highlight_var_index_ = -1;
 
 	void UpdateNodeActors();

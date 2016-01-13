@@ -15,7 +15,7 @@ TreeMapView::~TreeMapView() {
 
 }
 
-void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order) {
+void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names) {
 	this->root_node_ = data;
 	this->var_num_ = var_num;
 
@@ -58,7 +58,7 @@ void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selec
 	var_order_ = order;
 
 	tree_item_->SetData(root_node_);
-	this->UpdateVariableItems(selected_nodes, selected_count);
+	this->UpdateVariableItems(selected_nodes, selected_count, names);
 
 	QSize temp = tree_item_->GetSize();
 	int var_height = 30;
@@ -71,7 +71,7 @@ void TreeMapView::SetData(CNode* data, int var_num, std::vector< CNode* >& selec
 	this->update();
 }
 
-void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count) {
+void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names) {
 	std::vector< std::vector< float > > var_values;
 	std::vector< std::vector< int > > node_count;
 	std::vector< std::vector< QColor > > node_color;
@@ -80,7 +80,7 @@ void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int
 	node_color.resize(var_num_);
 
 	for (int i = 0; i < var_num_; ++i) {
-		QString var_name = "test";
+		QString var_name = names[i];
 		
 
 		for (int j = 0; j < selected_nodes.size(); ++j) {

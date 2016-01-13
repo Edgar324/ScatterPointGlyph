@@ -18,6 +18,7 @@ void VariableSelectionDialog::SetDatasetInfo(int pnum, int vnum, std::vector< QS
 	QGridLayout* grid_layout = new QGridLayout;
 	for (int i = 0; i < var_names.size(); ++i) {
 		QCheckBox* check_box = new QCheckBox(var_names[i]);
+		check_box->setChecked(true);
 		QDoubleSpinBox* spin_box = new QDoubleSpinBox;
 		spin_box->setValue(1.0);
 		spin_box->setRange(0, 1.0);
