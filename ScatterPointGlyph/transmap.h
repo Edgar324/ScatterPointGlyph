@@ -76,7 +76,7 @@ protected:
 	virtual void OnMouseMove() {}
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
-	virtual void OnRightButtonDown() {}
+	virtual void OnRightButtonDown();
 	virtual void OnRightButtonUp() {}
 
 	void BuildRepresentation();

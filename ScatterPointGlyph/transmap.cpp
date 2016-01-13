@@ -804,6 +804,35 @@ void TransMap::OnLeftButtonDown() {
 	}
 }
 
+void TransMap::OnRightButtonDown() {
+	if (!this->DefaultRenderer) return;
+
+	int x = this->Interactor->GetEventPosition()[0];
+	int y = this->Interactor->GetEventPosition()[1];
+
+	CNode* selected_node = GetSelectedNode(x, y);
+	if (selected_node != NULL && IsLevelOneNode(selected_node)) {
+		double woldpos[4];
+		vtkInteractorObserver::ComputeDisplayToWorld(x, y, 0, woldpos);
+		float node_center_x = selected_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = selected_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float xt = woldpos[0] - node_center_x;
+		float yt = woldpos[1] - node_center_y;
+		float length = sqrt(pow(xt, 2) + pow(yt, 2));
+		float degree = acos(xt / length);
+		if (yt < 0) degree = 2 * 3.14159 - degree;
+		int temp_index = (int)degree / (2 * 3.1416) * dataset_->var_num;
+		if (temp_index == this->highlight_var_index_)
+			this->highlight_var_index_ = -1;
+		else
+			this->highlight_var_index_ = temp_index;
+	} else {
+		this->highlight_var_index_ = -1;
+	}
+
+	this->UpdateNodeActors();
+}
+
 void TransMap::OnMouseMove(int x, int y) {
 	if (this->state == WidgetState::SELECT_BRUSHED_CLUSTERS) {
 		double display_pos[4];
