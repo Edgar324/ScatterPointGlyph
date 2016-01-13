@@ -126,6 +126,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 		painter->setPen(axis_pen);
 
 		if (!node->is_expanded) {
+#ifdef RADAR_GLYPH
 			std::vector< float > x_vec;
 			std::vector< float > y_vec;
 
@@ -147,10 +148,33 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 			for (int i = 0; i < node->average_values.size(); ++i) {
 				painter->drawLine(center_x + x_vec[i], center_y + y_vec[i], center_x + x_vec[(i + 1) % node->average_values.size()], center_y + y_vec[(i + 1) % node->average_values.size()]);
 			}
+#else
+			int seg_per_pie = 5;
+			for (int i = 0; i < node->average_values.size(); ++i) {
+				float begin_arc = i * 360 / node->average_values.size() * 16;
+				float end_arc = (i + 1) * 360 / node->average_values.size() * 16;
+				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
+				float temp_radius = temp_item_size / 2 * 0.7 * node->average_values[i] + temp_item_size * 0.1;
+
+				axis_pen.setColor(QColor(230, 230, 230));
+				axis_pen.setWidth(1.0);
+				painter->setPen(axis_pen);
+				float begin_degree = -1 * i * 2 * 3.14159 / node->average_values.size();
+				float end_degree = -1 * (i + 1) * 2 * 3.14159 / node->average_values.size();
+				painter->drawLine(center_x, center_y, center_x + temp_radius * cos(begin_degree), center_y + temp_radius * sin(begin_degree));
+				painter->drawLine(center_x, center_y, center_x + temp_radius * cos(end_degree), center_y + temp_radius * sin(end_degree));
+
+				axis_pen.setColor(node->color);
+				axis_pen.setWidth(2.0);
+				painter->setPen(axis_pen);
+			
+				painter->drawArc(center_x - temp_radius, center_y - temp_radius, 2 * temp_radius, 2 * temp_radius, begin_arc, end_arc - begin_arc);
+			}
+#endif
 		}
 
 		QPen normal_pen;
-		normal_pen.setColor(QColor(200, 200, 200, 200));
+		normal_pen.setColor(QColor(230, 230, 230));
 		normal_pen.setWidth(2.0);
 		painter->setPen(normal_pen);
 
@@ -163,12 +187,6 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 			painter->drawLine(center_x - temp_item_size / 2, topy + 3, center_x - temp_item_size / 2 + 6, topy + 3);
 			painter->drawLine(center_x - temp_item_size / 2 + 3, topy, center_x - temp_item_size / 2 + 3, topy + 6);
 		}
-
-		/*if (is_child_all_leaf) {
-			painter->drawRoundedRect(QRectF(center_x - item_size / 2, topy, item_size, item_size), 2, 2);
-		} else {
-			
-		}*/
 	}
 
 	QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);

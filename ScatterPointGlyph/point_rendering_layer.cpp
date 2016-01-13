@@ -70,7 +70,7 @@ void PointRenderingLayer::SetData(ScatterPointDataset* data) {
 	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
 	colors->SetNumberOfComponents(4);
 	for (int i = 0; i < dataset_->original_point_pos.size(); ++i) {
-		colors->InsertNextTuple4(128, 128, 128, 128);
+		colors->InsertNextTuple4(128, 128, 128, 50);
 	}
 	poly_data_->GetPointData()->SetScalars(colors);
 
@@ -143,9 +143,9 @@ void PointRenderingLayer::SetHighlightCluster(int index) {
 		if (point_index_[i] == index) {
 			int cindex = point_index_[i] * 3;
 			if (cindex < 0)
-				color_array->SetTuple4(i, 0, 0, 0, 255);
+				color_array->SetTuple4(i, 0, 0, 0, 50);
 			else
-				color_array->SetTuple4(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
+				color_array->SetTuple4(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 100);
 		}
 	color_array->Modified();
 }
@@ -163,7 +163,7 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 				if (cindex < 0)
 					color_array->SetTuple4(j, 0, 0, 0, 255);
 				else
-					color_array->SetTuple4(j, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
+					color_array->SetTuple4(j, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 100);
 			}
 	}
 	
@@ -179,7 +179,7 @@ void PointRenderingLayer::SetCategoryOn() {
 		if (cindex < 0)
 			color_array->SetTuple4(i, 0, 0, 0, 255);
 		else
-			color_array->SetTuple4(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
+			color_array->SetTuple4(i, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 100);
 	}
 	color_array->Modified();
 }
@@ -191,11 +191,11 @@ void PointRenderingLayer::SetCategoryOff() {
 	if (point_values_.size() != 0) {
 		for (int i = 0; i < point_values_.size(); ++i) {
 			int grey = (int)((1.0 - point_values_[i]) * 255);
-			color_array->SetTuple4(i, grey, grey, grey, 128);
+			color_array->SetTuple4(i, grey, grey, grey, 50);
 		}
 	} else {
 		for (int i = 0; i < dataset_->original_point_pos.size(); ++i) {
-			color_array->SetTuple4(i, 128, 128, 128, 128);
+			color_array->SetTuple4(i, 128, 128, 128, 50);
 		}
 	}
 	color_array->Modified();

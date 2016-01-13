@@ -601,7 +601,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->dataset = dataset_;
 	transmap_data_->ProcessData();
 
-	trans_map_->SetNodeRadius(dis_per_pixel_ * 30);
+	trans_map_->SetNodeRadius(dis_per_pixel_ * 50);
 	trans_map_->SetData(dataset_, transmap_data_);
 
 	main_view_->update();

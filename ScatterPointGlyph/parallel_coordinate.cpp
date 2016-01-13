@@ -252,7 +252,6 @@ void ParallelCoordinate::PaintCoordinate(){
 }
 
 void ParallelCoordinate::PaintLines(){
-    glShadeModel(GL_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -292,8 +291,6 @@ void ParallelCoordinate::PaintGaussianCurve() {
 			glLineWidth(2.0);
 		else
 			glLineWidth(1.0);
-		
-		glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.5);
 
 		for (int j = 0; j < dataset_->axis_names.size() - 1; ++j){
 			float bottom_y = dataset_->var_centers[i][axis_order_[j]] - dataset_->var_width[i][axis_order_[j]];
@@ -306,14 +303,25 @@ void ParallelCoordinate::PaintGaussianCurve() {
 			float next_top_y = dataset_->var_centers[i][axis_order_[j + 1]] + dataset_->var_width[i][axis_order_[j + 1]];
 			if (next_top_y > 1) next_top_y = 1;
 
-			glBegin(GL_TRIANGLES);
+			glBegin(GL_TRIANGLE_STRIP);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
+				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j]] * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + bottom_y * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
+				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j + 1]] * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
 				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_bottom_y * axis_y_size_, 0);
-				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_top_y * axis_y_size_, 0);
-
-				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + bottom_y * axis_y_size_, 0);
-				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_top_y * axis_y_size_, 0);
+			glEnd();
+			glBegin(GL_TRIANGLE_STRIP);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
+				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j]] * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
 				glVertex3f(axis_x_pos_values_[j], axis_bottom_y_value_ + top_y * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.7);
+				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + dataset_->var_centers[i][axis_order_[j + 1]] * axis_y_size_, 0);
+				glColor4f(dataset_->subset_colors[i].redF(), dataset_->subset_colors[i].greenF(), dataset_->subset_colors[i].blueF(), 0.3);
+				glVertex3f(axis_x_pos_values_[j + 1], axis_bottom_y_value_ + next_top_y * axis_y_size_, 0);
 			glEnd();
 		}
 	}

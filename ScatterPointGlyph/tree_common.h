@@ -9,6 +9,8 @@
 class ScatterPointDataset;
 class CBranch;
 
+//#define RADAR_GLYPH
+
 class CNode
 {
 public:
