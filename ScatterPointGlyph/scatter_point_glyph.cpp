@@ -183,12 +183,19 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_interaction_mode_group_->setExclusive(true);
 	connect(main_view_interaction_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMainViewInteractionModeChanged()));
 
+	transmap_tip_mode_group_ = new QActionGroup(this);
+	transmap_tip_mode_group_->addAction(ui_.actionOff);
+	transmap_tip_mode_group_->setExclusive(true);
+	connect(transmap_tip_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnShowVarTrendTriggered()));
+
+	ui_.mainToolBar->insertAction(ui_.actionShow_Minimum_Spanning_Tree, ui_.menuShow_Sequence->menuAction());
 	connect(ui_.actionVTK_Unstructured_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.actionRaw_Grid_Data, SIGNAL(triggered()), this, SLOT(OnActionOpenRawGridFileTriggered()));
 	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnExecClusteringTriggered()));
 	connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
 	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
 	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnSavePathSequenceTriggered()));
+	connect(ui_.actionShow_Minimum_Spanning_Tree, SIGNAL(triggered()), this, SLOT(OnShowMstTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -339,6 +346,8 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 
 	dataset_->ExecMds();
 	dataset_->DirectConstruct();
+
+	this->UpdateMenus();
 
 	this->AddPointData2View();
 }
@@ -794,4 +803,54 @@ void ScatterPointGlyph::OnSavePathSequenceTriggered() {
 
 	pathset_->path_records.push_back(record);
 	path_explore_view_->SetData(pathset_);
+}
+
+void ScatterPointGlyph::OnShowMstTriggered() {
+	if (ui_.actionShow_Minimum_Spanning_Tree->isChecked()) {
+		//ui_.actionShow_Sequence->setChecked(false);
+
+		trans_map_->ShowMinimumSpanningTree(true);
+	} else {
+		trans_map_->ShowMinimumSpanningTree(false);
+	}
+
+	main_view_->update();
+}
+
+void ScatterPointGlyph::OnShowVarTrendTriggered() {
+	if (!ui_.actionOff->isChecked()) {
+		ui_.actionShow_Minimum_Spanning_Tree->setChecked(false);
+
+		int var_index = -1;
+		QList< QAction* > actions = transmap_tip_mode_group_->actions();
+		for (int i = 0; i < actions.size(); ++i)
+			if (actions.at(i)->isChecked()) {
+				var_index = i;
+				break;
+			}
+
+		trans_map_->ShowVarTrend(var_index - 1);
+	} else {
+		trans_map_->ShowVarTrend(-1);
+	}
+
+	main_view_->update();
+}
+
+void ScatterPointGlyph::UpdateMenus() {
+	QList< QAction* > actions = transmap_tip_mode_group_->actions();
+	for (int i = 1; i < actions.size(); ++i) {
+		transmap_tip_mode_group_->removeAction(actions.at(i));
+		ui_.menuShow_Sequence->removeAction(actions.at(i));
+		delete actions.at(i);
+	}
+
+	ui_.actionOff->setChecked(true);
+	for (int i = 0; i < dataset_->var_names.size(); ++i) {
+		QAction* action = ui_.menuShow_Sequence->addAction(dataset_->var_names[i]);
+		action->setCheckable(true);
+		action->setChecked(false);
+		transmap_tip_mode_group_->addAction(action);
+	}
+	//transmap_tip_mode_group_->setExclusive(true);
 }

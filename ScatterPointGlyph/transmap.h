@@ -52,7 +52,10 @@ public:
 
 	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
 
-	void ShowMinimumSpanningTree();
+	void HighlightVar(int var_index);
+	void ShowMinimumSpanningTree(bool enabled);
+	void ShowVarTrend(int var_index);
+
 	void OnNodeSelected(int node_id);
 	void OnMouseReleased(bool is_left_button = true);
 	void OnMouseMove(int x, int y);
@@ -109,6 +112,9 @@ private:
 	float node_radius_;
 
 	CNode* current_node_;
+
+	bool is_trans_edge_fixed_ = false;
+	int highlight_var_index_ = -1;
 
 	void UpdateNodeActors();
 	void GenerateTransEdgeFromHighlight();

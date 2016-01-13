@@ -16,6 +16,7 @@ public:
 	void SetData(TransMapData* data);
 	bool GenerateRoundPath();
 	bool GenerateSpanningTree();
+	bool GenerateVarTrend(int var_index);
 	bool GeneratePath(int begin_index = -1, int end_index = -1);
 	bool GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list);
 	

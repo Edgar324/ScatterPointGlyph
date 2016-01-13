@@ -72,6 +72,18 @@
     <property name="title">
      <string>View</string>
     </property>
+    <widget class="QMenu" name="menuShow_Sequence">
+     <property name="title">
+      <string>Show Sequence</string>
+     </property>
+     <property name="icon">
+      <iconset resource="scatter_point_glyph.qrc">
+       <normaloff>:/ScatterPointGlyph/images/barchart.png</normaloff>:/ScatterPointGlyph/images/barchart.png</iconset>
+     </property>
+     <addaction name="actionOff"/>
+    </widget>
+    <addaction name="actionShow_Minimum_Spanning_Tree"/>
+    <addaction name="menuShow_Sequence"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -89,6 +101,8 @@
    <addaction name="actionOpen_File"/>
    <addaction name="actionVTK_Unstructured_Grid_Data"/>
    <addaction name="actionRaw_Grid_Data"/>
+   <addaction name="separator"/>
+   <addaction name="actionShow_Minimum_Spanning_Tree"/>
    <addaction name="separator"/>
    <addaction name="actionSingle_Selection"/>
    <addaction name="actionSequence_Selection"/>
@@ -282,6 +296,29 @@
    </property>
    <property name="text">
     <string>Select Minimum Path</string>
+   </property>
+  </action>
+  <action name="actionShow_Minimum_Spanning_Tree">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/mst.png</normaloff>:/ScatterPointGlyph/images/mst.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Minimum Spanning Tree</string>
+   </property>
+  </action>
+  <action name="actionOff">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Off</string>
    </property>
   </action>
  </widget>

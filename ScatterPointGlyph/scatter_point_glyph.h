@@ -80,6 +80,7 @@ private:
 
 	QActionGroup* sys_mode_action_group_;
 	QActionGroup* main_view_interaction_mode_group_;
+	QActionGroup* transmap_tip_mode_group_ = NULL;
 
 	QDockWidget* layer_control_panel_;
 	LayerControlWidget* layer_control_widget_;
@@ -123,6 +124,8 @@ private:
 	void UpdatePathMap();
 	void UpdateTreemap();
 
+	void UpdateMenus();
+
 private slots:
 	void OnActionOpenVtkFileTriggered();
 	void OnActionOpenRawGridFileTriggered();
@@ -145,6 +148,8 @@ private slots:
 
 	void OnMainViewInteractionModeChanged();
 	void OnSavePathSequenceTriggered();
+	void OnShowMstTriggered();
+	void OnShowVarTrendTriggered();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

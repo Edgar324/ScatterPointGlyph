@@ -134,6 +134,36 @@ bool TourPathGenerator::GenerateSpanningTree() {
 	return true;
 }
 
+bool TourPathGenerator::GenerateVarTrend(int var_index) {
+	std::vector< int > node_index;
+	std::vector< float > var_values;
+	node_index.resize(trans_data_->level_one_nodes.size());
+	var_values.resize(trans_data_->level_one_nodes.size());
+	for (int i = 0; i < node_index.size(); ++i) {
+		node_index[i] = i;
+		var_values[i] = trans_data_->level_one_nodes[i]->average_values[var_index];
+	}
+
+	for (int i = 0; i < trans_data_->level_one_nodes.size() - 1; ++i)
+		for (int j = i + 1; j < trans_data_->level_one_nodes.size(); ++j)
+			if (var_values[i] > var_values[j]){
+				float temp_value = var_values[j];
+				var_values[j] = var_values[i];
+				var_values[i] = temp_value;
+
+				int temp_index = node_index[i];
+				node_index[i] = node_index[j];
+				node_index[j] = temp_index;
+			}
+	this->edge_list.clear();
+	for (int i = 0; i < node_index.size() - 1; ++i) {
+		this->edge_list.push_back(node_index[i]);
+		this->edge_list.push_back(node_index[i + 1]);
+	}
+
+	return true;
+}
+
 bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list) {
 	tour_list.clear();
 

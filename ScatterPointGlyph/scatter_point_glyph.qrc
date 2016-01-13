@@ -1,7 +1,9 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/barchart.png</file>
     <file>images/min_path.png</file>
     <file>images/painter1.png</file>
+    <file>images/mst.png</file>
     <file>images/painter2.png</file>
     <file>images/merge.png</file>
     <file>images/scissors9.png</file>

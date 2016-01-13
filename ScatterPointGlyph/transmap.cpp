@@ -100,15 +100,28 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 	this->SetEnabled(true);
 }
 
-void TransMap::ShowMinimumSpanningTree() {
-	this->path_generator_->GenerateSpanningTree();
+void TransMap::ShowMinimumSpanningTree(bool enabled) {
 	this->trans_edges.clear();
-	for (int i = 0; i < this->path_generator_->edge_list.size(); ++i) {
-		int node_index = GetClusterNodeIndex(dataset_->level_one_nodes[this->path_generator_->edge_list[i]]);
-		this->trans_edges.push_back(node_index);
-	}
-
+	this->is_trans_edge_fixed_ = enabled;
+	if (enabled) this->path_generator_->GenerateSpanningTree();
 	this->UpdateTransEdgeActor();
+}
+
+void TransMap::ShowVarTrend(int var_index) {
+	this->trans_edges.clear();
+	if (var_index < 0)
+		this->is_trans_edge_fixed_ = false;
+	else
+		this->is_trans_edge_fixed_ = true;
+	if (var_index >= 0) this->path_generator_->GenerateVarTrend(var_index);
+	this->UpdateTransEdgeActor();
+	this->HighlightVar(var_index);
+}
+
+void TransMap::HighlightVar(int var_index) {
+	this->highlight_var_index_ = var_index;
+
+	this->UpdateNodeActors();
 }
 
 void TransMap::SetInteractionState(WidgetState s){
@@ -365,11 +378,15 @@ void TransMap::UpdateNodeActors() {
 			gray_region_ids.resize(seg_per_pie + 1);
 
 			vtkIdType line_ids[2];
+			float alpha = 1.0;
 
 			for (int j = 0; j < dataset_->var_num; ++j) {
 				float begin_arc = j * 3.14159 * 2 / dataset_->var_num;
 				float end_arc = (j + 1) * 3.14159 * 2 / dataset_->var_num;
 				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
+
+				if (j == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
+				else alpha = 0.05;
 
 				float temp_arc = begin_arc;
 				for (int k = 0; k < seg_per_pie; ++k) {
@@ -382,7 +399,7 @@ void TransMap::UpdateNodeActors() {
 					float x = temp_radius * cos_value;
 					float y = temp_radius * sin_value;
 					vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128);
+					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128 * alpha);
 					var_point_ids1[2 * k + 1] = id_one;
 
 					// insert the inner polygon
@@ -392,12 +409,12 @@ void TransMap::UpdateNodeActors() {
 					y = temp_radius * sin_value;
 
 					vtkIdType id_two = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128);
+					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128 * alpha);
 					var_point_ids2[2 * k + 1] = id_two;
 
 					// insert the gray polygon
 					vtkIdType id_four = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(230, 230, 230, 255);
+					colors->InsertNextTuple4(230, 230, 230, 255 * alpha);
 					gray_region_ids[k] = id_four;
 
 					// insert the average value
@@ -405,7 +422,7 @@ void TransMap::UpdateNodeActors() {
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
 					vtkIdType id_three = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 255);
+					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 255 * alpha);
 					var_point_ids1[2 * k] = id_three;
 					var_point_ids2[2 * k] = id_three;
 
@@ -413,7 +430,7 @@ void TransMap::UpdateNodeActors() {
 				}
 				
 				vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, 0.002);
-				colors->InsertNextTuple4(230, 230, 230, 255);
+				colors->InsertNextTuple4(230, 230, 230, 255 * alpha);
 				gray_region_ids[seg_per_pie] = center_id;
 
 				polydata->InsertNextCell(VTK_POLYGON, (int)gray_region_ids.size(), gray_region_ids.data());
@@ -473,6 +490,14 @@ void TransMap::UpdateNodeActors() {
 }
 
 void TransMap::UpdateTransEdgeActor() {
+	if (is_trans_edge_fixed_) {
+		this->trans_edges.clear();
+		for (int i = 0; i < this->path_generator_->edge_list.size(); ++i) {
+			int node_index = GetClusterNodeIndex(dataset_->level_one_nodes[this->path_generator_->edge_list[i]]);
+			this->trans_edges.push_back(node_index);
+		}
+	} 
+
 	this->trans_glyph_polys->Initialize();
 
 	vtkPoints* points = vtkPoints::New();
