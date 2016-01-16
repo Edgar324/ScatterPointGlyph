@@ -41,6 +41,9 @@ void HierarchicalTree::GetClusterResult(float dis_per_pixel, int& cluster_num, s
 }
 
 void HierarchicalTree::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
+	for (int i = 0; i < root_->linked_nodes.size(); ++i)
+		root_->linked_nodes[i]->is_expanded = false;
+
 	level_nodes = root_->linked_nodes;
 }
 
@@ -54,7 +57,9 @@ void HierarchicalTree::run() {
 
 	if (expected_cluster_num_ < 0) expected_cluster_num_ = 10;
 
-	if (root_->linked_nodes.size() == 0) this->GenerateCluster();
+	this->GenerateCluster();
+
+	ResetLevel(root_, 0);
 
 	AssignColor(root_, 0, 1.0);
 

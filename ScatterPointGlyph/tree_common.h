@@ -110,6 +110,7 @@ protected:
 	void Traverse(float radius , std::vector< CNode* >& nodes);
 
 	void ProgressNode(CNode* node);
+	void ResetLevel(CNode* node, int level);
 
 	void AssignColor(CNode* node, float hstart, float hend, float factor = 0.75, bool perm = true, bool rev = true);
 	int SortNode(CNode* node, std::vector< int >& node_index, int& node_count);

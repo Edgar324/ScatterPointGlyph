@@ -353,6 +353,9 @@
     <ClCompile Include="linked_tree.cpp">
       <Filter>Source Files\Gestalt Property</Filter>
     </ClCompile>
+    <ClCompile Include="ncut_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -563,6 +566,9 @@
     </ClInclude>
     <ClInclude Include="linked_tree.h">
       <Filter>Header Files\Gestalt Property</Filter>
+    </ClInclude>
+    <ClInclude Include="ncut_tree.h">
+      <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

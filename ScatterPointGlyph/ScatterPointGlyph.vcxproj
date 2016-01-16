@@ -311,6 +311,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_layer.cpp" />
     <ClCompile Include="multi_label_processor.cpp" />
+    <ClCompile Include="ncut_tree.cpp" />
     <ClCompile Include="parallel_coordinate.cpp" />
     <ClCompile Include="path_explore_item.cpp" />
     <ClCompile Include="path_explore_widget.cpp" />
@@ -512,6 +513,7 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config" "-I$(NETCDFDIR)\include" "-I.\scagnostics" "-I.\data" "-I$(GLEWDIR)\include"</Command>
     </CustomBuild>
+    <ClInclude Include="ncut_tree.h" />
     <ClInclude Include="path_dataset.h" />
     <CustomBuild Include="path_explore_item.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

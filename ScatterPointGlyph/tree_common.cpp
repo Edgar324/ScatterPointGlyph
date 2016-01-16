@@ -555,6 +555,19 @@ void TreeCommon::ProgressNode(CNode* node) {
 	node->center_pos = center_pos;
 }
 
+void TreeCommon::ResetLevel(CNode* node, int level) {
+	if (node == NULL) return;
+	node->set_level(level);
+
+	if (node->type() == CNode::BRANCH) {
+		CBranch* branch = dynamic_cast<CBranch*>(node);
+		if (branch != NULL) {
+			for (int i = 0; i < branch->linked_nodes.size(); ++i)
+				ResetLevel(branch->linked_nodes[i], level + 1);
+		}
+	}
+}
+
 void TreeCommon::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
 	for (int i = 0; i < index_one.size() - 1; ++i)
 		for (int j = i + 1; j < index_one.size(); ++j)

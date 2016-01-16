@@ -129,6 +129,7 @@ void TransMap::ShowVarTrend(int var_index) {
 		this->is_mst_fixed_ = false;
 	var_trend_index_ = var_index;
 	if (var_index >= 0) this->path_generator_->GenerateVarTrend(var_index);
+
 	this->UpdateTransEdgeActor();
 }
 
@@ -517,6 +518,17 @@ void TransMap::UpdateTransEdgeActor() {
 			int node_index = GetClusterNodeIndex(dataset_->level_one_nodes[this->path_generator_->edge_list[i]]);
 			this->trans_edges.push_back(node_index);
 		}
+
+		/*if (is_var_trend_fixed_) {
+			this->highlight_node_sequence.clear();
+			if (this->trans_edges.size() >= 2) {
+				this->highlight_node_sequence.push_back(dataset_->cluster_nodes[trans_edges[0]]);
+				for (int i = 0; i < trans_edges.size() / 2; ++i)
+					this->highlight_node_sequence.push_back(dataset_->cluster_nodes[trans_edges[i * 2 + 1]]);
+			}
+
+			this->UpdateHightlightActor();
+		}*/
 	} 
 
 	this->trans_glyph_polys->Initialize();

@@ -368,7 +368,12 @@ void ScatterPointGlyph::OnSysmodeChanged() {
 		current_mode = MULTI_LABEL_MODE;
 
 	if (current_mode != sys_mode_) {
+		if (cluster_tree_ != NULL) {
+			delete cluster_tree_;
+			cluster_tree_ = NULL;
+		}
 
+		sys_mode_ = current_mode;
 	}
 }
 
@@ -384,7 +389,20 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 	{
 	case ScatterPointGlyph::HIER_MODE:
 	{
-		
+		if (cluster_tree_ == NULL) {
+			cluster_tree_ = new HierarchicalTree(dataset_);
+
+			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_);
+		if (hier_tree != NULL) {
+			float left, right, bottom, top;
+			this->GetSceneRange(left, right, bottom, top);
+			dataset_->Sample(left, right, bottom, top);
+			hier_tree->SetExpectedClusterNum(8);
+			hier_tree->start();
+		}
 	}
 		break;
 	case ScatterPointGlyph::CHAMELEON_MODE:
@@ -510,12 +528,9 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
-	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
-		UpdateTransmap();
-		UpdateParallelCoordinate();
-		UpdateTreemap();
-		UpdatePathMap();
-	}
+	this->UpdateTransmap();
+	this->UpdateParallelCoordinate();
+	this->UpdateTreemap();
 }
 
 void ScatterPointGlyph::OnMainViewUpdated() {
@@ -528,12 +543,12 @@ void ScatterPointGlyph::UpdateTransmap() {
 	if (transmap_data_ != NULL) {
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 			transmap_data_->cluster_nodes[i]->is_highlighted = false;
+		transmap_data_->cluster_nodes.clear();
 	}
 
-	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
 	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
-	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
+	cluster_tree_->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
+	cluster_tree_->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
 	
 	std::vector< QColor > colors;
 	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
@@ -560,38 +575,36 @@ void ScatterPointGlyph::UpdatePathMap() {
 }
 
 void ScatterPointGlyph::UpdateTreemap() {
-	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
-		std::vector< int > selected_ids;
-		trans_map_->GetSelectedClusterIds(selected_ids);
+	std::vector< int > selected_ids;
+	trans_map_->GetSelectedClusterIds(selected_ids);
 
-		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
-		un_tree->SortTree(selected_ids);
+	//UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
+	cluster_tree_->SortTree(selected_ids);
 
-		std::vector< int > selection_index;
-		trans_map_->GetSelectedClusterIndex(selection_index);
-		std::vector< bool > is_selected;
-		is_selected.resize(transmap_data_->cluster_nodes.size(), false);
+	std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
+	std::vector< bool > is_selected;
+	is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
-		std::vector< int > var_order = parallel_coordinate_->GetAxisOrder();
-		trans_map_->SetAxisOrder(var_order);
+	std::vector< int > var_order = parallel_coordinate_->GetAxisOrder();
+	trans_map_->SetAxisOrder(var_order);
 
-		std::vector< CNode* > selected_nodes;
-		if (selected_ids.size() != 0) {
-			for (int i = 0; i < selection_index.size(); ++i) {
-				selected_nodes.push_back(transmap_data_->cluster_nodes[selection_index[i]]);
-				is_selected[selection_index[i]] = true;
-			}
-			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
-				if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_ids.size(), var_order, dataset_->var_names);
+	std::vector< CNode* > selected_nodes;
+	if (selected_ids.size() != 0) {
+		for (int i = 0; i < selection_index.size(); ++i) {
+			selected_nodes.push_back(transmap_data_->cluster_nodes[selection_index[i]]);
+			is_selected[selection_index[i]] = true;
 		}
-		else {
-			selected_nodes = transmap_data_->cluster_nodes;
-			tree_map_view_->SetData(un_tree->root(), dataset_->var_num, selected_nodes, selected_nodes.size(), var_order, dataset_->var_names);
-		}
-
-		tree_map_view_->scene()->update();
+		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+			if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
+		tree_map_view_->SetData(cluster_tree_->root(), dataset_->var_num, selected_nodes, selected_ids.size(), var_order, dataset_->var_names);
 	}
+	else {
+		selected_nodes = transmap_data_->cluster_nodes;
+		tree_map_view_->SetData(cluster_tree_->root(), dataset_->var_num, selected_nodes, selected_nodes.size(), var_order, dataset_->var_names);
+	}
+
+	tree_map_view_->scene()->update();
 }
 
 float ScatterPointGlyph::GetMainViewDisPerPixel() {
