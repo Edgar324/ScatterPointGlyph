@@ -62,21 +62,16 @@
 #include "variable_selection_dialog.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), dataset_(NULL), sys_mode_(UNCERTAINTY_MODE),
+	: QMainWindow(parent), dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
 	original_point_rendering_layer_(NULL), cluster_point_rendering_layer_(NULL), un_rendering_layer_(NULL), 
-	map_rendering_layer_(NULL), parallel_dataset_(NULL), dis_per_pixel_(0.0), min_pixel_radius_(5) {
+	map_rendering_layer_(NULL), parallel_dataset_(NULL), dis_per_pixel_(0.0) {
 
 	ui_.setupUi(this);
 
 	data_manager_ = WrfDataManager::GetInstance();
-	path_generator_ = new TourPathGenerator;
 	pathset_ = new PathDataset;
 
 	this->InitWidget();
-
-	is_active_retrieval_on_ = false;
-
-	cluster_tree_vec_.resize(5, NULL);
 }
 
 ScatterPointGlyph::~ScatterPointGlyph() {
@@ -161,18 +156,14 @@ void ScatterPointGlyph::InitWidget() {
 	transmap_data_ = new TransMapData;
 	rendering_layer_model_->AddLayer(QString("Transfer Map"), trans_map_, false);
 
-	hier_para_widget_ = new HierParaWidget;
-	hier_para_panel_ = new QDockWidget(QString("Hierarchical Clustering Panel"), this);
-	hier_para_panel_->setWidget(hier_para_widget_);
-	hier_para_panel_->setVisible(false);
-	this->tabifyDockWidget(tree_map_panel_, hier_para_panel_);
-	ui_.menuView->addAction(hier_para_panel_->toggleViewAction());
-
 	sys_mode_action_group_ = new QActionGroup(this);
-	sys_mode_action_group_->addAction(ui_.action_perception_driven);
 	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
-	sys_mode_action_group_->addAction(ui_.actionImmediate_Gestalts);
+	sys_mode_action_group_->addAction(ui_.actionChameleon_Clustering);
+	sys_mode_action_group_->addAction(ui_.actionNCuts);
+	sys_mode_action_group_->addAction(ui_.actionMulti_Label);
 	sys_mode_action_group_->setExclusive(true);
+	ui_.actionMulti_Label->setChecked(true);
+	connect(sys_mode_action_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnSysmodeChanged()));
 
 	main_view_interaction_mode_group_ = new QActionGroup(this);
 	main_view_interaction_mode_group_->addAction(ui_.actionSingle_Selection);
@@ -366,12 +357,18 @@ void ScatterPointGlyph::OnActionExitTriggered() {
 }
 
 void ScatterPointGlyph::OnSysmodeChanged() {
-	if (ui_.action_perception_driven->isChecked()) {
-		sys_mode_ = PERCEPTION_MODE;
-	} else if (ui_.action_hierarchical_clustering->isChecked()) {
-		sys_mode_ = HIER_MODE;
-	} else if (ui_.actionImmediate_Gestalts->isChecked()) {
-		sys_mode_ = IMMEDIATE_PERCEPTION_MODE;
+	SystemMode current_mode;
+	if (ui_.action_hierarchical_clustering->isChecked())
+		current_mode = HIER_MODE;
+	else if (ui_.actionChameleon_Clustering->isChecked())
+		current_mode = CHAMELEON_MODE;
+	else if (ui_.actionNCuts->isChecked())
+		current_mode = CHAMELEON_MODE;
+	else if (ui_.actionMulti_Label)
+		current_mode = MULTI_LABEL_MODE;
+
+	if (current_mode != sys_mode_) {
+
 	}
 }
 
@@ -387,72 +384,28 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 	{
 	case ScatterPointGlyph::HIER_MODE:
 	{
-		if (cluster_tree_vec_[HIER_MODE] == NULL) {
-			cluster_tree_vec_[HIER_MODE] = new HierarchicalTree(dataset_);
-
-			connect(cluster_tree_vec_[HIER_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
+		
 	}
 		break;
-	case ScatterPointGlyph::PERCEPTION_MODE:
+	case ScatterPointGlyph::CHAMELEON_MODE:
 	{
-		if (cluster_tree_vec_[PERCEPTION_MODE] == NULL) {
-			cluster_tree_vec_[PERCEPTION_MODE] = new HierarchicalTree(dataset_);
-
-			connect(cluster_tree_vec_[PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
-
-		HierarchicalTree* hier_tree = dynamic_cast< HierarchicalTree* >(cluster_tree_vec_[PERCEPTION_MODE]);
-		if (hier_tree != NULL) hier_tree->start();
+		
 	}
 		break;
-	case ScatterPointGlyph::IMMEDIATE_PERCEPTION_MODE:
+	case ScatterPointGlyph::NCUTS_MODE:
 	{
-		if (cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE] == NULL) {
-			cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE] = new ImmediateTree(dataset_);
-
-			connect(cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
-
-		ImmediateTree* immediate_tree = dynamic_cast< ImmediateTree* >(cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE]);
-		if (immediate_tree != NULL) {
-			float left, right, bottom, top;
-			this->GetSceneRange(left, right, bottom, top);
-			dataset_->Sample(left, right, bottom, top);
-			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (80 * 80)));
-			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
-			immediate_tree->start();
-		}
+		
 	}
 		break;
-	case ScatterPointGlyph::IMMEDIATE_GESTALT_MODE:
+	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	{
-		if (cluster_tree_vec_[IMMEDIATE_GESTALT_MODE] == NULL) {
-			cluster_tree_vec_[IMMEDIATE_GESTALT_MODE] = new ImmediateGestaltTree(dataset_);
+		if (cluster_tree_ == NULL) {
+			cluster_tree_ = new UncertaintyTree(dataset_);
 
-			connect(cluster_tree_vec_[IMMEDIATE_GESTALT_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
 		}
 
-		ImmediateGestaltTree* immediate_tree = dynamic_cast< ImmediateGestaltTree* >(cluster_tree_vec_[IMMEDIATE_GESTALT_MODE]);
-		if (immediate_tree != NULL) {
-			float left, right, bottom, top;
-			//this->GetSceneRange(left, right, bottom, top);
-			//dataset_->Sample(left, right, bottom, top);
-			immediate_tree->SetSampleSize((int)(this->main_view_->width() * this->main_view_->height() / (160 * 160)));
-			immediate_tree->SetRadiusThreshold(100.0 * this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]));
-			immediate_tree->start();
-		}
-	}
-		break;
-	case ScatterPointGlyph::UNCERTAINTY_MODE:
-	{
-		if (cluster_tree_vec_[UNCERTAINTY_MODE] == NULL) {
-			cluster_tree_vec_[UNCERTAINTY_MODE] = new UncertaintyTree(dataset_);
-
-			connect(cluster_tree_vec_[UNCERTAINTY_MODE], SIGNAL(finished()), this, SLOT(OnClusterFinished()));
-		}
-
-		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
+		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_);
 		if (un_tree != NULL) {
 			float left, right, bottom, top;
 			this->GetSceneRange(left, right, bottom, top);
@@ -557,22 +510,7 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
-	if (sys_mode_ == PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[PERCEPTION_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
-
-	if (sys_mode_ == IMMEDIATE_PERCEPTION_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_PERCEPTION_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
-
-	if (sys_mode_ == IMMEDIATE_GESTALT_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		TreeCommon* tree = cluster_tree_vec_[IMMEDIATE_GESTALT_MODE];
-		tree->GetClusterResult(this->dis_per_pixel_ / (dataset_->original_pos_ranges[0][1] - dataset_->original_pos_ranges[0][0]), cluster_num, cluster_index);
-	}
-
-	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		UpdateTransmap();
 		UpdateParallelCoordinate();
 		UpdateTreemap();
@@ -592,15 +530,10 @@ void ScatterPointGlyph::UpdateTransmap() {
 			transmap_data_->cluster_nodes[i]->is_highlighted = false;
 	}
 
-	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+	UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
 	this->dis_per_pixel_ = this->GetMainViewDisPerPixel();
-	if (is_active_retrieval_on_) {
-		un_tree->GetActiveClusterResult(transmap_data_->cluster_nodes);
-		un_tree->GetActiveClusterResult(cluster_num, cluster_index);
-	} else {
-		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
-		un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
-	}
+	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, transmap_data_->cluster_nodes);
+	un_tree->GetClusterResult(this->dis_per_pixel_ * 100.0, cluster_num, cluster_index);
 	
 	std::vector< QColor > colors;
 	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
@@ -627,11 +560,11 @@ void ScatterPointGlyph::UpdatePathMap() {
 }
 
 void ScatterPointGlyph::UpdateTreemap() {
-	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		std::vector< int > selected_ids;
 		trans_map_->GetSelectedClusterIds(selected_ids);
 
-		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
 		un_tree->SortTree(selected_ids);
 
 		std::vector< int > selection_index;
@@ -719,8 +652,8 @@ void ScatterPointGlyph::OnMouseDragmove(int x, int y) {
 }
 
 void ScatterPointGlyph::OnSplitClusterTriggered() {
-	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_vec_[UNCERTAINTY_MODE]);
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
+		UncertaintyTree* un_tree = dynamic_cast< UncertaintyTree* >(cluster_tree_);
 
 		int temp_cluster_index = trans_map_->GetSelectedClusterIndex();
 		if (temp_cluster_index != -1) {
@@ -733,8 +666,8 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 }
 
 void ScatterPointGlyph::OnMergeClusterTriggered() {
-	if (sys_mode_ == UNCERTAINTY_MODE && cluster_tree_vec_[sys_mode_] != NULL) {
-		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_vec_[UNCERTAINTY_MODE]);
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
+		UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
 
 		std::vector< int > merged_clusters;
 		trans_map_->GetSelectedClusterIndex(merged_clusters);

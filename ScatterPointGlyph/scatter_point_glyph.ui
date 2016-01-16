@@ -59,9 +59,10 @@
     <property name="title">
      <string>Setting</string>
     </property>
-    <addaction name="action_perception_driven"/>
-    <addaction name="actionImmediate_Gestalts"/>
     <addaction name="action_hierarchical_clustering"/>
+    <addaction name="actionChameleon_Clustering"/>
+    <addaction name="actionNCuts"/>
+    <addaction name="actionMulti_Label"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -138,21 +139,6 @@
     <string>Hierarchical Clustering</string>
    </property>
   </action>
-  <action name="action_perception_driven">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="scatter_point_glyph.qrc">
-     <normaloff>:/ScatterPointGlyph/images/perception.png</normaloff>:/ScatterPointGlyph/images/perception.png</iconset>
-   </property>
-   <property name="text">
-    <string>Gestalt Driven</string>
-   </property>
-  </action>
   <action name="action_layer_panel">
    <property name="checkable">
     <bool>true</bool>
@@ -195,14 +181,6 @@
    </property>
    <property name="text">
     <string>Exec</string>
-   </property>
-  </action>
-  <action name="actionImmediate_Gestalts">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Immediate Gestalts</string>
    </property>
   </action>
   <action name="actionSingle_Selection">
@@ -319,6 +297,42 @@
    </property>
    <property name="text">
     <string>Off</string>
+   </property>
+  </action>
+  <action name="actionChameleon_Clustering">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/chameleon.png</normaloff>:/ScatterPointGlyph/images/chameleon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Chameleon Clustering</string>
+   </property>
+  </action>
+  <action name="actionNCuts">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/ncuts.png</normaloff>:/ScatterPointGlyph/images/ncuts.png</iconset>
+   </property>
+   <property name="text">
+    <string>NCuts Clustering</string>
+   </property>
+  </action>
+  <action name="actionMulti_Label">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/multi_label.png</normaloff>:/ScatterPointGlyph/images/multi_label.png</iconset>
+   </property>
+   <property name="text">
+    <string>Multi Label Clustering</string>
    </property>
   </action>
  </widget>

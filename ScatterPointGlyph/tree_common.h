@@ -86,12 +86,11 @@ public:
 
 	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
 	virtual void GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index);
+	virtual void GetClusterResult(float radius, std::vector< CNode* >& level_nodes);
 
 	CBranch* root() { return root_; }
 	void InitializeSortingIndex();
 	void SortTree(std::vector< int >& node_index);
-
-	void Traverse(CNode* node, std::vector< int >& linked_points);
 
 protected:
 	ScatterPointDataset* dataset_;
@@ -105,10 +104,12 @@ protected:
 
 	void VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status);
 	
+	void Traverse(CNode* node, std::vector< int >& linked_points);
 	void Traverse(int level, std::vector< CNode* >& nodes);
 	void Traverse(int level, CNode* root, std::vector< CNode* >& nodes);
 	void Traverse(float radius , std::vector< CNode* >& nodes);
-	void ActiveTraverse(std::vector< CNode* >& nodes);
+
+	void ProgressNode(CNode* node);
 
 	void AssignColor(CNode* node, float hstart, float hend, float factor = 0.75, bool perm = true, bool rev = true);
 	int SortNode(CNode* node, std::vector< int >& node_index, int& node_count);

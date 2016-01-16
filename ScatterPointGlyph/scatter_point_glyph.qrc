@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/chameleon.png</file>
+    <file>images/multi_label.png</file>
+    <file>images/ncuts.png</file>
     <file>images/barchart.png</file>
     <file>images/min_path.png</file>
     <file>images/painter1.png</file>

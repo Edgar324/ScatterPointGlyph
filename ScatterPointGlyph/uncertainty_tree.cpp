@@ -81,25 +81,6 @@ void UncertaintyTree::GetClusterResult(float radius, std::vector< CNode* >& leve
 	this->Traverse(level, level_nodes);
 }
 
-void UncertaintyTree::GetActiveClusterResult(std::vector< CNode* >& level_nodes) {
-	this->ActiveTraverse(level_nodes);
-}
-
-void UncertaintyTree::GetActiveClusterResult(int& cluster_num, std::vector< int >& cluster_index) {
-	cluster_index.resize(dataset_->original_point_pos.size());
-	for (int i = 0; i < dataset_->original_point_pos.size(); ++i) cluster_index[i] = -1;
-
-	std::vector< CNode* > level_node;
-	this->ActiveTraverse(level_node);
-
-	cluster_num = level_node.size();
-
-	for (int i = 0; i < level_node.size(); ++i) {
-		std::vector< int > point_vec;
-		this->Traverse(level_node[i], point_vec);
-		for (int j = 0; j < point_vec.size(); ++j) cluster_index[dataset_->sample_index[point_vec[j]]] = i;
-	}
-}
 
 void UncertaintyTree::SplitCluster(int cluster_index) {
 	std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index);

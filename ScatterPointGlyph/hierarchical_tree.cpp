@@ -4,159 +4,99 @@
 #include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
-	: TreeCommon(data),
-	similarity_threshold_(0.3),
-	proximity_threshold_(0.1),
-	fitness_threshold_(0.5),
-	min_pixel_radius_(60),
-	max_level_(-1){
-
-	this->ConstructDirectly();
+	: TreeCommon(data), expected_cluster_num_(-1), type_(CENTER_DISTANCE),
+	data_dis_scale_(0.5) {
 }
 
 HierarchicalTree::~HierarchicalTree() {
 
 }
 
-void HierarchicalTree::SetMaxLevel(int level) {
-	this->max_level_ = level;
+void HierarchicalTree::SetExpectedClusterNum(int num) {
+	this->expected_cluster_num_ = num;
 }
 
-void HierarchicalTree::SetSimilarityThreshold(float thre) {
-	this->similarity_threshold_ = thre;
-}
-
-void HierarchicalTree::SetProximityThreshold(float thre) {
-	this->proximity_threshold_ = thre;
-}
-
-void HierarchicalTree::SetFitnessThreshold(float thre) {
-	this->fitness_threshold_ = thre;
-}
-
-void HierarchicalTree::SetRadiusParameters(float min_pixel_radius) {
-	this->min_pixel_radius_ = min_pixel_radius;
+void HierarchicalTree::SetDistanceType(DistanceType type) {
+	this->type_ = type;
 }
 
 void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
 	cluster_index.clear();
 
-	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->min_edge_length_) / log(2.0) + 1);
-	if (level < 0) level = 0;
-	if (level > max_level_) level = max_level_;
-
-	std::vector< CNode* > level_node;
-	this->Traverse(level, level_node);
-
-	cluster_index.resize(level_node.size());
-	for (int i = 0; i < level_node.size(); ++i)
-		this->Traverse(level_node[i], cluster_index[i]);
+	cluster_index.resize(root_->linked_nodes.size());
+	for (int i = 0; i < root_->linked_nodes.size(); ++i)
+		this->Traverse(root_->linked_nodes[i], cluster_index[i]);
 }
 
 void HierarchicalTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
-	int level = (int)(log(dis_per_pixel * min_pixel_radius_ / this->min_edge_length_) / log(2.0) + 1);
-	if (level < 0) level = 0;
-	if (level > max_level_) level = max_level_;
-
 	cluster_index.resize(dataset_->point_pos.size());
 
-	std::vector< CNode* > level_node;
-	this->Traverse(level, level_node);
+	cluster_num = root_->linked_nodes.size();
 
-	cluster_num = level_node.size();
-
-	for (int i = 0; i < level_node.size(); ++i) {
+	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
 		std::vector< int > point_vec;
-		this->Traverse(level_node[i], point_vec);
+		this->Traverse(root_->linked_nodes[i], point_vec);
 		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
 	}
 }
 
-void HierarchicalTree::run() {
-	if (root_->linked_nodes.size() == 0) this->GenerateCluster(min_pixel_radius_);
+void HierarchicalTree::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
+	level_nodes = root_->linked_nodes;
 }
 
-void HierarchicalTree::GenerateCluster(int min_pixel_radius) {
-	/*if (leaf_nodes_.size() == 0) {
-		std::cout << "Need data initialization first." << std::endl;
-		return;
+void HierarchicalTree::run() {
+	if (root_->linked_nodes.size() != 0) {
+		for (int i = 0; i < root_->linked_nodes.size(); ++i) delete root_->linked_nodes[i];
+		root_->linked_nodes.clear();
 	}
 
-	if (max_level_ == -1) {
-		max_level_ = (int)(log(0.5 / min_edge_length_) / log(2.0)) + 1;
-	}
+	this->ConstructDirectly();
 
-	node_cluster_index_.resize(leaf_nodes_.size());
-	for (int i = 0; i < leaf_nodes_.size(); ++i) node_cluster_index_[i] = i;
+	if (expected_cluster_num_ < 0) expected_cluster_num_ = 10;
 
-	int current_level = 1;
-	int current_cluster_count = leaf_nodes_.size();
+	if (root_->linked_nodes.size() == 0) this->GenerateCluster();
 
-	GestaltProcessor2* processor = new GestaltProcessor2;
-	processor->SetPropertyOn(GestaltProcessor2::SIMILARITY);
-	processor->SetPropertyOn(GestaltProcessor2::PROXIMITY);
+	AssignColor(root_, 0, 1.0);
 
-	std::vector< CNode* > cluster_nodes;
-	cluster_nodes.resize(leaf_nodes_.size());
-	for (int i = 0; i < leaf_nodes_.size(); ++i) cluster_nodes[i] = leaf_nodes_[i];
+	this->InitializeSortingIndex();
+}
 
-	while (current_level < max_level_) {
-		float current_max_radius = this->min_edge_length_ * pow(2, current_level - 1);
+void HierarchicalTree::GenerateCluster() {
+	while (root_->linked_nodes.size() > expected_cluster_num_) {
+		int min_node_index[2];
+		float min_node_dis = 1e20;
+		min_node_index[0] = -1;
+		min_node_index[1] = -1;
 
-		proximity_threshold_ = 1.0 / 3 * current_max_radius;
-		processor->SetDisThreshold(current_max_radius);
-		processor->SetThreshold(GestaltProcessor2::SIMILARITY, similarity_threshold_);
-		processor->SetThreshold(GestaltProcessor2::PROXIMITY, proximity_threshold_);
-		processor->SetData(leaf_nodes_, cluster_nodes, node_cluster_index_, node_connecting_status_, dataset_->weights);
-		processor->GenerateCluster();
+		for (int i = 0; i < root_->linked_nodes.size() - 1; ++i)
+			for (int j = i + 1; j < root_->linked_nodes.size(); ++j) {
+				float temp_dis = 0;
 
-		std::vector< int > new_cluster_index;
-		processor->GetCluster(fitness_threshold_, new_cluster_index);
+				float value_dis = 0;
+				for (int k = 0; k < dataset_->var_num; ++k)
+					value_dis += abs(root_->linked_nodes[i]->average_values[k] - root_->linked_nodes[j]->average_values[k]) * dataset_->var_weights[k];
 
-		if (new_cluster_index.size() != 0) {
-			for (int i = 0; i < new_cluster_index.size(); ++i)
-				for (int j = 0; j < node_cluster_index_.size(); ++j) {
-					if (node_cluster_index_[j] == new_cluster_index[i]) node_cluster_index_[j] = new_cluster_index[0];
+				float pos_dis = sqrt(pow(root_->linked_nodes[i]->center_pos[0] - root_->linked_nodes[j]->center_pos[0], 2) + pow(root_->linked_nodes[i]->center_pos[1] - root_->linked_nodes[j]->center_pos[1], 2));
+
+				temp_dis = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
+
+				if (temp_dis < min_node_dis) {
+					min_node_index[0] = i;
+					min_node_index[1] = j;
+					min_node_dis = temp_dis;
 				}
-			for (int i = new_cluster_index.size() - 1; i >= 1; --i)
-				for (int j = 0; j < node_cluster_index_.size(); ++j)
-					if (node_cluster_index_[j] > new_cluster_index[i]) node_cluster_index_[j] -= 1;
-			current_cluster_count -= (new_cluster_index.size() - 1);
+			}
 
-			CBranch* branch_node = new CBranch;
-			branch_node->set_level(current_level);
-			for (int i = 0; i < new_cluster_index.size(); ++i)
-				branch_node->linked_nodes.push_back(cluster_nodes[new_cluster_index[i]]);
-			cluster_nodes[new_cluster_index[0]] = branch_node;
-			for (int i = new_cluster_index.size() - 1; i >= 1; --i)
-				for (int j = new_cluster_index[i]; j < cluster_nodes.size() - 1; ++j)
-					cluster_nodes[j] = cluster_nodes[j + 1];
-			cluster_nodes.resize(cluster_nodes.size() - new_cluster_index.size() + 1);
+		if (min_node_index[0] != -1 && min_node_index[1] != -1) {
+			CBranch* branch = new CBranch;
+			branch->linked_nodes.push_back(root_->linked_nodes[min_node_index[0]]);
+			branch->linked_nodes.push_back(root_->linked_nodes[min_node_index[1]]);
+			ProgressNode(branch);
 
-			std::vector< float > average_value;
-			std::vector< float > average_pos;
-			int node_count = 0;
-			average_pos.resize(2, 0);
-			average_value.resize(dataset_->weights.size(), 0);
-			for (int j = 0; j < node_cluster_index_.size(); ++j) 
-				if (node_cluster_index_[j] == new_cluster_index[0]) {
-					for (int k = 0; k < dataset_->weights.size(); ++k)
-						average_value[k] += leaf_nodes_[j]->average_values[k];
-					average_pos[0] += leaf_nodes_[j]->center_pos[0];
-					average_pos[1] += leaf_nodes_[j]->center_pos[1];
-					node_count += 1;
-				}
-			for (int k = 0; k < dataset_->weights.size(); ++k)
-				average_value[k] /= node_count;
-			average_pos[0] /= node_count;
-			average_pos[1] /= node_count;
-			branch_node->average_values = average_value;
-			branch_node->center_pos = average_pos;
-		} else {
-			current_level++;
+			root_->linked_nodes[min_node_index[0]] = branch;
+			for (int i = min_node_index[1]; i < root_->linked_nodes.size() - 1; ++i)
+				root_->linked_nodes[i] = root_->linked_nodes[i + 1];
+			root_->linked_nodes.resize(root_->linked_nodes.size() - 1);
 		}
 	}
-
-	root_->linked_nodes = cluster_nodes;
-	root_->set_level(max_level_);*/
 }

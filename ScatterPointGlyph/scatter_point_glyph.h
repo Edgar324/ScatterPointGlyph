@@ -52,10 +52,9 @@ public:
 
 	enum SystemMode {
 		HIER_MODE = 0x0,
-		PERCEPTION_MODE,
-		IMMEDIATE_PERCEPTION_MODE,
-		IMMEDIATE_GESTALT_MODE,
-		UNCERTAINTY_MODE
+		CHAMELEON_MODE,
+		NCUTS_MODE,
+		MULTI_LABEL_MODE
 	};
 
 protected:
@@ -86,9 +85,6 @@ private:
 	LayerControlWidget* layer_control_widget_;
 	RenderingLayerModel* rendering_layer_model_;
 
-	QDockWidget* hier_para_panel_;
-	HierParaWidget* hier_para_widget_;
-
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* cluster_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
@@ -97,20 +93,16 @@ private:
 	TransMapData* transmap_data_;
 
 	SystemMode sys_mode_;
-	std::vector< TreeCommon* > cluster_tree_vec_;
+	TreeCommon* cluster_tree_;
 	float dis_per_pixel_;
-	int min_pixel_radius_;
 
 	WrfDataManager* data_manager_;
 	ScatterPointDataset* dataset_;
 
-	TourPathGenerator* path_generator_;
 	PathDataset* pathset_;
 
 	int cluster_num;
 	std::vector< int > cluster_index;
-
-	bool is_active_retrieval_on_;
 
 	void InitWidget();
 	void AddPointData2View();

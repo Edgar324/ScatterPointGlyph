@@ -249,7 +249,7 @@ bool TourPathGenerator::GenerateRoundPath() {
 	}
 	catch (const bad_graph& e) {
 		std::cerr << "bad_graph: " << e.what() << endl;
-		return -1;
+		return false;
 	}
 
 	std::cout << "Number of points: " << num_vertices(g) << endl;
@@ -338,7 +338,7 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vec
 	}
 	catch (const bad_graph& e) {
 		std::cerr << "bad_graph: " << e.what() << endl;
-		return -1;
+		return false;
 	}
 	
 	std::cout << "Number of points: " << num_vertices(g) << endl;
@@ -425,7 +425,7 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< std::vector< float > >& n
 	}
 	catch (const bad_graph& e) {
 		std::cerr << "bad_graph: " << e.what() << endl;
-		return -1;
+		return false;
 	}
 
 	std::cout << "Number of points: " << num_vertices(g) << endl;

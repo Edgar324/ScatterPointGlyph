@@ -79,6 +79,10 @@ void TreeCommon::GetClusterResult(float dis_per_pixel, int& cluster_num, std::ve
 
 }
 
+void TreeCommon::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
+
+}
+
 void TreeCommon::run() {
 
 }
@@ -286,39 +290,6 @@ void TreeCommon::Traverse(int level, CNode* root, std::vector< CNode* >& nodes) 
 				branch->is_highlighted = false;
 				for (int i = 0; i < branch->linked_nodes.size(); ++i)
 					Traverse(level, branch->linked_nodes[branch->sorting_index[i]], nodes);
-			}
-		}
-	}
-}
-
-void TreeCommon::ActiveTraverse(std::vector< CNode* >& nodes) {
-	nodes.clear();
-
-	std::queue< CNode* > node_queue;
-	node_queue.push(root_);
-	while (node_queue.size() != 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-
-		if (!temp_node->is_expanded) {
-			nodes.push_back(temp_node);
-		}
-		else {
-			if (temp_node->type() == CNode::BRANCH && temp_node->is_expanded) {
-				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-				bool is_all_leaf = true;
-				for (int i = 0; i < branch->linked_nodes.size(); ++i)
-					if (branch->linked_nodes[i]->type() != CNode::LEAF) {
-						is_all_leaf = false;
-						break;
-					}
-				if (is_all_leaf) {
-					nodes.push_back(temp_node);
-				}
-				else {
-					for (int i = 0; i < branch->linked_nodes.size(); ++i)
-						node_queue.push(branch->linked_nodes[i]);
-				}
 			}
 		}
 	}
@@ -548,6 +519,40 @@ int TreeCommon::SortNode(CNode* node, std::vector< int >& node_index, int& node_
 	}
 
 	return 9999;
+}
+
+void TreeCommon::ProgressNode(CNode* node) {
+	if (node == NULL) return;
+
+	// update the statistics
+	std::vector< int > point_index;
+	this->Traverse(node, point_index);
+
+	std::vector< float > average, variance, center_pos;
+	average.resize(dataset_->var_num, 0);
+	variance.resize(dataset_->var_num, 0);
+	center_pos.resize(2, 0);
+	for (int i = 0; i < point_index.size(); ++i) {
+		center_pos[0] += dataset_->point_pos[point_index[i]][0];
+		center_pos[1] += dataset_->point_pos[point_index[i]][1];
+
+		for (int j = 0; j < dataset_->var_num; ++j)
+			average[j] += dataset_->point_values[point_index[i]][j];
+	}
+	for (int i = 0; i < dataset_->var_num; ++i)
+		average[i] /= point_index.size();
+	center_pos[0] /= point_index.size();
+	center_pos[1] /= point_index.size();
+
+	for (int i = 0; i < point_index.size(); ++i)
+		for (int j = 0; j < dataset_->var_num; ++j)
+			variance[j] += pow(dataset_->point_values[point_index[i]][j] - average[j], 2);
+	for (int i = 0; i < dataset_->var_num; ++i)
+		variance[i] = sqrt(variance[i] / point_index.size());
+	node->average_values = average;
+	node->value_variance = variance;
+	node->point_count = point_index.size();
+	node->center_pos = center_pos;
 }
 
 void TreeCommon::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
