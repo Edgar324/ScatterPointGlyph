@@ -9,16 +9,13 @@ public:
 	NCutTree(ScatterPointDataset* data);
 	~NCutTree();
 
-	void SetExpectedClusterNum(int num);
 	void SetUncertaintyThreshold(float un_threshold);
 
 protected:
 	float un_threshold_;
-	float data_dis_scale_;
-	int expected_cluster_num_;
 
 	virtual void GenerateClusters();
-	virtual void GenerateCluster(CBranch* node);
+	virtual void SplitNode(CBranch* node);
 };
 
 #endif

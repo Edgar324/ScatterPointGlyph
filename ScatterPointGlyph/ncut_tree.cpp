@@ -5,7 +5,7 @@
 #include "LibNCut/libNcut.h"
 
 NCutTree::NCutTree(ScatterPointDataset* data) 
-	: TreeCommon(data), un_threshold_(0.2), data_dis_scale_(0.5), expected_cluster_num_(-1)
+	: TreeCommon(data), un_threshold_(0.2)
 {
 	libNcutInitialize();
 }
@@ -20,14 +20,8 @@ void NCutTree::SetUncertaintyThreshold(float un_threshold)
 	un_threshold_ = un_threshold;
 }
 
-void NCutTree::SetExpectedClusterNum(int num) {
-	this->expected_cluster_num_ = num;
-}
-
 void NCutTree::GenerateClusters()
 {
-	if (expected_cluster_num_ < 0) expected_cluster_num_ = 10;
-
 	std::queue< CNode* > node_queue;
 	node_queue.push(root_);
 	while (node_queue.size() > 0) {
@@ -42,7 +36,7 @@ void NCutTree::GenerateClusters()
 					is_un_fit = true;
 					break;
 				}
-			if (is_un_fit) GenerateCluster(branch);
+			if (is_un_fit) SplitNode(branch);
 
 			for (int i = 0; i < branch->linked_nodes.size(); ++i)
 				node_queue.push(branch->linked_nodes[i]);
@@ -50,7 +44,7 @@ void NCutTree::GenerateClusters()
 	}
 }
 
-void NCutTree::GenerateCluster(CBranch* node) 
+void NCutTree::SplitNode(CBranch* node) 
 {
 	int seg_num = 2;
 

@@ -57,3 +57,7 @@ void HierarchicalTree::GenerateClusters() {
 		}
 	}
 }
+
+void HierarchicalTree::SplitNode(CBranch* node) {
+
+}

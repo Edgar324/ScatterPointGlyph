@@ -15,6 +15,8 @@ class QMenu;
 class QVTKWidget;
 class QDockWidget;
 class QActionGroup;
+class QSlider;
+class QLabel;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
@@ -56,6 +58,10 @@ private:
 	vtkRenderer* dis_matrix_renderer_;
 	vtkRenderer* other_renderer_;
 
+	QLabel* level_name_label_;
+	QSlider* level_slider_;
+	QLabel* level_index_label_;
+
 	ParallelCoordinate* parallel_coordinate_;
 	ParallelDataset* parallel_dataset_;
 	QDockWidget* parallel_coordinate_panel_;
@@ -82,6 +88,9 @@ private:
 
 	ScatterPointDataset* scatter_point_dataset_;
 
+	int current_view_level_;
+	const int label_pixel_radius_ = { 100 };
+
 	int cluster_num;
 	std::vector< int > cluster_index;
 
@@ -98,6 +107,7 @@ private:
 	void UpdateTreemap();
 
 	void UpdateMenus();
+	void UpdateAllViews();
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
@@ -109,6 +119,7 @@ private slots:
 	void OnExecClusteringTriggered();
 	void OnClusterFinished();
 	void OnMainViewUpdated();
+	void OnViewLevelChanged();
 
 	void OnGlyphSelected(int x, int y);
 	void OnMainviewLeftButtonUp();

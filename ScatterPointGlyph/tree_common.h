@@ -25,18 +25,28 @@ public:
 
 	void GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index);
 	void GetClusterResult(int level, std::vector< CNode* >& level_nodes);
+	int GetMaxLevel() { return this->max_level_; }
 
 	// Sort the tree nodes according to the node_ids
 	void SortTree(std::vector< int >& node_ids);
 
+	// Tree node operations
+	void SplitCluster(int cluster_index);
+	void MergeClusters(std::vector< int >& cluster_index);
+
 protected:
 	ScatterPointDataset* dataset_;
 	CBranch* root_;
+	int max_level_;
 	float min_edge_length_;
 	float data_dis_scale_;
 
+	std::map< int, CNode* > id_node_map_;
+	CNode* common_parent_node_;
+
 	void run();
 	virtual void GenerateClusters() = 0;
+	virtual void SplitNode(CBranch* node) = 0;
 
 	// Update node parameters
 	void ProgressNode(CNode* node);
@@ -50,12 +60,19 @@ protected:
 	// Visualization and Computer Graphics, IEEE Transactions on 20, no. 12 (2014): 2072-2081.
 	void AssignColor(CNode* node, float hstart, float hend, float factor = 0.75, bool perm = true, bool rev = true);
 
-	void InitializeSortingIndex();
+	// Assign sequence index for each branch node
+	void ResetSortingIndex(CNode* node);
 	int SortNode(CNode* node, std::vector< int >& node_ids, int& node_count);
 
 	void Traverse(CNode* node, std::vector< int >& linked_points);
 	void Traverse(int level, std::vector< CNode* >& nodes);
-	void Traverse(int level, CNode* root, std::vector< CNode* >& nodes);
+	void Traverse(int level, CNode* root_node, std::vector< CNode* >& nodes);
+
+	// Tree node operations
+	void ProgressNodeAndParent(CNode* node);
+	void RemoveChildNode(CNode* node, bool is_empty_deleted = false);
+	void UpdateChildLevel(CBranch* node);
+	int FindCommonParent(CNode* node, std::vector< int >& node_ids);
 };
 
 #endif

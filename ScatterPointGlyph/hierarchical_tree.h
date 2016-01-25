@@ -22,6 +22,7 @@ public:
 
 protected:
 	virtual void GenerateClusters();
+	virtual void SplitNode(CBranch* node);
 
 private:
 	int expected_cluster_num_;

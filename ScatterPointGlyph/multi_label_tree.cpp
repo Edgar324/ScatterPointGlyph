@@ -8,9 +8,7 @@
 MultiLabelTree::MultiLabelTree(ScatterPointDataset* data)
 	: TreeCommon(data),
 	max_radius_threshold_(0.2),
-	un_threshold_(0.2),
-	sample_num_(300),
-	is_segment_uncertainty_applied_(false){
+	un_threshold_(0.2) {
 
 	processor_ = new MultiLabelProcessor;
 
@@ -25,221 +23,20 @@ void MultiLabelTree::SetRadiusThreshold(float max_radius) {
 	this->max_radius_threshold_ = max_radius;
 }
 
-void MultiLabelTree::SetSampleSize(int num) {
-	sample_num_ = num;
-}
-
 void MultiLabelTree::SetUncertaintyThreshold(float un_threshold) {
 	this->un_threshold_ = un_threshold;
 }
 
-void MultiLabelTree::SplitCluster(int cluster_index) {
-	std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index);
-	if (node_iter == id_node_map_.end()) {
-		std::cout << "Cluster not found!" << std::endl;
-		return;
+int MultiLabelTree::GetRadiusLevel(float radius) {
+	int level = 0;
+	float temp_radius = max_radius_threshold_;
+	while (temp_radius / factor_ > radius) {
+		temp_radius /= factor_;
+		level++;
 	}
+	if (level > max_level_) level = max_level_;
 
-	if (node_iter->second->type() != CNode::BRANCH) {
-		std::cout << "Leaf cluster is not allowed to be split!" << std::endl;
-		return;
-	}
-
-	CBranch* branch = (CBranch*)(node_iter->second);
-	bool is_child_leaf = true;
-	for (int i = 0; i < branch->linked_nodes.size(); ++i) 
-		if (branch->linked_nodes[i]->type() != CNode::LEAF) {
-			is_child_leaf = false;
-			break;
-		}
-	if (is_child_leaf) this->GenerateCluster(branch);
-
-	CBranch* temp_parent = branch->parent;
-	if (temp_parent == NULL) return;
-
-	int node_index = -1;
-	for (int j = 0; j < temp_parent->linked_nodes.size(); ++j)
-		if (temp_parent->linked_nodes[j] == branch) {
-			node_index = j;
-			break;
-		}
-	if (node_index != -1) {
-		for (int j = node_index; j < temp_parent->linked_nodes.size() - 1; ++j)
-			temp_parent->linked_nodes[j] = temp_parent->linked_nodes[j + 1];
-		int original_size = temp_parent->linked_nodes.size();
-		temp_parent->linked_nodes.resize(temp_parent->linked_nodes.size() - 1 + branch->linked_nodes.size());
-		for (int i = original_size - 1; i > node_index; --i)
-			temp_parent->linked_nodes[i + branch->linked_nodes.size() - 1] = temp_parent->linked_nodes[i];
-		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-			temp_parent->linked_nodes[i + node_index] = branch->linked_nodes[i];
-			branch->linked_nodes[i]->parent = temp_parent;
-		}
-
-		UpdateChildLevel(temp_parent);
-	}
-
-	this->InitializeSortingIndex();
-}
-
-void MultiLabelTree::MergeClusters(std::vector< int >& cluster_index) {
-	std::vector< CNode* > cluster_nodes;
-	for (int i = 0; i < cluster_index.size(); ++i) {
-		std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index[i]);
-		if (node_iter == id_node_map_.end()) {
-			std::cout << "Cluster not found!" << std::endl;
-			return;
-		}
-		cluster_nodes.push_back(node_iter->second);
-	}
-
-	bool is_all_branch = true;
-	for (int i = 0; i < cluster_nodes.size(); ++i) {
-		if (cluster_nodes[i]->type() != CNode::BRANCH) {
-			is_all_branch = false;
-			break;
-		}
-	}
-
-	if (is_all_branch) {
-		// find the minimum level node
-		int max_level_index = -10000;
-		CNode* max_level_node = NULL;
-		for (int i = 0; i < cluster_nodes.size(); ++i) 
-			if (cluster_nodes[i]->level() > max_level_index) {
-				max_level_index = cluster_nodes[i]->level();
-				max_level_node = cluster_nodes[i];
-			}
-		if (max_level_node != NULL) {
-			CBranch* parent_node = max_level_node->parent;
-			CBranch* new_branch = new CBranch;
-			new_branch->set_level(max_level_node->level());
-			new_branch->radius = parent_node->radius / factor_;
-			new_branch->parent = parent_node;
-			parent_node->linked_nodes.push_back(new_branch);
-			id_node_map_.insert(std::map< int, CNode* >::value_type(new_branch->id(), new_branch));
-
-			this->FindCommonParent(root_, cluster_index);
-
-			for (int i = 0; i < cluster_nodes.size(); ++i) {
-				RemoveChildNode(cluster_nodes[i], true);
-				cluster_nodes[i]->parent = new_branch;
-				new_branch->linked_nodes.push_back(cluster_nodes[i]);
-			}
-
-			ProgressNodeAndParent(new_branch);
-			UpdateChildLevel(new_branch->parent);
-		}
-		return;
-	}
-
-	this->InitializeSortingIndex();
-}
-
-void MultiLabelTree::RemoveChildNode(CNode* node, bool is_empty_deleted) {
-	CBranch* temp_parent = node->parent;
-	if (temp_parent == NULL) return;
-
-	int node_index = -1;
-	for (int j = 0; j < temp_parent->linked_nodes.size(); ++j)
-		if (temp_parent->linked_nodes[j] == node) {
-			node_index = j;
-			break;
-		}
-	if (node_index != -1) {
-		for (int j = node_index; j < temp_parent->linked_nodes.size() - 1; ++j)
-			temp_parent->linked_nodes[j] = temp_parent->linked_nodes[j + 1];
-		temp_parent->linked_nodes.resize(temp_parent->linked_nodes.size() - 1);
-		
-		if (temp_parent->linked_nodes.size() == 0 && is_empty_deleted)
-			this->RemoveChildNode(temp_parent, true);
-		else
-			ProgressNodeAndParent(temp_parent);
-	}
-}
-
-void MultiLabelTree::UpdateChildLevel(CBranch* node) {
-	std::queue< CNode* > node_queue;
-	for (int i = 0; i < node->linked_nodes.size(); ++i)
-		node_queue.push(node->linked_nodes[i]);
-
-	while (node_queue.size() > 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-		if (temp_node->type() == CNode::BRANCH) {
-			CBranch* temp_branch = dynamic_cast<CBranch*>(temp_node);
-			for (int i = 0; i < temp_branch->linked_nodes.size(); ++i)
-				node_queue.push(temp_branch->linked_nodes[i]);
-		}
-		//temp_node->radius = temp_node->parent->radius / factor_;
-		temp_node->set_level(temp_node->parent->level() + 1);
-	}
-
-	AssignColor(node, node->hstart, node->hend);
-}
-
-int MultiLabelTree::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
-	int value = 0;
-	for (int i = 0; i < node_ids.size(); ++i)
-		if (node->id() == node_ids[i]) {
-			value = 1;
-		}
-
-	if (node->type() == CNode::BRANCH) {
-		CBranch* branch = dynamic_cast<CBranch*>(node);
-		for (int i = 0; i < branch->linked_nodes.size(); ++i)
-			value += FindCommonParent(branch->linked_nodes[i], node_ids);
-	}
-	if (value == node_ids.size()) {
-		common_parent_node_ = node;
-		value = 0;
-	}
-	return value;
-}
-
-void MultiLabelTree::ProgressNodeAndParent(CNode* node) {
-	if (node == NULL || node == common_parent_node_) return;
-
-	// update the statistics
-	std::vector< int > point_index;
-	this->Traverse(node, point_index);
-
-	std::vector< float > average, variance, center_pos;
-	average.resize(dataset_->var_num, 0);
-	variance.resize(dataset_->var_num, 0);
-	center_pos.resize(2, 0);
-	for (int i = 0; i < point_index.size(); ++i) {
-		center_pos[0] += dataset_->point_pos[point_index[i]][0];
-		center_pos[1] += dataset_->point_pos[point_index[i]][1];
-
-		for (int j = 0; j < dataset_->var_num; ++j)
-			average[j] += dataset_->point_values[point_index[i]][j];
-	}
-	for (int i = 0; i < dataset_->var_num; ++i)
-		average[i] /= point_index.size();
-	center_pos[0] /= point_index.size();
-	center_pos[1] /= point_index.size();
-
-	for (int i = 0; i < point_index.size(); ++i)
-		for (int j = 0; j < dataset_->var_num; ++j)
-			variance[j] += pow(dataset_->point_values[point_index[i]][j] - average[j], 2);
-	for (int i = 0; i < dataset_->var_num; ++i)
-		variance[i] = sqrt(variance[i] / point_index.size());
-	node->average_values = average;
-	node->value_variance = variance;
-	node->point_count = point_index.size();
-	node->center_pos = center_pos;
-
-	ProgressNodeAndParent(node->parent);
-}
-
-void MultiLabelTree::AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index) {
-	if (origin_cluster == -1) {
-		// do it on the top level
-
-	} else {
-		// create a new cluster based on the original cluster
-
-	}
+	return level;
 }
 
 void MultiLabelTree::GenerateClusters() {
@@ -264,7 +61,7 @@ void MultiLabelTree::GenerateClusters() {
 					is_un_fit = true;
 					break;
 				}
-			if (is_un_fit) GenerateCluster(branch);
+			if (is_un_fit) SplitNode(branch);
 
 			for (int i = 0; i < branch->linked_nodes.size(); ++i)
 				node_queue.push(branch->linked_nodes[i]);
@@ -312,7 +109,7 @@ void MultiLabelTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, st
 			}
 }
 
-void MultiLabelTree::GenerateCluster(CBranch* node) {
+void MultiLabelTree::SplitNode(CBranch* node) {
 	if (node == NULL || node->linked_nodes.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
@@ -326,7 +123,8 @@ void MultiLabelTree::GenerateCluster(CBranch* node) {
 	}
 
 	std::vector< std::vector< bool > > connecting_status;
-	Utility::VtkTriangulation(node->linked_nodes, connecting_status, this->min_edge_length_);
+	float temp_min_length;
+	Utility::VtkTriangulation(node->linked_nodes, connecting_status, temp_min_length);
 	for (int i = 0; i < node->linked_nodes.size() - 1; ++i)
 		for (int j = i + 1; j < node->linked_nodes.size(); ++j)
 			if (connecting_status[i][j]) {
@@ -344,8 +142,7 @@ void MultiLabelTree::GenerateCluster(CBranch* node) {
 
 	processor_->SetLabelEstimationRadius(node->radius / factor_);
 	processor_->SetData(pos, value, dataset_->var_weights, connecting_status);
-	if (is_segment_uncertainty_applied_)
-		this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
+	// this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
 	processor_->SetEdgeWeights(edge_weights);
 	processor_->GenerateCluster();
 	std::vector< int > node_cluster_index = processor_->GetResultLabel();

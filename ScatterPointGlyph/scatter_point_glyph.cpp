@@ -30,6 +30,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QSlider>
 
 #include "point_rendering_layer.h"
 #include "scatter_point_dataset.h"
@@ -47,7 +48,8 @@
 #include "variable_selection_dialog.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
-	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL) {
+	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
+	current_view_level_(0) {
 
 	ui_.setupUi(this);
 
@@ -64,6 +66,22 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
 
+	level_name_label_ = new QLabel("Level: ");
+	level_name_label_->setFixedWidth(100);
+	level_name_label_->setAlignment(Qt::AlignRight);
+	level_slider_ = new QSlider(Qt::Horizontal);
+	level_slider_->setMaximumWidth(600);
+	level_slider_->setRange(0, 0);
+	level_slider_->setSingleStep(1);
+	level_slider_->setValue(0);
+	level_index_label_ = new QLabel("0");
+	level_index_label_->setFixedWidth(50);
+	QHBoxLayout* level_layout = new QHBoxLayout;
+	level_layout->addWidget(level_name_label_, Qt::AlignLeft);
+	level_layout->addWidget(level_slider_, Qt::AlignLeft);
+	level_layout->addWidget(level_index_label_, Qt::AlignLeft);
+	connect(level_slider_, SIGNAL(valueChanged(int)), this, SLOT(OnViewLevelChanged()));
+
 	parallel_coordinate_ = new ParallelCoordinate;
 	parallel_coordinate_->setMinimumHeight(200);
 	parallel_dataset_ = new ParallelDataset;
@@ -76,7 +94,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	tree_map_view_ = new TreeMapView;
 	tree_map_view_->setMinimumWidth(700);
-	tree_map_panel_ = new QDockWidget(QString("Tree Map & Table Lens"), this);
+	tree_map_panel_ = new QDockWidget(QString("Tree Map and Table Lens"), this);
 	tree_map_panel_->setWidget(tree_map_view_);
 	this->addDockWidget(Qt::RightDockWidgetArea, tree_map_panel_);
 	ui_.menuView->addAction(tree_map_panel_->toggleViewAction());
@@ -92,8 +110,9 @@ void ScatterPointGlyph::InitWidget() {
 	ui_.menuView->addAction(path_explore_panel_->toggleViewAction());
 	path_explore_panel_->setVisible(false);
 
-	QHBoxLayout* main_layout = new QHBoxLayout;
+	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(main_view_);
+	main_layout->addLayout(level_layout);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -113,6 +132,7 @@ void ScatterPointGlyph::InitWidget() {
 	original_point_rendering_layer_ = new PointRenderingLayer;
 	original_point_rendering_layer_->SetInteractor(main_view_->GetInteractor());
 	original_point_rendering_layer_->SetDefaultRenderer(this->main_renderer_);
+	original_point_rendering_layer_->SetEnabled(true);
 
 	sys_mode_action_group_ = new QActionGroup(this);
 	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
@@ -375,9 +395,48 @@ void ScatterPointGlyph::AddPointData2View() {
 	main_view_->update();
 }
 
+void ScatterPointGlyph::OnClusterFinished() {
+	int max_level = cluster_tree_->GetMaxLevel();
+	level_slider_->setRange(0, max_level);
+	level_slider_->setValue(1);
+	level_index_label_->setText(QString("%0").arg(1));
+	level_name_label_->setText(QString("Level(0~%0): ").arg(max_level));
+
+	current_view_level_ = 1;
+
+	this->UpdateAllViews();
+}
+
+void ScatterPointGlyph::OnMainViewUpdated() {
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
+		MultiLabelTree* multi_label_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
+		if (multi_label_tree == NULL) return;
+
+		float dis_per_pixel = this->GetMainViewDisPerPixel();
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * dis_per_pixel);
+		level_slider_->setValue(current_view_level_);
+		level_index_label_->setText(QString("%0").arg(current_view_level_));
+	}
+
+	this->UpdateAllViews();
+}
+
+void ScatterPointGlyph::OnViewLevelChanged() {
+	current_view_level_ = level_slider_->value();
+	level_index_label_->setText(QString("%0").arg(level_slider_->value()));
+
+	this->UpdateAllViews();
+}
+
+void ScatterPointGlyph::UpdateAllViews() {
+	this->UpdateTransmap();
+	this->UpdateParallelCoordinate();
+	this->UpdateTreemap();
+}
+
 void ScatterPointGlyph::UpdateParallelCoordinate() {
-	if (parallel_dataset_ == NULL) {
-		parallel_dataset_ = new ParallelDataset;
+	if (transmap_data_->cluster_nodes.size() == 0) {
+		parallel_dataset_->ClearData();
 		parallel_dataset_->subset_names.push_back(QString("MDS Data"));
 		parallel_dataset_->subset_records.resize(1);
 		parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->original_point_values[0].size());
@@ -448,17 +507,7 @@ void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vec
 	pdata->is_updating = false;
 }
 
-void ScatterPointGlyph::OnClusterFinished() {
-	this->UpdateTransmap();
-	this->UpdateParallelCoordinate();
-	this->UpdateTreemap();
-}
 
-void ScatterPointGlyph::OnMainViewUpdated() {
-	this->UpdateTransmap();
-	this->UpdateParallelCoordinate();
-	this->UpdateTreemap();
-}
 
 void ScatterPointGlyph::UpdateTransmap() {
 	if (transmap_data_ != NULL) {
@@ -469,8 +518,8 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	// dis_per_pixel * 100.0
-	cluster_tree_->GetClusterResult(0, transmap_data_->cluster_nodes);
-	cluster_tree_->GetClusterResult(0, cluster_num, cluster_index);
+	cluster_tree_->GetClusterResult(current_view_level_, transmap_data_->cluster_nodes);
+	cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
 	
 	std::vector< QColor > colors;
 	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
