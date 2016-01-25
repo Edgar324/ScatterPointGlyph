@@ -91,16 +91,12 @@ private:
 	int current_view_level_;
 	const int label_pixel_radius_ = { 100 };
 
-	int cluster_num;
-	std::vector< int > cluster_index;
-
 	void InitWidget();
 	void AddPointData2View();
 
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);
 	
-	void GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids);
 	void UpdateParallelCoordinate();
 	void UpdateTransmap();
 	void UpdatePathMap();

@@ -463,7 +463,42 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		if (selection_index.size() == 0) {
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) selection_index.push_back(i);
 		}
-		this->GenerateParallelDataset(parallel_dataset_, selection_index);
+
+		// fix the dataset in case of rendering during the data update
+		parallel_dataset_->is_updating = true;
+		parallel_dataset_->ClearData();
+
+		std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
+		parallel_dataset_->subset_names.resize(selection_index.size());
+		parallel_dataset_->subset_colors.resize(selection_index.size());
+		parallel_dataset_->subset_records.resize(selection_index.size());
+		parallel_dataset_->axis_names.resize(scatter_point_dataset_->original_value_ranges.size());
+		parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->original_value_ranges.size());
+
+		int cluster_num;
+		std::vector< int > cluster_index;
+		cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
+
+		for (int i = 0; i < selection_index.size(); ++i) {
+			parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(i);
+			parallel_dataset_->subset_colors[i] = QColor(cluster_color[3 * selection_index[i]], cluster_color[3 * selection_index[i] + 1], cluster_color[3 * selection_index[i] + 2]);
+			for (int j = 0; j < scatter_point_dataset_->point_num; ++j)
+				if (cluster_index[j] == selection_index[i]) {
+					ParallelRecord* record = new ParallelRecord;
+					record->values = scatter_point_dataset_->point_values[j];
+					parallel_dataset_->subset_records[i].push_back(record);
+				}
+		}
+		for (int i = 0; i < scatter_point_dataset_->original_value_ranges.size(); ++i) {
+			parallel_dataset_->axis_names[i] = scatter_point_dataset_->var_names[i];
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][0]));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][1]));
+		}
+		parallel_dataset_->CompleteInput();
+		parallel_dataset_->UpdateGaussian();
+
+		parallel_dataset_->is_updating = false;
+
 		parallel_coordinate_->SetDataset(parallel_dataset_);
 		parallel_coordinate_->update();
 
@@ -475,40 +510,6 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 	}
 }
 
-void ScatterPointGlyph::GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids) {
-	pdata->is_updating = true;
-	pdata->ClearData();
-
-	std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
-	parallel_dataset_->subset_names.resize(cluster_ids.size());
-	parallel_dataset_->subset_colors.resize(cluster_ids.size());
-	parallel_dataset_->subset_records.resize(cluster_ids.size());
-	parallel_dataset_->axis_names.resize(scatter_point_dataset_->original_value_ranges.size());
-	parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->original_value_ranges.size());
-
-	for (int i = 0; i < cluster_ids.size(); ++i) {
-		parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(i);
-		parallel_dataset_->subset_colors[i] = QColor(cluster_color[3 * cluster_ids[i]], cluster_color[3 * cluster_ids[i] + 1], cluster_color[3 * cluster_ids[i] + 2]);
-		for (int j = 0; j < scatter_point_dataset_->point_num; ++j)
-			if (cluster_index[j] == cluster_ids[i]) {
-				ParallelRecord* record = new ParallelRecord;
-				record->values = scatter_point_dataset_->point_values[j];
-				parallel_dataset_->subset_records[i].push_back(record);
-			}
-	}
-	for (int i = 0; i < scatter_point_dataset_->original_value_ranges.size(); ++i) {
-		parallel_dataset_->axis_names[i] = scatter_point_dataset_->var_names[i];
-		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][0]));
-		parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][1]));
-	}
-	parallel_dataset_->CompleteInput();
-	parallel_dataset_->UpdateGaussian();
-
-	pdata->is_updating = false;
-}
-
-
-
 void ScatterPointGlyph::UpdateTransmap() {
 	if (transmap_data_ != NULL) {
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
@@ -516,6 +517,8 @@ void ScatterPointGlyph::UpdateTransmap() {
 		transmap_data_->cluster_nodes.clear();
 	}
 
+	int cluster_num;
+	std::vector< int > cluster_index;
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	// dis_per_pixel * 100.0
 	cluster_tree_->GetClusterResult(current_view_level_, transmap_data_->cluster_nodes);
@@ -676,9 +679,7 @@ void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
 	}
 
-	this->GenerateParallelDataset(parallel_dataset_, selection_index);
-
-	parallel_coordinate_->update();
+	this->UpdateParallelCoordinate();
 
 	this->main_view_->update();
 }
