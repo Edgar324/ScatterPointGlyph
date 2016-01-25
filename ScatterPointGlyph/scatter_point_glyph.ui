@@ -32,7 +32,6 @@
       <string>Open</string>
      </property>
      <addaction name="actionOpen_File"/>
-     <addaction name="actionRaw_Grid_Data"/>
      <addaction name="actionVTK_Unstructured_Grid_Data"/>
     </widget>
     <addaction name="menuOpen"/>
@@ -101,7 +100,11 @@
    </attribute>
    <addaction name="actionOpen_File"/>
    <addaction name="actionVTK_Unstructured_Grid_Data"/>
-   <addaction name="actionRaw_Grid_Data"/>
+   <addaction name="separator"/>
+   <addaction name="actionShow_Transmap"/>
+   <addaction name="actionShow_Tree_Map"/>
+   <addaction name="actionShow_Table_Lens"/>
+   <addaction name="actionShow_PCP"/>
    <addaction name="separator"/>
    <addaction name="actionShow_Minimum_Spanning_Tree"/>
    <addaction name="separator"/>
@@ -115,6 +118,7 @@
    <addaction name="actionExec"/>
    <addaction name="actionSplit"/>
    <addaction name="actionMerge"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_close">
@@ -333,6 +337,66 @@
    </property>
    <property name="text">
     <string>Multi Label Clustering</string>
+   </property>
+  </action>
+  <action name="actionShow_Transmap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/transmap.png</normaloff>:/ScatterPointGlyph/images/transmap.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Transmap</string>
+   </property>
+  </action>
+  <action name="actionShow_PCP">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/pcp.png</normaloff>:/ScatterPointGlyph/images/pcp.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show PCP</string>
+   </property>
+  </action>
+  <action name="actionShow_Tree_Map">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/treemap.png</normaloff>:/ScatterPointGlyph/images/treemap.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Tree Map</string>
+   </property>
+  </action>
+  <action name="actionShow_Table_Lens">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/table_lens.png</normaloff>:/ScatterPointGlyph/images/table_lens.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Table Lens</string>
    </property>
   </action>
  </widget>

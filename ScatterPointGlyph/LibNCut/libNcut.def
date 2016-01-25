@@ -1,0 +1,9 @@
+LIBRARY libNcut
+EXPORTS
+libNcutInitialize
+libNcutInitializeWithHandlers
+libNcutTerminate
+libNcutPrintStackTrace
+mlxNcutW
+mlfNcutW
+

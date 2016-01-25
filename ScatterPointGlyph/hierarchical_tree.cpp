@@ -1,6 +1,5 @@
 #include "hierarchical_tree.h"
 #include <queue>
-#include "gestalt_processor2.h"
 #include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
@@ -18,33 +17,6 @@ void HierarchicalTree::SetExpectedClusterNum(int num) {
 
 void HierarchicalTree::SetDistanceType(DistanceType type) {
 	this->type_ = type;
-}
-
-void HierarchicalTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
-	cluster_index.clear();
-
-	cluster_index.resize(root_->linked_nodes.size());
-	for (int i = 0; i < root_->linked_nodes.size(); ++i)
-		this->Traverse(root_->linked_nodes[i], cluster_index[i]);
-}
-
-void HierarchicalTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
-	cluster_index.resize(dataset_->point_pos.size());
-
-	cluster_num = root_->linked_nodes.size();
-
-	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
-		std::vector< int > point_vec;
-		this->Traverse(root_->linked_nodes[i], point_vec);
-		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
-	}
-}
-
-void HierarchicalTree::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
-	for (int i = 0; i < root_->linked_nodes.size(); ++i)
-		root_->linked_nodes[i]->is_expanded = false;
-
-	level_nodes = root_->linked_nodes;
 }
 
 void HierarchicalTree::run() {

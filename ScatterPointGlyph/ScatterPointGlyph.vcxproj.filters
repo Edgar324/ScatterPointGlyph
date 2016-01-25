@@ -33,23 +33,11 @@
       <Extensions>cpp;moc</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
-    <Filter Include="Header Files\Gestalt Property">
-      <UniqueIdentifier>{c4ab1a97-3073-4bf2-b393-3bce2d6c11bc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Gestalt Property">
-      <UniqueIdentifier>{a68d536a-72cc-4dfc-82c2-453302b46e17}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\GcOpt">
       <UniqueIdentifier>{7d1e45c4-02e8-44d3-b265-9400b7a0e8ac}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\GcOpt">
       <UniqueIdentifier>{99359c71-6c4a-4a24-aa51-997d9c1d596b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Scagnostics">
-      <UniqueIdentifier>{7730dac1-daa9-4014-b8ab-a89ac2d50b66}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Scagnostics">
-      <UniqueIdentifier>{ee1614b4-d206-4c66-bec5-139532647288}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Tree">
       <UniqueIdentifier>{27568041-6e02-4a68-9d94-0d9eb11aa49a}</UniqueIdentifier>
@@ -95,36 +83,6 @@
     <ClCompile Include="GeneratedFiles\qrc_scatter_point_glyph.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_layer_control_widget.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_layer_control_widget.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_rendering_layer_model.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_rendering_layer_model.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_hier_para_widget.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_hier_para_widget.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_hier_solver.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_hier_solver.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="line_extractor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="continuity_extractor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
     <ClCompile Include="gco-v3.0\GCoptimization.cpp">
       <Filter>Source Files\GcOpt</Filter>
     </ClCompile>
@@ -137,77 +95,14 @@
     <ClCompile Include="gco-v3.0\maxflow.cpp">
       <Filter>Source Files\GcOpt</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_gestalt_processor.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="property_extractor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="proximity_extractor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="similarity_extractor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_gestalt_processor2.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_gestalt_processor2.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_cluster_solver.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_cluster_solver.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_scatter_point_view.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_scatter_point_view.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="scagnostics\Binner.cpp">
-      <Filter>Source Files\Scagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="scagnostics\GraphMeasures.cpp">
-      <Filter>Source Files\Scagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="scagnostics\scag.cpp">
-      <Filter>Source Files\Scagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="scagnostics\Scagnostics.cpp">
-      <Filter>Source Files\Scagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="scagnostics\StringTokenizer.cpp">
-      <Filter>Source Files\Scagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_glyph_layer.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
     <ClCompile Include="point_rendering_layer.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="data\wrf_data_manager.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="data\wrf_nc_lambcc_projection_data.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="data\wrf_nc_square_projection_data.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="data\wrf_data_common.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="map_rendering_layer.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="data\wrf_utility.cpp">
-      <Filter>Source Files\Data</Filter>
     </ClCompile>
     <ClCompile Include="hierarchical_tree.cpp">
       <Filter>Source Files\Tree</Filter>
@@ -230,12 +125,6 @@
     <ClCompile Include="transmap_data.cpp">
       <Filter>Source Files\Rendering Layer</Filter>
     </ClCompile>
-    <ClCompile Include="field_rendering_layer.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="distance_matrix_layer.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_path_explore_widget.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -247,18 +136,6 @@
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_path_explore_item.cpp">
       <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_change_sorting_item.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_change_sorting_item.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="uncertainty_tree.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="grid_scatter_point_dataset.cpp">
-      <Filter>Source Files\Data</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_tree_map_view.cpp">
       <Filter>Generated Files\Debug</Filter>
@@ -296,12 +173,6 @@
     <ClCompile Include="path_explore_item.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
-    <ClCompile Include="change_sorting_item.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="change_table_lens.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
     <ClCompile Include="scatter_point_view.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
@@ -311,50 +182,23 @@
     <ClCompile Include="parallel_coordinate.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
-    <ClCompile Include="layer_control_widget.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="hier_para_widget.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="color_mapping_generator.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
-    <ClCompile Include="hier_solver.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="gestalt_processor2.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="gestalt_processor.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="gestalt_candidate_set.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_solver.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="rendering_layer_model.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
     <ClCompile Include="scatter_point_glyph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="tour_path_generator.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="immediate_tree.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="immediate_gestalt_tree.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
-    <ClCompile Include="linked_tree.cpp">
-      <Filter>Source Files\Gestalt Property</Filter>
-    </ClCompile>
     <ClCompile Include="ncut_tree.cpp">
       <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="multi_label_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="cnode.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="utility.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -376,9 +220,6 @@
     <CustomBuild Include="transmap.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
-    <CustomBuild Include="uncertainty_tree.h">
-      <Filter>Header Files\Tree</Filter>
-    </CustomBuild>
     <CustomBuild Include="variable_selection_dialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
@@ -397,38 +238,17 @@
     <CustomBuild Include="path_explore_item.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
-    <CustomBuild Include="change_sorting_item.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
     <CustomBuild Include="scatter_point_view.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
     <CustomBuild Include="variable_selection_dialog.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
-    <CustomBuild Include="layer_control_widget.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
     <CustomBuild Include="parallel_coordinate.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
-    <CustomBuild Include="cluster_solver.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </CustomBuild>
-    <CustomBuild Include="hier_solver.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </CustomBuild>
-    <CustomBuild Include="gestalt_processor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </CustomBuild>
-    <CustomBuild Include="gestalt_processor2.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </CustomBuild>
-    <CustomBuild Include="hier_para_widget.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="rendering_layer_model.h">
-      <Filter>Header Files\Rendering Layer</Filter>
+    <CustomBuild Include="multi_label_tree.h">
+      <Filter>Header Files\Tree</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -440,12 +260,6 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_hier_para_widget.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="line_extractor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="continuity_extractor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
     </ClInclude>
     <ClInclude Include="gco-v3.0\block.h">
       <Filter>Header Files\GcOpt</Filter>
@@ -462,55 +276,10 @@
     <ClInclude Include="gco-v3.0\LinkedBlockList.h">
       <Filter>Header Files\GcOpt</Filter>
     </ClInclude>
-    <ClInclude Include="property_extractor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="proximity_extractor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="similarity_extractor.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="scagnostics\Binner.h">
-      <Filter>Header Files\Scagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="scagnostics\GraphMeasures.h">
-      <Filter>Header Files\Scagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="scagnostics\Scagnostics.h">
-      <Filter>Header Files\Scagnostics</Filter>
-    </ClInclude>
-    <ClInclude Include="scagnostics\StringTokenizer.h">
-      <Filter>Header Files\Scagnostics</Filter>
-    </ClInclude>
     <ClInclude Include="basic_glyph_layer.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
-    <ClInclude Include="cluster_glyph_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
     <ClInclude Include="point_rendering_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_data_manager.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_nc_lambcc_projection_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_nc_map_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_nc_square_projection_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_data_common.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="data\wrf_utility.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="map_rendering_layer.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
     <ClInclude Include="hierarchical_tree.h">
@@ -525,16 +294,7 @@
     <ClInclude Include="transmap_data.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
-    <ClInclude Include="field_rendering_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="distance_matrix_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
     <ClInclude Include="path_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="grid_scatter_point_dataset.h">
       <Filter>Header Files\Data</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h">
@@ -546,29 +306,17 @@
     <ClInclude Include="multi_label_processor.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="change_table_lens.h">
-      <Filter>Header Files\Views</Filter>
-    </ClInclude>
-    <ClInclude Include="gestalt_candidate_set.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
     <ClInclude Include="tour_path_generator.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="color_mapping_generator.h">
-      <Filter>Header Files\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="immediate_gestalt_tree.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="immediate_tree.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
-    <ClInclude Include="linked_tree.h">
-      <Filter>Header Files\Gestalt Property</Filter>
-    </ClInclude>
     <ClInclude Include="ncut_tree.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="cnode.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

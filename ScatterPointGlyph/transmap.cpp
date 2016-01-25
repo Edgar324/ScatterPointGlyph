@@ -196,7 +196,7 @@ void TransMap::GetSelectedClusterIds(std::vector< int >& ids) {
 
 	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
 	while (node_iter != highlight_node_sequence.end()) {
-		ids.push_back((*node_iter)->id);
+		ids.push_back((*node_iter)->id());
 		node_iter++;
 	}
 }
@@ -1013,7 +1013,7 @@ void TransMap::OnLeftButtonUp() {
 
 void TransMap::OnNodeSelected(CNode* node) {
 	std::list< CNode* >::iterator iter = this->highlight_node_sequence.begin();
-	while (iter != this->highlight_node_sequence.end() && (*iter)->id != node->id) iter++;
+	while (iter != this->highlight_node_sequence.end() && (*iter)->id() != node->id()) iter++;
 	if (iter != this->highlight_node_sequence.end()) {
 		(*iter)->is_highlighted = false;
 		this->highlight_node_sequence.erase(iter);

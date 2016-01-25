@@ -36,18 +36,7 @@ void ImmediateTree::SetSampleSize(int num) {
 	is_threshold_updated_ = true;
 }
 
-void ImmediateTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
-	cluster_index.clear();
-
-	std::vector< CNode* > level_node;
-	this->Traverse(root_->level() - 1, level_node);
-
-	cluster_index.resize(level_node.size());
-	for (int i = 0; i < level_node.size(); ++i)
-		this->Traverse(level_node[i], cluster_index[i]);
-}
-
-void ImmediateTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
+void ImmediateTree::GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index) {
 	cluster_index.resize(dataset_->original_point_pos.size());
 	for (int i = 0; i < dataset_->original_point_pos.size(); ++i) cluster_index[i] = -1;
 
@@ -59,7 +48,7 @@ void ImmediateTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std:
 	for (int i = 0; i < level_node.size(); ++i) {
 		std::vector< int > point_vec;
 		this->Traverse(level_node[i], point_vec);
-		for (int j = 0; j < point_vec.size(); ++j) cluster_index[dataset_->sample_index[point_vec[j]]] = i;
+		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
 	}
 }
 

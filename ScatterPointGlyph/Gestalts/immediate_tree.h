@@ -14,8 +14,7 @@ public:
 	void SetProximityThreshold(float thre);
 	void SetSampleSize(int num);
 
-	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
-	virtual void GetClusterResult(float dis_per_piexl, int& cluster_num, std::vector< int >& cluster_index);
+	virtual void GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index);
 
 protected:
 	virtual void run();

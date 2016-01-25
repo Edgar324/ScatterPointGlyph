@@ -18,28 +18,17 @@ class QActionGroup;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
-class LayerControlWidget;
-class RenderingLayerModel;
-class RenderingLayer;
-class HierParaWidget;
-class HierSolver;
-class ClusterGlyphLayer;
+
 class PointRenderingLayer;
-class MapRenderingLayer;
-class GestaltProcessor2;
 class ScatterPointDataset;
-class ClusterSolver;
 class ScatterPointView;
-class WrfDataManager;
 class TreeCommon;
 class ParallelCoordinate;
 class ParallelDataset;
 class TransMap;
 class TransMapData;
-class PathExploreWidget;
-class TourPathGenerator;
+class PathExploreWidget; 
 class PathDataset;
-class ChangeTableLens;
 class TreeMapView;
 
 class ScatterPointGlyph : public QMainWindow
@@ -72,34 +61,26 @@ private:
 	QDockWidget* parallel_coordinate_panel_;
 
 	PathExploreWidget* path_explore_view_;
+	PathDataset* path_dataset;
 	QDockWidget* path_explore_panel_;
 
 	TreeMapView* tree_map_view_;
 	QDockWidget* tree_map_panel_;
 
-	QActionGroup* sys_mode_action_group_;
-	QActionGroup* main_view_interaction_mode_group_;
-	QActionGroup* transmap_tip_mode_group_ = NULL;
-
-	QDockWidget* layer_control_panel_;
-	LayerControlWidget* layer_control_widget_;
-	RenderingLayerModel* rendering_layer_model_;
-
 	PointRenderingLayer* original_point_rendering_layer_;
-	PointRenderingLayer* cluster_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
-	MapRenderingLayer* map_rendering_layer_;
+
 	TransMap* trans_map_;
 	TransMapData* transmap_data_;
 
+	QActionGroup* sys_mode_action_group_;
+	QActionGroup* main_view_interaction_mode_group_;
+	QActionGroup* transmap_tip_mode_group_;
+
 	SystemMode sys_mode_;
 	TreeCommon* cluster_tree_;
-	float dis_per_pixel_;
 
-	WrfDataManager* data_manager_;
-	ScatterPointDataset* dataset_;
-
-	PathDataset* pathset_;
+	ScatterPointDataset* scatter_point_dataset_;
 
 	int cluster_num;
 	std::vector< int > cluster_index;
@@ -109,8 +90,8 @@ private:
 
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);
+	
 	void GenerateParallelDataset(ParallelDataset* pdata, std::vector< int >& cluster_ids);
-
 	void UpdateParallelCoordinate();
 	void UpdateTransmap();
 	void UpdatePathMap();
@@ -120,7 +101,6 @@ private:
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
-	void OnActionOpenRawGridFileTriggered();
 	void OnActionOpenScatterFileTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();

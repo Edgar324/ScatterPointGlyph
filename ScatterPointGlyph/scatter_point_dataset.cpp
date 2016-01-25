@@ -2,33 +2,34 @@
 #include "SimpleMatrix.h"
 
 ScatterPointDataset::ScatterPointDataset() {
+	
 }
 
 ScatterPointDataset::~ScatterPointDataset() {
 
 }
 
-void ScatterPointDataset::Sample(float left, float right, float bottom, float top) {
+void ScatterPointDataset::ClearData() {
 	var_num = 0;
 	point_num = 0;
 	point_pos.clear();
 	point_values.clear();
-	sample_index.clear();
+
+	original_point_pos.clear();
+	original_pos_ranges.clear();
+
+	var_names.clear();
 	var_weights.clear();
+	original_point_values.clear();
+	original_value_ranges.clear();
+}
 
-	for (int i = 0; i < original_point_pos.size(); ++i)
-		if ((original_point_pos[i][0] - left) * (original_point_pos[i][0] - right) <= 0  
-			&& (original_point_pos[i][1] - bottom) * (original_point_pos[i][1] - top) <= 0) {
-			point_pos.push_back(original_point_pos[i]);
-			point_values.push_back(original_point_values[i]);
-			sample_index.push_back(i);
-		}
-	if (point_values.size() == 0) return;
+void ScatterPointDataset::DirectConstruct() {
+	var_num = var_names.size();
+	point_num = original_point_values.size();
 
-	var_weights.resize(point_values[0].size());
-	var_weights.assign(point_values[0].size(), 1.0 / point_values[0].size());
-	var_num = point_values[0].size();
-	point_num = point_values.size();
+	point_pos = original_point_pos;
+	point_values = original_point_values;
 
 	NormalizePosition(this->point_pos, this->original_pos_ranges);
 	NormalizeValues(this->point_values, this->original_value_ranges);
@@ -38,7 +39,7 @@ void ScatterPointDataset::AutoDimReduction(int dim_num) {
 
 }
 
-void ScatterPointDataset::SelectDim(std::vector< bool >& is_dim_selected) {
+void ScatterPointDataset::ManualSelectDim(std::vector< bool >& is_dim_selected) {
 	int accu_num = 0;
 	for (int i = 0; i < is_dim_selected.size(); ++i) {
 		if (is_dim_selected[i]) {
@@ -97,23 +98,6 @@ void ScatterPointDataset::ExecMds() {
 		original_point_pos[i][0] = X1->get(i, 0);
 		original_point_pos[i][1] = X1->get(i, 1);
 	}
-}
-
-void ScatterPointDataset::DirectConstruct() {
-	var_num = var_names.size();
-	point_num = original_point_values.size();
-	point_pos = original_point_pos;
-	point_values = original_point_values;
-	sample_index.resize(point_pos.size());
-
-	for (int i = 0; i < point_pos.size(); ++i) {
-		sample_index[i] = i;
-	}
-
-	point_num = point_pos.size();
-
-	NormalizePosition(this->point_pos, this->original_pos_ranges);
-	NormalizeValues(this->point_values, this->original_value_ranges);
 }
 
 void ScatterPointDataset::NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges){

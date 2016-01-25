@@ -1,10 +1,11 @@
-#include "uncertainty_tree.h"
+#include "multi_label_tree.h"
 #include "scatter_point_dataset.h"
 #include "multi_label_processor.h"
 #include <queue>
 #include "tour_path_generator.h"
+#include "utility.h"
 
-UncertaintyTree::UncertaintyTree(ScatterPointDataset* data)
+MultiLabelTree::MultiLabelTree(ScatterPointDataset* data)
 	: TreeCommon(data),
 	max_radius_threshold_(0.2),
 	un_threshold_(0.2),
@@ -16,73 +17,23 @@ UncertaintyTree::UncertaintyTree(ScatterPointDataset* data)
 	common_parent_node_ = NULL;
 }
 
-UncertaintyTree::~UncertaintyTree() {
+MultiLabelTree::~MultiLabelTree() {
 
 }
 
-void UncertaintyTree::SetRadiusThreshold(float max_radius) {
+void MultiLabelTree::SetRadiusThreshold(float max_radius) {
 	this->max_radius_threshold_ = max_radius;
 }
 
-void UncertaintyTree::SetSampleSize(int num) {
+void MultiLabelTree::SetSampleSize(int num) {
 	sample_num_ = num;
 }
 
-void UncertaintyTree::SetUncertaintyThreshold(float un_threshold) {
+void MultiLabelTree::SetUncertaintyThreshold(float un_threshold) {
 	this->un_threshold_ = un_threshold;
 }
 
-void UncertaintyTree::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
-	cluster_index.clear();
-
-	std::vector< CNode* > level_node;
-	this->Traverse(root_->level() - 1, level_node);
-
-	cluster_index.resize(level_node.size());
-	for (int i = 0; i < level_node.size(); ++i)
-		this->Traverse(level_node[i], cluster_index[i]);
-}
-
-void UncertaintyTree::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
-	cluster_index.resize(dataset_->original_point_pos.size());
-	for (int i = 0; i < dataset_->original_point_pos.size(); ++i) cluster_index[i] = -1;
-
-	int level = 0;
-	float temp_radius = max_radius_threshold_;
-	while (temp_radius / factor_ > dis_per_pixel) {
-		temp_radius /= factor_;
-		level++;
-	}
-	if (level == 0) level = 1;
-
-	std::vector< CNode* > level_node;
-	this->Traverse(level, level_node);
-
-	cluster_num = level_node.size();
-
-	for (int i = 0; i < level_node.size(); ++i) {
-		std::vector< int > point_vec;
-		this->Traverse(level_node[i], point_vec);
-		for (int j = 0; j < point_vec.size(); ++j) cluster_index[dataset_->sample_index[point_vec[j]]] = i;
-	}
-
-	std::cout << "Cluster Count: " << cluster_num << std::endl;
-}
-
-void UncertaintyTree::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
-	int level = 0;
-	float temp_radius = max_radius_threshold_;
-	while (temp_radius / factor_ > radius) {
-		temp_radius /= factor_;
-		level++;
-	}
-	if (level == 0) level = 1;
-
-	this->Traverse(level, level_nodes);
-}
-
-
-void UncertaintyTree::SplitCluster(int cluster_index) {
+void MultiLabelTree::SplitCluster(int cluster_index) {
 	std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index);
 	if (node_iter == id_node_map_.end()) {
 		std::cout << "Cluster not found!" << std::endl;
@@ -130,7 +81,7 @@ void UncertaintyTree::SplitCluster(int cluster_index) {
 	this->InitializeSortingIndex();
 }
 
-void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
+void MultiLabelTree::MergeClusters(std::vector< int >& cluster_index) {
 	std::vector< CNode* > cluster_nodes;
 	for (int i = 0; i < cluster_index.size(); ++i) {
 		std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index[i]);
@@ -165,7 +116,7 @@ void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
 			new_branch->radius = parent_node->radius / factor_;
 			new_branch->parent = parent_node;
 			parent_node->linked_nodes.push_back(new_branch);
-			id_node_map_.insert(std::map< int, CNode* >::value_type(new_branch->id, new_branch));
+			id_node_map_.insert(std::map< int, CNode* >::value_type(new_branch->id(), new_branch));
 
 			this->FindCommonParent(root_, cluster_index);
 
@@ -184,7 +135,7 @@ void UncertaintyTree::MergeClusters(std::vector< int >& cluster_index) {
 	this->InitializeSortingIndex();
 }
 
-void UncertaintyTree::RemoveChildNode(CNode* node, bool is_empty_deleted) {
+void MultiLabelTree::RemoveChildNode(CNode* node, bool is_empty_deleted) {
 	CBranch* temp_parent = node->parent;
 	if (temp_parent == NULL) return;
 
@@ -206,7 +157,7 @@ void UncertaintyTree::RemoveChildNode(CNode* node, bool is_empty_deleted) {
 	}
 }
 
-void UncertaintyTree::UpdateChildLevel(CBranch* node) {
+void MultiLabelTree::UpdateChildLevel(CBranch* node) {
 	std::queue< CNode* > node_queue;
 	for (int i = 0; i < node->linked_nodes.size(); ++i)
 		node_queue.push(node->linked_nodes[i]);
@@ -226,10 +177,10 @@ void UncertaintyTree::UpdateChildLevel(CBranch* node) {
 	AssignColor(node, node->hstart, node->hend);
 }
 
-int UncertaintyTree::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
+int MultiLabelTree::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
 	int value = 0;
 	for (int i = 0; i < node_ids.size(); ++i)
-		if (node->id == node_ids[i]) {
+		if (node->id() == node_ids[i]) {
 			value = 1;
 		}
 
@@ -245,7 +196,7 @@ int UncertaintyTree::FindCommonParent(CNode* node, std::vector< int >& node_ids)
 	return value;
 }
 
-void UncertaintyTree::ProgressNodeAndParent(CNode* node) {
+void MultiLabelTree::ProgressNodeAndParent(CNode* node) {
 	if (node == NULL || node == common_parent_node_) return;
 
 	// update the statistics
@@ -281,7 +232,7 @@ void UncertaintyTree::ProgressNodeAndParent(CNode* node) {
 	ProgressNodeAndParent(node->parent);
 }
 
-void UncertaintyTree::AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index) {
+void MultiLabelTree::AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index) {
 	if (origin_cluster == -1) {
 		// do it on the top level
 
@@ -291,7 +242,7 @@ void UncertaintyTree::AddUserDefinedCluster(int origin_cluster, std::vector< int
 	}
 }
 
-void UncertaintyTree::run() {
+void MultiLabelTree::run() {
 	if (root_->linked_nodes.size() != 0) {
 		for (int i = 0; i < root_->linked_nodes.size(); ++i) delete root_->linked_nodes[i];
 		root_->linked_nodes.clear();
@@ -304,7 +255,7 @@ void UncertaintyTree::run() {
 		else
 		this->ConstructOnRandomSample(sample_num_);*/
 
-	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id, root_));
+	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
 
 	root_->set_level(0);
 	root_->is_expanded = true;
@@ -312,7 +263,7 @@ void UncertaintyTree::run() {
 		root_->linked_nodes[i]->set_level(1);
 		root_->linked_nodes[i]->parent = root_;
 		root_->linked_nodes[i]->radius = this->min_edge_length_;
-		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id, root_->linked_nodes[i]));
+		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
 	}
 	root_->radius = max_radius_threshold_;
 
@@ -343,7 +294,7 @@ void UncertaintyTree::run() {
 	this->InitializeSortingIndex();
 }
 
-void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {
+void MultiLabelTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {
 	std::vector< std::vector< int > > var_labels;
 	var_labels.resize(dataset_->var_weights.size());
 
@@ -383,7 +334,7 @@ void UncertaintyTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, s
 			}
 }
 
-void UncertaintyTree::GenerateCluster(CBranch* node) {
+void MultiLabelTree::GenerateCluster(CBranch* node) {
 	if (node == NULL || node->linked_nodes.size() == 0) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
@@ -397,7 +348,7 @@ void UncertaintyTree::GenerateCluster(CBranch* node) {
 	}
 
 	std::vector< std::vector< bool > > connecting_status;
-	this->VtkTriangulation(node->linked_nodes, connecting_status);
+	Utility::VtkTriangulation(node->linked_nodes, connecting_status, this->min_edge_length_);
 	for (int i = 0; i < node->linked_nodes.size() - 1; ++i)
 		for (int j = i + 1; j < node->linked_nodes.size(); ++j)
 			if (connecting_status[i][j]) {
@@ -432,7 +383,7 @@ void UncertaintyTree::GenerateCluster(CBranch* node) {
 			label_nodes[label]->radius = node->radius / factor_;
 			label_nodes[label]->parent = node;
 
-			id_node_map_.insert(std::map< int, CNode* >::value_type(label_nodes[label]->id, label_nodes[label]));
+			id_node_map_.insert(std::map< int, CNode* >::value_type(label_nodes[label]->id(), label_nodes[label]));
 		}
 		label_nodes[label]->linked_nodes.push_back(node->linked_nodes[i]);
 		node->linked_nodes[i]->set_level(node->level() + 2);

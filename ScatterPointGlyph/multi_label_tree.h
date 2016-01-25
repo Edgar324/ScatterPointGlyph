@@ -1,15 +1,15 @@
-#ifndef UNCERTAINTY_TREE_H_
-#define UNCERTAINTY_TREE_H_
+#ifndef MULTI_LABEL_TREE_H_
+#define MULTI_LABEL_TREE_H_
 
 #include "tree_common.h"
 
 class MultiLabelProcessor;
 
-class UncertaintyTree : public TreeCommon
+class MultiLabelTree : public TreeCommon
 {
 public:
-	UncertaintyTree(ScatterPointDataset* data);
-	~UncertaintyTree();
+	MultiLabelTree(ScatterPointDataset* data);
+	~MultiLabelTree();
 
 	void SetRadiusThreshold(float max_radius);
 	void SetUncertaintyThreshold(float un_threshold);
@@ -17,10 +17,6 @@ public:
 	
 	void SetSegmentUncertaintyOn();
 	void SetSegmentUncertaintyOff();
-
-	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
-	virtual void GetClusterResult(float dis_per_piexl, int& cluster_num, std::vector< int >& cluster_index);
-	virtual void GetClusterResult(float radius, std::vector< CNode* >& level_nodes);
 
 	void SplitCluster(int cluster_index);
 	void MergeClusters(std::vector< int >& cluster_index);

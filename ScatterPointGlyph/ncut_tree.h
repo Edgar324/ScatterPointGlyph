@@ -9,14 +9,13 @@ public:
 	NCutTree(ScatterPointDataset* data);
 	~NCutTree();
 
+	void SetExpectedClusterNum(int num);
 	void SetUncertaintyThreshold(float un_threshold);
-
-	virtual void GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index);
-	virtual void GetClusterResult(float dis_per_piexl, int& cluster_num, std::vector< int >& cluster_index);
-	virtual void GetClusterResult(float radius, std::vector< CNode* >& level_nodes);
 
 protected:
 	float un_threshold_;
+	float data_dis_scale_;
+	int expected_cluster_num_;
 
 	virtual void run();
 	virtual void GenerateCluster(CBranch* node);

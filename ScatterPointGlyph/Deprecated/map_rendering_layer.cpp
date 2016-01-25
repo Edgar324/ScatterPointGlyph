@@ -13,39 +13,9 @@
 #include <vtkProperty.h>
 #include <vtkCleanPolyData.h>
 
-#include "wrf_data_manager.h"
-
 MapRenderingLayer::MapRenderingLayer() 
 	: BasicGlyphLayer() {
-	/*std::vector< std::vector< float > > map_polygons_;
-	map_polygons_ = WrfDataManager::GetInstance()->GetMapInformation();
-
-	border_data_ = vtkPolyData::New();
-	vtkPoints* points = vtkPoints::New();
-	border_data_->SetPoints(points);
-
-	vtkCellArray* line_array = vtkCellArray::New();
-	border_data_->SetLines(line_array);
-
-	for (int i = 0; i < map_polygons_.size(); ++i){
-		int pId = -1, preId = -1, fId = -1;
-		vtkIdType cell_ids[2];
-		for (int j = 0; j < map_polygons_[i].size() / 2; ++j) {
-			pId = poly_data_->GetPoints()->InsertNextPoint(map_polygons_[i][2 * j], map_polygons_[i][2 * j + 1], 0.01);
-			if (preId != -1) {
-				cell_ids[0] = preId;
-				cell_ids[1] = pId;
-				poly_data_->InsertNextCell(VTK_LINE, 2, cell_ids);
-			}
-			else {
-				fId = pId;
-			}
-			preId = pId;
-		}
-		cell_ids[0] = preId;
-		cell_ids[1] = fId;
-		poly_data_->InsertNextCell(VTK_LINE, 2, cell_ids);
-	}*/
+	
 }
 
 MapRenderingLayer::~MapRenderingLayer() {

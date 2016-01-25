@@ -1,62 +1,9 @@
 #include "tree_common.h"
 #include <queue>
-#include <vtkDelaunay2D.h>
-#include <vtkCellArray.h>
-#include <vtkPoints.h>
-#include <vtkTriangle.h>
-#include <vtkPolyData.h>
-#include <vtkPointData.h>
-#include <vtkLine.h>
-#include <vtkCellLocator.h>
-#include <vtkSmartPointer.h>
-#include <vtkDelaunay2D.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkActor.h>
-#include <vtkRenderer.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkProperty.h>
-#include <vtkVertexGlyphFilter.h>
-#include <vtkCellArray.h>
-#include <vtkCell.h>
+#include <time.h>
 
 #include "scatter_point_dataset.h"
-
-int CNode::max_id_ = 0;
-
-CNode::CNode() : type_(UNKNOWN), level_(-1) {
-	this->id = max_id_++;
-	is_expanded = false;
-	is_highlighted = false;
-}
-
-CNode::~CNode() {
-
-}
-
-CLeaf::CLeaf() : CNode() {
-	type_ = CNode::LEAF;
-}
-
-CLeaf::~CLeaf() {
-
-}
-
-CBranch::CBranch() : CNode() {
-	type_ = CNode::BRANCH;
-}
-
-CBranch::~CBranch() {
-
-}
-
-CNode* CBranch::FindNearestNode(float x, float y) {
-	return NULL;
-}
-
-CNode* CBranch::FindNearestValue(std::vector< float >& values) {
-	return NULL;
-}
+#include "utility.h"
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
@@ -65,21 +12,10 @@ TreeCommon::TreeCommon(ScatterPointDataset* data)
 
 	root_ = new CBranch;
 	root_->is_expanded = true;
+	root_->is_highlighted = false;
 }
 
 TreeCommon::~TreeCommon() {
-
-}
-
-void TreeCommon::GetClusterResult(float dis_per_pixel, std::vector< std::vector< int > >& cluster_index) {
-
-}
-
-void TreeCommon::GetClusterResult(float dis_per_pixel, int& cluster_num, std::vector< int >& cluster_index) {
-
-}
-
-void TreeCommon::GetClusterResult(float radius, std::vector< CNode* >& level_nodes) {
 
 }
 
@@ -227,6 +163,30 @@ void TreeCommon::ConstructDirectly() {
 	}*/
 }
 
+void TreeCommon::GetClusterResult(int level, std::vector< CNode* >& level_nodes) {
+	this->Traverse(level, level_nodes);
+}
+
+void TreeCommon::GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index) {
+	cluster_index.resize(dataset_->point_num);
+	for (int i = 0; i < dataset_->point_num; ++i) cluster_index[i] = -1;
+
+	std::vector< CNode* > level_node;
+	this->Traverse(level, level_node);
+
+	cluster_num = level_node.size();
+
+	for (int i = 0; i < level_node.size(); ++i) {
+		std::vector< int > point_vec;
+		this->Traverse(level_node[i], point_vec);
+		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
+	}
+
+#ifdef DEBUG_ON
+	std::cout << "Cluster Count: " << cluster_num << std::endl;
+#endif
+}
+
 void TreeCommon::GenerateCluster(CBranch* node /* = NULL */) {
 
 }
@@ -234,36 +194,6 @@ void TreeCommon::GenerateCluster(CBranch* node /* = NULL */) {
 void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 	nodes.clear();
 	Traverse(level, root_, nodes);
-	/*std::queue< CNode* > node_queue;
-	node_queue.push(root_);
-	while (node_queue.size() != 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-		temp_node->is_expanded = true;
-
-		if (temp_node->level() == level) {
-			nodes.push_back(temp_node);
-			temp_node->is_expanded = false;
-		} else {
-			if (temp_node->type() == CNode::BRANCH && temp_node->level() < level) {
-				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-				bool is_all_leaf = true;
-				for (int i = 0; i < branch->linked_nodes.size(); ++i)
-					if (branch->linked_nodes[i]->type() != CNode::LEAF) {
-						is_all_leaf = false;
-						break;
-					}
-				if (is_all_leaf && level != max_level_) {
-					nodes.push_back(temp_node);
-					temp_node->is_expanded = false;
-				} else {
-					branch->is_highlighted = false;
-					for (int i = 0; i < branch->linked_nodes.size(); ++i)
-						node_queue.push(branch->linked_nodes[i]);
-				}
-			}
-		}
-	}*/
 }
 
 void TreeCommon::Traverse(int level, CNode* root, std::vector< CNode* >& nodes) {
@@ -295,30 +225,6 @@ void TreeCommon::Traverse(int level, CNode* root, std::vector< CNode* >& nodes) 
 	}
 }
 
-void TreeCommon::Traverse(float radius, std::vector< CNode* >& nodes) {
-	nodes.clear();
-
-	std::queue< CNode* > node_queue;
-	node_queue.push(root_);
-	while (node_queue.size() != 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-
-		if (temp_node->radius > radius) {
-			nodes.push_back(temp_node);
-		}
-		else {
-			if (temp_node->type() == CNode::BRANCH) {
-				CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-				if (branch != NULL) {
-					for (int i = 0; i < branch->linked_nodes.size(); ++i)
-						node_queue.push(branch->linked_nodes[i]);
-				}
-			}
-		}
-	}
-}
-
 void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
 	std::queue< CNode* > node_queue;
 	node_queue.push(node);
@@ -342,67 +248,6 @@ void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
 			}
 		}
 	}
-}
-
-void TreeCommon::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status) {
-	connecting_status.resize(nodes.size());
-	for (int i = 0; i < nodes.size(); ++i) {
-		connecting_status[i].resize(nodes.size());
-		connecting_status[i].assign(nodes.size(), false);
-	}
-
-	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
-	for (int i = 0; i < nodes.size(); ++i) {
-		points->InsertNextPoint(nodes[i]->center_pos[0], nodes[i]->center_pos[1], 0);
-	}
-	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
-	polydata->SetPoints(points);
-	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
-	delaunay->SetInputData(polydata);
-	delaunay->SetTolerance(0.00001);
-	delaunay->SetBoundingTriangulation(false);
-	delaunay->Update();
-	vtkPolyData* triangle_out = delaunay->GetOutput();
-
-	min_edge_length_ = 0.0;
-	int edge_count = 0;
-
-	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
-	float min_dis = 1e10;
-	for (int i = 0; i < triangle_out->GetNumberOfPolys(); ++i){
-		vtkCell* cell = triangle_out->GetCell(i);
-		int id1 = cell->GetPointId(0);
-		int id2 = cell->GetPointId(1);
-		int id3 = cell->GetPointId(2);
-		connecting_status[id1][id2] = true;
-		connecting_status[id2][id1] = true;
-		connecting_status[id2][id3] = true;
-		connecting_status[id3][id2] = true;
-		connecting_status[id1][id3] = true;
-		connecting_status[id3][id1] = true;
-
-		float temp_dis;
-		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id2]->center_pos[0], 2)
-			+ pow(nodes[id1]->center_pos[1] - nodes[id2]->center_pos[1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
-
-		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id3]->center_pos[0], 2)
-			+ pow(nodes[id1]->center_pos[1] - nodes[id3]->center_pos[1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
-
-		temp_dis = sqrt(pow(nodes[id3]->center_pos[0] - nodes[id2]->center_pos[0], 2)
-			+ pow(nodes[id3]->center_pos[1] - nodes[id2]->center_pos[1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
-	}
-	min_edge_length_ = min_dis;
-
-#ifdef DEBUG_ON
-	/*for (int i = 0; i < connecting_status.size(); ++i){
-		bool is_connecting = false;
-		for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
-		assert(is_connecting);
-	}*/
-#endif // DEBUG_ON
 }
 
 void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor, bool perm, bool rev) {
@@ -476,19 +321,19 @@ void TreeCommon::InitializeSortingIndex() {
 	}
 }
 
-void TreeCommon::SortTree(std::vector< int >& node_index) {
+void TreeCommon::SortTree(std::vector< int >& node_ids) {
 	int node_count = 0;
-	this->SortNode(root_, node_index, node_count);
+	this->SortNode(root_, node_ids, node_count);
 }
 
-int TreeCommon::SortNode(CNode* node, std::vector< int >& node_index, int& node_count) {
-	if (node_count > node_index.size()) return 9999;
+int TreeCommon::SortNode(CNode* node, std::vector< int >& node_ids, int& node_count) {
+	if (node_count > node_ids.size()) return 9999;
 
 	// find all the nodes in the linked_nodes that exist in the node_index
 	if (node->type() == CNode::BRANCH) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
-		for (int i = 0; i < node_index.size(); ++i)
-			if (node_index[i] == node->id) return i;
+		for (int i = 0; i < node_ids.size(); ++i)
+			if (node_ids[i] == node->id()) return i;
 
 		std::vector< bool > is_node_exist;
 		std::vector< int > new_sequence;
@@ -497,13 +342,13 @@ int TreeCommon::SortNode(CNode* node, std::vector< int >& node_index, int& node_
 		is_node_exist.resize(branch->linked_nodes.size(), false);
 
 		for (int i = 0; i < branch->linked_nodes.size(); ++i)
-			if (node_count < node_index.size()) node_min_index[i] = SortNode(branch->linked_nodes[i], node_index, node_count);
+			if (node_count < node_ids.size()) node_min_index[i] = SortNode(branch->linked_nodes[i], node_ids, node_count);
 		for (int i = 0; i < node_min_index.size(); ++i)
 			if (node_min_index[i] < 9999) is_node_exist[i] = true;
 
 		new_sequence.resize(branch->linked_nodes.size());
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) new_sequence[i] = i;
-		Sort(node_min_index, new_sequence);
+		Utility::Sort(node_min_index, new_sequence);
 
 		branch->sorting_index.clear();
 		for (int i = 0; i < new_sequence.size(); ++i)
@@ -566,18 +411,4 @@ void TreeCommon::ResetLevel(CNode* node, int level) {
 				ResetLevel(branch->linked_nodes[i], level + 1);
 		}
 	}
-}
-
-void TreeCommon::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
-	for (int i = 0; i < index_one.size() - 1; ++i)
-		for (int j = i + 1; j < index_one.size(); ++j)
-			if (index_one[i] > index_one[j]){
-				float temp_value = index_one[j];
-				index_one[j] = index_one[i];
-				index_one[i] = temp_value;
-
-				int temp_index = index_two[i];
-				index_two[i] = index_two[j];
-				index_two[j] = temp_index;
-			}
 }
