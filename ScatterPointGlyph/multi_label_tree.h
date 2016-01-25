@@ -23,7 +23,7 @@ public:
 	void AddUserDefinedCluster(int origin_cluster, std::vector< int >& point_index);
 
 protected:
-	virtual void run();
+	virtual void GenerateClusters();
 	virtual void GenerateCluster(CBranch* node);
 	void GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight);
 

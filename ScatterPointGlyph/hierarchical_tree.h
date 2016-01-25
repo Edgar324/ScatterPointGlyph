@@ -21,14 +21,11 @@ public:
 	void SetDistanceType(DistanceType type);
 
 protected:
-	virtual void run();
+	virtual void GenerateClusters();
 
 private:
 	int expected_cluster_num_;
-	float data_dis_scale_;
 	DistanceType type_;
-
-	void GenerateCluster();
 };
 
 #endif

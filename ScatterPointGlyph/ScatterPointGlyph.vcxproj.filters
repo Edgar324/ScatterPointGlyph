@@ -211,12 +211,6 @@
     <CustomBuild Include="scatter_point_glyph.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="perception_para_dialog.ui">
-      <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="hier_para_widget.ui">
-      <Filter>Form Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="transmap.h">
       <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
@@ -253,12 +247,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h">
-      <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_perception_para_dialog.h">
-      <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GeneratedFiles\ui_hier_para_widget.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="gco-v3.0\block.h">

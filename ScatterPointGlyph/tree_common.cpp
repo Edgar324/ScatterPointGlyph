@@ -7,19 +7,12 @@
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
+	root_(NULL),
 	min_edge_length_(0),
-	max_level_(0) {
-
-	root_ = new CBranch;
-	root_->is_expanded = true;
-	root_->is_highlighted = false;
+	data_dis_scale_(0.5) {
 }
 
 TreeCommon::~TreeCommon() {
-
-}
-
-void TreeCommon::run() {
 
 }
 
@@ -118,9 +111,10 @@ void TreeCommon::ConstructDirectly() {
 			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] /= neighbour_list.size();
 			temp_leaf->point_count = temp_leaf->linked_points.size();
+			temp_leaf->parent = root_;
 
 			root_->linked_nodes.push_back(temp_leaf);
-			temp_leaf->set_level(0);
+			temp_leaf->set_level(1);
 		}
 
 	min_edge_length_ = 1e10;
@@ -131,36 +125,8 @@ void TreeCommon::ConstructDirectly() {
 				+ pow(root_->linked_nodes[i]->center_pos[1] - root_->linked_nodes[j]->center_pos[1], 2));
 			if (temp_dis < min_edge_length_) min_edge_length_ = temp_dis;
 		}
-	/*if (dataset_->is_structured_data) {
-		node_connecting_status_.resize(dataset_->point_pos.size());
-		for (int i = 0; i < dataset_->point_pos.size(); ++i) {
-			node_connecting_status_[i].resize(dataset_->point_pos.size());
-			node_connecting_status_[i].assign(node_connecting_status_[i].size(), false);
-		}
-		for (int i = 0; i < dataset_->point_pos.size(); ++i) {
-			int x = dataset_->sample_index[i] % dataset_->w;
-			int y = dataset_->sample_index[i] / dataset_->w;
-			if (x == dataset_->w - 1 || y == dataset_->h - 1) continue;
-			int pre_one = -1;
-			if (dataset_->node_sample_map.find(y * dataset_->w + x + 1) != dataset_->node_sample_map.end())
-				pre_one = dataset_->node_sample_map[y * dataset_->w + x + 1];
-			if (pre_one == -1) continue;
-			int pre_two = -1;
-			if (dataset_->node_sample_map.find((y + 1) * dataset_->w + x) != dataset_->node_sample_map.end())
-				pre_two = dataset_->node_sample_map[(y + 1) * dataset_->w + x];
-			if (pre_two == -1) continue;
-			node_connecting_status_[pre_one][i] = true;
-			node_connecting_status_[i][pre_one] = true;
-			node_connecting_status_[pre_two][i] = true;
-			node_connecting_status_[i][pre_two] = true;
-		}
 
-		this->min_edge_length_ = sqrt(pow(leaf_nodes_[0]->center_pos[0] - leaf_nodes_[1]->center_pos[0], 2)
-			+ pow(leaf_nodes_[0]->center_pos[1] - leaf_nodes_[1]->center_pos[1], 2));
-	}
-	else {
-		
-	}*/
+	this->ProgressNode(root_);
 }
 
 void TreeCommon::GetClusterResult(int level, std::vector< CNode* >& level_nodes) {
@@ -187,8 +153,22 @@ void TreeCommon::GetClusterResult(int level, int& cluster_num, std::vector< int 
 #endif
 }
 
-void TreeCommon::GenerateCluster(CBranch* node /* = NULL */) {
+void TreeCommon::run() {
+	if (root_ != NULL) delete root_;
+	root_ = new CBranch;
+	root_->set_level(0);
+	root_->is_expanded = true;
+	root_->is_highlighted = false;
 
+	this->ConstructDirectly();
+
+	this->GenerateClusters();
+
+	this->InitializeSortingIndex();
+
+	this->ResetLevel(root_, 0);
+
+	this->AssignColor(root_, 0, 1.0);
 }
 
 void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {

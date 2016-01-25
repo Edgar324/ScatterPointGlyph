@@ -17,7 +17,7 @@ protected:
 	float data_dis_scale_;
 	int expected_cluster_num_;
 
-	virtual void run();
+	virtual void GenerateClusters();
 	virtual void GenerateCluster(CBranch* node);
 };
 

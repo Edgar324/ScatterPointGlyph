@@ -3,8 +3,7 @@
 #include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
-	: TreeCommon(data), expected_cluster_num_(-1), type_(CENTER_DISTANCE),
-	data_dis_scale_(0.5) {
+	: TreeCommon(data), expected_cluster_num_(1), type_(CENTER_DISTANCE) {
 }
 
 HierarchicalTree::~HierarchicalTree() {
@@ -19,26 +18,7 @@ void HierarchicalTree::SetDistanceType(DistanceType type) {
 	this->type_ = type;
 }
 
-void HierarchicalTree::run() {
-	if (root_->linked_nodes.size() != 0) {
-		for (int i = 0; i < root_->linked_nodes.size(); ++i) delete root_->linked_nodes[i];
-		root_->linked_nodes.clear();
-	}
-
-	this->ConstructDirectly();
-
-	if (expected_cluster_num_ < 0) expected_cluster_num_ = 10;
-
-	this->GenerateCluster();
-
-	ResetLevel(root_, 0);
-
-	AssignColor(root_, 0, 1.0);
-
-	this->InitializeSortingIndex();
-}
-
-void HierarchicalTree::GenerateCluster() {
+void HierarchicalTree::GenerateClusters() {
 	while (root_->linked_nodes.size() > expected_cluster_num_) {
 		int min_node_index[2];
 		float min_node_dis = 1e20;

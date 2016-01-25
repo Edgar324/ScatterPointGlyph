@@ -24,23 +24,8 @@ void NCutTree::SetExpectedClusterNum(int num) {
 	this->expected_cluster_num_ = num;
 }
 
-void NCutTree::run()
+void NCutTree::GenerateClusters()
 {
-	if (root_->linked_nodes.size() != 0) {
-		for (int i = 0; i < root_->linked_nodes.size(); ++i) delete root_->linked_nodes[i];
-		root_->linked_nodes.clear();
-	}
-
-	this->ConstructDirectly();
-
-	root_->set_level(0);
-	root_->is_expanded = true;
-	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
-		root_->linked_nodes[i]->set_level(1);
-		root_->linked_nodes[i]->parent = root_;
-	}
-	ProgressNode(root_);
-
 	if (expected_cluster_num_ < 0) expected_cluster_num_ = 10;
 
 	std::queue< CNode* > node_queue;
@@ -63,10 +48,6 @@ void NCutTree::run()
 				node_queue.push(branch->linked_nodes[i]);
 		}
 	}
-
-	AssignColor(root_, 0, 1.0);
-
-	this->InitializeSortingIndex();
 }
 
 void NCutTree::GenerateCluster(CBranch* node) 

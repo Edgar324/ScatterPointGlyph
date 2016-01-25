@@ -242,27 +242,9 @@ void MultiLabelTree::AddUserDefinedCluster(int origin_cluster, std::vector< int 
 	}
 }
 
-void MultiLabelTree::run() {
-	if (root_->linked_nodes.size() != 0) {
-		for (int i = 0; i < root_->linked_nodes.size(); ++i) delete root_->linked_nodes[i];
-		root_->linked_nodes.clear();
-	}
-	
-	this->ConstructDirectly();
-
-	/*if (dataset_->point_num < sample_num_)
-		this->ConstructDirectly();
-		else
-		this->ConstructOnRandomSample(sample_num_);*/
-
+void MultiLabelTree::GenerateClusters() {
 	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
-
-	root_->set_level(0);
-	root_->is_expanded = true;
 	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
-		root_->linked_nodes[i]->set_level(1);
-		root_->linked_nodes[i]->parent = root_;
-		root_->linked_nodes[i]->radius = this->min_edge_length_;
 		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
 	}
 	root_->radius = max_radius_threshold_;
@@ -288,10 +270,6 @@ void MultiLabelTree::run() {
 				node_queue.push(branch->linked_nodes[i]);
 		}
 	}
-
-	AssignColor(root_, 0, 1.0);
-
-	this->InitializeSortingIndex();
 }
 
 void MultiLabelTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight) {
@@ -389,8 +367,6 @@ void MultiLabelTree::GenerateCluster(CBranch* node) {
 		node->linked_nodes[i]->set_level(node->level() + 2);
 		node->linked_nodes[i]->parent = label_nodes[label];
 	}
-
-	if (node->level() + 1 > max_level_) max_level_ = node->level() + 1;
 
 	common_parent_node_ = node;
 
