@@ -13,6 +13,7 @@ public:
 	~VariableItem();
 
 	void SetData(QString var_name, std::vector< float >& var_values, std::vector< int >& node_count, std::vector< QColor >& node_color, int selected_count);
+	void SetAbsWidthEnabled(bool enabled);
 
 protected:
 	QRectF boundingRect() const;
@@ -25,6 +26,8 @@ private:
 	QString var_name_;
 	int selected_count_;
 	int total_node_count_;
+
+	bool is_abs_width_on_;
 
 	int item_size = 30;
 	int item_margin = 3;

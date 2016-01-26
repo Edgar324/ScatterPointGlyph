@@ -129,6 +129,11 @@ private slots:
 	void OnSavePathSequenceTriggered();
 	void OnShowMstTriggered();
 	void OnShowVarTrendTriggered();
+
+	void OnActionShowTransmapTriggered();
+	void OnActionShowTreemapTriggered();
+	void OnActionShowTableLensTriggerd();
+	void OnActionShowParallelCoordinateTriggered();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

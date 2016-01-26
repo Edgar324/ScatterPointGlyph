@@ -4,7 +4,7 @@
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 
 VariableItem::VariableItem() {
-
+	is_abs_width_on_ = false;
 }
 
 VariableItem::~VariableItem() {
@@ -42,7 +42,7 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 	painter->setPen(name_pen);
 	painter->drawText(QRectF(-150, 0, 150, total_height), var_name_, Qt::AlignBottom | Qt::AlignHCenter);
 
-	if (true) {
+	if (!is_abs_width_on_) {
 		int temp_width = 0, temp_bar_width = 0;
 		for (int i = 0; i < var_values_.size(); ++i) {
 			if (node_count_[i] < 5) temp_bar_width = item_size * 0.5;
@@ -79,5 +79,12 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 	axis_pen.setWidth(2);
 	painter->setPen(axis_pen);
 	painter->drawLine(0, total_height, total_width, total_height);
+}
+
+void VariableItem::SetAbsWidthEnabled(bool enabled)
+{
+	is_abs_width_on_ = enabled;
+
+	this->update();
 }
 

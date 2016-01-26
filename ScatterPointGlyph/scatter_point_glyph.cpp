@@ -171,6 +171,12 @@ void ScatterPointGlyph::InitWidget() {
 
 	// action for saving exploration path
 	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnSavePathSequenceTriggered()));
+
+	// action for view visibility
+	connect(ui_.actionShow_Transmap, SIGNAL(triggered()), this, SLOT(OnActionShowTransmapTriggered()));
+	connect(ui_.actionShow_Tree_Map, SIGNAL(triggered()), this, SLOT(OnActionShowTreemapTriggered()));
+	connect(ui_.actionShow_Table_Lens, SIGNAL(triggered()), this, SLOT(OnActionShowTableLensTriggerd()));
+	connect(ui_.actionShow_PCP, SIGNAL(triggered()), this, SLOT(OnActionShowParallelCoordinateTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -777,4 +783,26 @@ void ScatterPointGlyph::UpdateMenus() {
 		transmap_tip_mode_group_->addAction(action);
 	}
 	//transmap_tip_mode_group_->setExclusive(true);
+}
+
+void ScatterPointGlyph::OnActionShowTransmapTriggered()
+{
+	trans_map_->SetEnabled(ui_.actionShow_Transmap->isChecked());
+}
+
+void ScatterPointGlyph::OnActionShowTreemapTriggered()
+{
+	tree_map_view_->SetTreeMapVisible(ui_.actionShow_Tree_Map->isChecked());
+	tree_map_panel_->setVisible(tree_map_view_->IsVisible());
+}
+
+void ScatterPointGlyph::OnActionShowTableLensTriggerd()
+{
+	tree_map_view_->SetTableLensVisible(ui_.actionShow_Table_Lens->isChecked());
+	tree_map_panel_->setVisible(tree_map_view_->IsVisible());
+}
+
+void ScatterPointGlyph::OnActionShowParallelCoordinateTriggered()
+{
+	parallel_coordinate_panel_->setVisible(ui_.actionShow_PCP->isChecked());
 }
