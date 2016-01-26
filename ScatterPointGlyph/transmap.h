@@ -18,11 +18,14 @@ class ScatterPointDataset;
 class TourPathGenerator;
 class vtkPropPicker;
 class vtkTextActor3D;
+class vtkTooltipItem;
+
+class ScatterPointView;
 
 class TransMap : public vtk3DWidget
 {
 public:
-	TransMap(QVTKWidget* parent);
+	TransMap(ScatterPointView* parent);
 
 	vtkTypeMacro(TransMap, vtk3DWidget);
 	void PrintSelf(ostream& os, vtkIndent indent) {}
@@ -74,7 +77,7 @@ protected:
 	
 	static void ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata);
 
-	virtual void OnMouseMove() {}
+	virtual void OnMouseMove();
 	virtual void OnLeftButtonDown();
 	virtual void OnLeftButtonUp();
 	virtual void OnRightButtonDown();
@@ -82,7 +85,7 @@ protected:
 
 	void BuildRepresentation();
 
-	QVTKWidget* parent_view;
+	ScatterPointView* parent_view;
 
 	std::vector< vtkActor* > node_glyph_actors;
 	std::vector< vtkPolyData* > node_glyph_polys;
@@ -101,6 +104,7 @@ protected:
 	vtkPolyData* selection_brush_poly;
 
 	vtkPropPicker* node_picker;
+	vtkTooltipItem* tool_tip_item_;
 
 	std::vector< int > trans_edges;
 	std::list< CNode* > highlight_node_sequence;
@@ -119,6 +123,7 @@ private:
 	bool is_var_trend_fixed_ = false;
 	int var_trend_index_ = -1;
 	int highlight_var_index_ = -1;
+	bool is_highlight_var_fixed_ = false;
 
 	void UpdateNodeActors();
 	void GenerateTransEdgeFromHighlight();

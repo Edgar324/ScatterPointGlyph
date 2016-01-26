@@ -3,9 +3,11 @@
 #include <QtCore/QTimer>
 #include <QtGui/QWheelEvent>
 #include <QtGui/QDragMoveEvent>
+#include <QtWidgets/QToolTip>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkInteractorStyleImage.h>
+#include "cnode.h"
 
 ScatterPointView::ScatterPointView() 
 	: QVTKWidget(), is_wheel_updated_(false) {
@@ -36,12 +38,14 @@ void ScatterPointView::wheelEvent(QWheelEvent* event) {
 
 void ScatterPointView::mousePressEvent(QMouseEvent* event) {
 	QVTKWidget::mousePressEvent(event);
-	emit GlyphSelected(event->x(), this->height() - event->y());
+	if (event->buttons() & Qt::LeftButton)
+		emit GlyphSelected(event->x(), this->height() - event->y());
 	if (event->buttons() & Qt::RightButton)
 		emit RightButtonDown();
 }
 
 void ScatterPointView::mouseMoveEvent(QMouseEvent* event) {
+	global_mouse_pos_ = event->globalPos();
 	if (event->buttons() & Qt::LeftButton) {
 		emit MouseDrag(event->pos().x(), this->height() - event->pos().y());
 	}
@@ -61,4 +65,30 @@ void ScatterPointView::OnTimeout() {
 	} else {
 		emit ViewUpdated();
 	}
+}
+
+void ScatterPointView::ShowTooltip(int point_count, QString axis_name, float average_value, float variance_value)
+{
+	QString tip_str = "";
+	tip_str = "Cluster Information: <br>";
+	tip_str += QString("Point Count: %0<br>").arg(point_count);
+	tip_str += "Variable Values: Means(Variance)<br>";
+	QString temp_str = "";
+	temp_str += "<font color=red>";
+	temp_str += axis_name;
+	temp_str += QString(":  %0(%1)").arg(average_value).arg(variance_value);
+	temp_str += "</font><br>";
+	tip_str += temp_str;
+
+	QToolTip::showText(global_mouse_pos_, tip_str);
+}
+
+void ScatterPointView::HideTooltip()
+{
+	QToolTip::hideText();
+}
+
+void ScatterPointView::SetHighlightVarIndex(int var_index)
+{
+	emit HighlightVarChanged(var_index);
 }

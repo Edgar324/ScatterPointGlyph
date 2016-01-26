@@ -20,6 +20,8 @@
 #include <vtkCell.h>
 
 #include "cnode.h"
+#include "parallel_coordinate.h"
+#include "tour_path_generator.h"
 
 Utility::Utility() {
 }
@@ -101,4 +103,54 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
 	assert(is_connecting);
 	}*/
 #endif // DEBUG_ON
+}
+
+void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& axis_order)
+{
+	axis_order.resize(dataset->axis_names.size());
+	for (int i = 0; i < dataset->axis_names.size(); ++i) axis_order[i] = i;
+	std::vector< std::vector< float > > corr_values;
+	corr_values.resize(dataset->axis_names.size());
+	for (int i = 0; i < dataset->axis_names.size(); ++i) {
+		corr_values[i].resize(dataset->axis_names.size(), 0);
+	}
+	if (dataset->subset_records.size() == 1) {
+		for (int i = 0; i < dataset->axis_names.size() - 1; ++i)
+			for (int j = i + 1; j < dataset->axis_names.size(); ++j) {
+				float temp_corr = 0;
+				for (int k = 0; k < dataset->subset_records[0].size(); ++k)
+					temp_corr += (dataset->subset_records[0][k]->values[i] - dataset->var_centers[0][i]) * (dataset->subset_records[0][k]->values[j] - dataset->var_centers[0][j]);
+				corr_values[i][j] = temp_corr / (dataset->subset_records[0].size() * dataset->var_std_dev[0][i] * dataset->var_std_dev[0][j]);
+				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
+				corr_values[j][i] = corr_values[i][j];
+			}
+		TourPathGenerator::GenerateRoundPath(corr_values, axis_order);
+	}
+	else {
+		std::vector< float > center_values;
+		std::vector< float > std_dev_values;
+		center_values.resize(dataset->axis_names.size(), 0);
+		std_dev_values.resize(dataset->axis_names.size(), 0);
+		for (int i = 0; i < dataset->axis_names.size(); ++i) {
+			for (int j = 0; j < dataset->subset_records.size(); ++j)
+				center_values[i] += dataset->var_centers[j][i];
+			center_values[i] /= dataset->subset_records.size();
+		}
+		for (int i = 0; i < dataset->axis_names.size(); ++i) {
+			for (int j = 0; j < dataset->subset_records.size(); ++j)
+				std_dev_values[i] += pow(dataset->var_centers[j][i] - center_values[i], 2);
+			std_dev_values[i] = sqrt(std_dev_values[i] / dataset->subset_records.size());
+		}
+
+		for (int i = 0; i < dataset->axis_names.size() - 1; ++i)
+			for (int j = i + 1; j < dataset->axis_names.size(); ++j) {
+				float temp_corr = 0;
+				for (int k = 0; k < dataset->subset_records.size(); ++k)
+					temp_corr += (dataset->var_centers[k][i] - center_values[i]) * (dataset->var_centers[k][j] - center_values[j]);
+				corr_values[i][j] = temp_corr / (dataset->subset_records.size() * std_dev_values[i] * std_dev_values[j]);
+				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
+				corr_values[j][i] = corr_values[i][j];
+			}
+		TourPathGenerator::GenerateRoundPath(corr_values, axis_order);
+	}
 }

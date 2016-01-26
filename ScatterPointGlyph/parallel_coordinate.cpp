@@ -1,4 +1,5 @@
 #include "parallel_coordinate.h"
+#include <QtGui/QMouseEvent>
 #include "tour_path_generator.h"
 
 ParallelDataset::ParallelDataset()
@@ -123,7 +124,8 @@ bool ParallelDataset::ClearData(){
 
 
 ParallelCoordinate::ParallelCoordinate()
-    : dataset_(NULL) {
+    : dataset_(NULL),
+	highlight_var_index_(-1) {
     //this->setMinimumSize(200, 300);
 }
 
@@ -133,56 +135,24 @@ ParallelCoordinate::~ParallelCoordinate(){
 
 void ParallelCoordinate::SetDataset(ParallelDataset* dataset_t){
     dataset_ = dataset_t;
+	axis_order_.resize(dataset_->axis_names.size());
+	for (int i = 0; i < dataset_->axis_names.size(); ++i) axis_order_[i] = i;
 
     UpdateViewLayoutParameters();
 
-	axis_order_.resize(dataset_->axis_names.size());
-	for (int i = 0; i < dataset_->axis_names.size(); ++i) axis_order_[i] = i;
-	std::vector< std::vector< float > > corr_values;
-	corr_values.resize(dataset_->axis_names.size());
-	for (int i = 0; i < dataset_->axis_names.size(); ++i) {
-		corr_values[i].resize(dataset_->axis_names.size(), 0);
-	}
-	if (dataset_->subset_records.size() == 1) {
-		for (int i = 0; i < dataset_->axis_names.size() - 1; ++i)
-			for (int j = i + 1; j < dataset_->axis_names.size(); ++j) {
-				float temp_corr = 0;
-				for (int k = 0; k < dataset_->subset_records[0].size(); ++k)
-					temp_corr += (dataset_->subset_records[0][k]->values[i] - dataset_->var_centers[0][i]) * (dataset_->subset_records[0][k]->values[j] - dataset_->var_centers[0][j]);
-				corr_values[i][j] = temp_corr / (dataset_->subset_records[0].size() * dataset_->var_std_dev[0][i] * dataset_->var_std_dev[0][j]);
-				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
-				corr_values[j][i] = corr_values[i][j];
-			}
-		TourPathGenerator::GenerateRoundPath(corr_values, axis_order_);
-	} else {
-		std::vector< float > center_values;
-		std::vector< float > std_dev_values;
-		center_values.resize(dataset_->axis_names.size(), 0);
-		std_dev_values.resize(dataset_->axis_names.size(), 0);
-		for (int i = 0; i < dataset_->axis_names.size(); ++i) {
-			for (int j = 0; j < dataset_->subset_records.size(); ++j)
-				center_values[i] += dataset_->var_centers[j][i];
-			center_values[i] /= dataset_->subset_records.size();
-		}
-		for (int i = 0; i < dataset_->axis_names.size(); ++i) {
-			for (int j = 0; j < dataset_->subset_records.size(); ++j)
-				std_dev_values[i] += pow(dataset_->var_centers[j][i] - center_values[i], 2);
-			std_dev_values[i] = sqrt(std_dev_values[i] / dataset_->subset_records.size());
-		}
-
-		for (int i = 0; i < dataset_->axis_names.size() - 1; ++i)
-			for (int j = i + 1; j < dataset_->axis_names.size(); ++j) {
-				float temp_corr = 0;
-				for (int k = 0; k < dataset_->subset_records.size(); ++k)
-					temp_corr += (dataset_->var_centers[k][i] - center_values[i]) * (dataset_->var_centers[k][j] - center_values[j]);
-				corr_values[i][j] = temp_corr / (dataset_->subset_records.size() * std_dev_values[i] * std_dev_values[j]);
-				corr_values[i][j] = 1.0 - abs(corr_values[i][j]);
-				corr_values[j][i] = corr_values[i][j];
-			}
-		TourPathGenerator::GenerateRoundPath(corr_values, axis_order_);
-	}
-
     this->updateGL();
+}
+
+void ParallelCoordinate::SetAxisOrder(std::vector< int >& axis_order) {
+	this->axis_order_ = axis_order;
+
+	this->updateGL();
+}
+
+void ParallelCoordinate::SetHighlightAxis(int var_index) {
+	this->highlight_var_index_ = var_index;
+
+	this->updateGL();
 }
 
 void ParallelCoordinate::UpdateViewLayoutParameters(){
@@ -270,10 +240,38 @@ void ParallelCoordinate::PaintSettingIcon(){
 }
 
 void ParallelCoordinate::PaintCoordinate(){
-    glColor3f(0.0, 0.0, 0.0);
-
     for ( int i = 0; i < axis_x_pos_values_.size(); ++i ){
+		glColor3f(0.0, 0.0, 0.0);
         glRectf(axis_x_pos_values_[i] - axis_width_ / 2, axis_bottom_y_value_, axis_x_pos_values_[i] + axis_width_ / 2, axis_top_y_value_);
+
+		if (axis_order_[i] == highlight_var_index_) {
+			float centerx = axis_x_pos_values_[i];
+			float centery = axis_top_y_value_;
+
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_POLYGON);
+			for (int j = 0; j <= 30; ++j) {
+				float end_arc = j * 3.14159 * 2 / 30;
+				float x = centerx + icon_width_ * 0.3 * cos(end_arc);
+				float y = centery + icon_height_ * 0.3 * sin(end_arc);
+
+				glVertex3f(x, y, 0);
+			}
+			glEnd();
+
+			centery = axis_bottom_y_value_;
+
+			glColor3f(1.0, 0.0, 0.0);
+			glBegin(GL_POLYGON);
+			for (int j = 0; j <= 30; ++j) {
+				float end_arc = j * 3.14159 * 2 / 30;
+				float x = centerx + icon_width_ * 0.3 * cos(end_arc);
+				float y = centery + icon_height_ * 0.3 * sin(end_arc);
+
+				glVertex3f(x, y, 0);
+			}
+			glEnd();
+		}
     }
 }
 
@@ -357,7 +355,7 @@ void ParallelCoordinate::PaintGaussianCurve() {
 
 void ParallelCoordinate::PaintText(){
     int y_axis_name = (int)((1.0 - axis_name_y_value_) * this->height());
-    int y_max = (int)((1.0 - range_text_top_y_value_) * this->height());
+    int y_max = (int)((1.0 - range_text_top_y_value_) * this->height()) - 10;
     int y_min = (int)((1.0 - range_text_bottom_y_value_) * this->height());
 
     glColor3f(0.0, 0.0, 0.0);
@@ -390,5 +388,26 @@ void ParallelCoordinate::mouseDoubleClickEvent(QMouseEvent *event) {
 	if (dataset_ != NULL) {
 		dataset_->is_gaussian_enabled = !dataset_->is_gaussian_enabled;
 		this->update();
+	}
+}
+
+void ParallelCoordinate::mousePressEvent(QMouseEvent *event) {
+	if (event->button() == Qt::RightButton) {
+		int index = -1;
+		float min_dis = 1e10;
+		float x = (float)event->x() / this->width();
+		for (int i = 0; i < axis_x_pos_values_.size(); ++i)
+			if (abs(axis_x_pos_values_[i] - x) < min_dis) {
+				min_dis = abs(axis_x_pos_values_[i] - x);
+				index = axis_order_[i];
+			}
+		if (index == highlight_var_index_) {
+			this->highlight_var_index_ = -1;
+		} else {
+			this->highlight_var_index_ = index;
+		}
+		emit HighlightVarChanged(this->highlight_var_index_);
+
+		this->updateGL();
 	}
 }

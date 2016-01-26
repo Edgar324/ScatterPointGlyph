@@ -90,6 +90,7 @@ private:
 
 	int current_view_level_;
 	const int label_pixel_radius_ = { 100 };
+	std::vector< int > var_axis_order;
 
 	void InitWidget();
 	void AddPointData2View();
@@ -97,6 +98,7 @@ private:
 	float GetMainViewDisPerPixel();
 	void GetSceneRange(float& left, float& right, float& bottom, float& top);
 	
+	void UpdatePointMap();
 	void UpdateParallelCoordinate();
 	void UpdateTransmap();
 	void UpdatePathMap();
@@ -124,6 +126,8 @@ private slots:
 	void OnSplitClusterTriggered();
 	void OnMergeClusterTriggered();
 	void OnTreemapNodeSelected(int node_id);
+	void OnTransmapHighlightVarChanged(int var_index);
+	void OnPcpHighlightVarChanged(int var_index);
 
 	void OnMainViewInteractionModeChanged();
 	void OnSavePathSequenceTriggered();

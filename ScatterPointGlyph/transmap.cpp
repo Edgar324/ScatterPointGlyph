@@ -24,12 +24,14 @@
 #include <vtkTextActor3D.h>
 #include <vtkTextProperty.h>
 #include <vtkPropPicker.h>
+#include <vtkTooltipItem.h>
 #include <QVTKWidget.h>
 #include "transmap_data.h"
 #include "vtkCellArray.h"
 #include "tree_common.h"
 #include "scatter_point_dataset.h"
 #include "tour_path_generator.h"
+#include "scatter_point_view.h"
 
 TransMap::TransMap() {
 	this->state = TransMap::SELECT_SINGLE_CLUSTER;
@@ -75,10 +77,12 @@ TransMap::TransMap() {
 	this->selection_brush_actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 	this->selection_brush_actor->GetProperty()->SetLineWidth(3.0);
 
+	//this->tool_tip_item_ = vtkTooltipItem::New();
+
 	this->path_generator_ = new TourPathGenerator;
 }
 
-TransMap::TransMap(QVTKWidget* parent) 
+TransMap::TransMap(ScatterPointView* parent)
 	: TransMap() {
 	this->parent_view = parent;
 }
@@ -135,8 +139,14 @@ void TransMap::ShowVarTrend(int var_index) {
 
 void TransMap::HighlightVar(int var_index) {
 	this->highlight_var_index_ = var_index;
+	if (this->highlight_var_index_ != -1) {
+		this->is_highlight_var_fixed_ = true;
+	} else {
+		this->is_highlight_var_fixed_ = false;
+	}
 
 	this->UpdateNodeActors();
+	this->parent_view->update();
 }
 
 void TransMap::SetInteractionState(WidgetState s){
@@ -282,7 +292,6 @@ void TransMap::UpdateNodeActors() {
 			vtkCellArray* strip_array = vtkCellArray::New();
 			polydata->SetStrips(strip_array);
 
-#ifdef RADAR_GLYPH
 			// insert background
 			std::vector< vtkIdType > background_ids;
 			for (int j = 0; j <= 30; ++j) {
@@ -295,6 +304,7 @@ void TransMap::UpdateNodeActors() {
 			}
 			polydata->InsertNextCell(VTK_POLYGON, 31, background_ids.data());
 
+#ifdef RADAR_GLYPH
 			// paint variance
 			std::vector< int > var_point_ids;
 			var_point_ids.resize(dataset_->var_num * 2);
@@ -408,7 +418,7 @@ void TransMap::UpdateNodeActors() {
 				int var_index = axis_order_[j];
 
 				if (var_index == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
-				else alpha = 0.05;
+				else alpha = 0.2;
 
 				float temp_arc = begin_arc;
 				for (int k = 0; k < seg_per_pie; ++k) {
@@ -463,6 +473,32 @@ void TransMap::UpdateNodeActors() {
 					line_ids[0] = var_point_ids1[2 * k];
 					line_ids[1] = var_point_ids1[2 * (k + 1)];
 					polydata->InsertNextCell(VTK_LINE, 2, line_ids);
+				}
+
+				if (var_index == highlight_var_index_ && current_node_ != NULL) {
+					std::vector< int > comp_ids;
+					comp_ids.resize(seg_per_pie);
+
+					float temp_arc = begin_arc;
+					for (int k = 0; k < seg_per_pie; ++k) {
+						float cos_value = cos(temp_arc);
+						float sin_value = sin(temp_arc);
+
+						// insert the average value
+						float temp_radius = node_radius_ * current_node_->average_values[var_index] * 0.8 + node_radius_ * 0.1;
+						float x = temp_radius * cos_value;
+						float y = temp_radius * sin_value;
+						comp_ids[k] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0025);
+						colors->InsertNextTuple4(255, 0, 0, 255);
+
+						temp_arc += step_arc;
+					}
+
+					for (int k = 0; k < seg_per_pie - 1; ++k) {
+						line_ids[0] = comp_ids[k];
+						line_ids[1] = comp_ids[k + 1];
+						polydata->InsertNextCell(VTK_LINE, 2, line_ids);
+					}
 				}
 			}
 #endif // RADAR_GLYPH
@@ -855,15 +891,66 @@ void TransMap::OnRightButtonDown() {
 		float degree = acos(xt / length);
 		if (yt < 0) degree = 2 * 3.14159 - degree;
 		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
-		if (temp_index == this->highlight_var_index_)
+		if (axis_order_[temp_index] == this->highlight_var_index_ && is_highlight_var_fixed_)
 			this->highlight_var_index_ = -1;
 		else
 			this->highlight_var_index_ = axis_order_[temp_index];
+
+		this->parent_view->SetHighlightVarIndex(highlight_var_index_);
 	} else {
 		this->highlight_var_index_ = -1;
 	}
 
+	if (this->highlight_var_index_ == -1) {
+		is_highlight_var_fixed_ = false;
+		current_node_ = NULL;
+	} else {
+		is_highlight_var_fixed_ = true;
+		current_node_ = selected_node;
+	}
+
 	this->UpdateNodeActors();
+	this->parent_view->update();
+}
+
+void TransMap::OnMouseMove() {
+	if (!this->DefaultRenderer || is_highlight_var_fixed_) return;
+
+	int x = this->Interactor->GetEventPosition()[0];
+	int y = this->Interactor->GetEventPosition()[1];
+	current_node_ = GetSelectedNode(x, y);
+
+	int temp_highlight_index = -1;
+	if (current_node_ != NULL && IsLevelOneNode(current_node_)) {
+		double woldpos[4];
+		vtkInteractorObserver::ComputeDisplayToWorld(x, y, 0, woldpos);
+		float node_center_x = current_node_->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = current_node_->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float xt = woldpos[0] - node_center_x;
+		float yt = woldpos[1] - node_center_y;
+		float length = sqrt(pow(xt, 2) + pow(yt, 2));
+		float degree = acos(xt / length);
+		if (yt < 0) degree = 2 * 3.14159 - degree;
+		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
+		temp_highlight_index = axis_order_[temp_index];
+	}
+	if (temp_highlight_index != this->highlight_var_index_) {
+		this->highlight_var_index_ = temp_highlight_index;
+		this->UpdateNodeActors();
+		this->parent_view->update();
+		this->parent_view->SetHighlightVarIndex(highlight_var_index_);
+
+		if (temp_highlight_index != -1) {
+			std::vector< float > ranges = dataset_->dataset->original_value_ranges[highlight_var_index_];
+			float average_value = current_node_->average_values[highlight_var_index_]
+				* (ranges[1] - ranges[0]) + ranges[0];
+			float variance_value = current_node_->value_variance[highlight_var_index_] * (ranges[1] - ranges[0]);
+
+			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[highlight_var_index_], average_value, variance_value);
+		}
+		else
+			this->parent_view->HideTooltip();
+	}
 }
 
 void TransMap::OnMouseMove(int x, int y) {
@@ -877,7 +964,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.005);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();
@@ -893,9 +980,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->selection_brush_actor->Modified();
 
 		this->parent_view->update();
-	}
-
-	if (this->state == WidgetState::SELECT_BRUSHED_PATH_SEQUENCE) {
+	} else if (this->state == WidgetState::SELECT_BRUSHED_PATH_SEQUENCE) {
 		double display_pos[4];
 		display_pos[0] = x;
 		display_pos[1] = y;
@@ -905,7 +990,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.005);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();
@@ -921,7 +1006,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->selection_brush_actor->Modified();
 
 		this->parent_view->update();
-	}
+	} 
 }
 
 void TransMap::OnMouseReleased(bool is_left_button) {
@@ -1032,8 +1117,7 @@ void TransMap::OnNodeSelected(CNode* node) {
 	switch (this->state)
 	{
 	case SELECT_SINGLE_CLUSTER: {
-		this->current_node_ = node;
-		this->current_node_->is_highlighted = true;
+		node->is_highlighted = true;
 		
 		while (this->highlight_node_sequence.size() > 0) {
 			this->highlight_node_sequence.front()->is_highlighted = false;
@@ -1043,8 +1127,7 @@ void TransMap::OnNodeSelected(CNode* node) {
 		break;
 	}
 	case SELECT_MULTI_CLUSTERS: {
-		this->current_node_ = node;
-		this->current_node_->is_highlighted = true;
+		node->is_highlighted = true;
 		this->highlight_node_sequence.push_back(node);
 		this->GenerateTransEdgeFromHighlight();
 		this->UpdateTransEdgeActor();
@@ -1054,7 +1137,6 @@ void TransMap::OnNodeSelected(CNode* node) {
 	case SELECT_MINIMUM_PATH: {
 		if (!IsLevelOneNode(node)) return;
 
-		this->current_node_ = node;
 		if (this->highlight_node_sequence.size() >= 2) {
 			while (this->highlight_node_sequence.size() > 0) {
 				this->highlight_node_sequence.front()->is_highlighted = false;

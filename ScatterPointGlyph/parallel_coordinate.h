@@ -74,13 +74,18 @@ public:
 
 
     void SetDataset(ParallelDataset* dataset_t);
-	std::vector< int > GetAxisOrder() { return axis_order_; }
+	void SetAxisOrder(std::vector< int >& axis_order);
+	void SetHighlightAxis(int var_index);
+
+signals:
+	void HighlightVarChanged(int);
 
 protected:
     void initializeGL();
     void resizeGL(int w, int h);
     void paintGL();
 	void mouseDoubleClickEvent(QMouseEvent *);
+	void mousePressEvent(QMouseEvent *);
 
 private:
     ParallelDataset* dataset_;
@@ -97,6 +102,7 @@ private:
     GLuint setting_texture_;
     float icon_width_, icon_height_;
 
+	int highlight_var_index_;
 	std::vector< int > axis_order_;
 
     void UpdateViewLayoutParameters();

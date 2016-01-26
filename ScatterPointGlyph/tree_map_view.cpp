@@ -36,13 +36,6 @@ void TreeMapView::SetData(CNode* root, int var_num, std::vector< CNode* >& selec
 		this->autoFillBackground();
 	}
 
-	/*if (title_item_ == NULL) {
-		title_item_ = new QGraphicsTextItem;
-		title_item_->setPlainText(QString("Tree Map"));
-		scene_->addItem(title_item_);
-		title_item_->setPos(this->width() / 2 - 20, 10);
-	}*/
-
 	if (tree_item_ == NULL) {
 		tree_item_ = new TreeMapItem;
 		scene_->addItem(tree_item_);

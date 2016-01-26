@@ -46,6 +46,7 @@
 #include "tour_path_generator.h"
 #include "tree_map_view.h"
 #include "variable_selection_dialog.h"
+#include "utility.h"
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -123,6 +124,8 @@ void ScatterPointGlyph::InitWidget() {
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
+	connect(main_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTransmapHighlightVarChanged(int)));
+	connect(parallel_coordinate_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnPcpHighlightVarChanged(int)));
 
 	trans_map_ = new TransMap(main_view_);
 	trans_map_->SetInteractor(main_view_->GetInteractor());
@@ -435,9 +438,10 @@ void ScatterPointGlyph::OnViewLevelChanged() {
 }
 
 void ScatterPointGlyph::UpdateAllViews() {
-	this->UpdateTransmap();
 	this->UpdateParallelCoordinate();
+	this->UpdateTransmap();
 	this->UpdateTreemap();
+	this->UpdatePointMap();
 }
 
 void ScatterPointGlyph::UpdateParallelCoordinate() {
@@ -460,6 +464,8 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->CompleteInput();
 		parallel_dataset_->UpdateGaussian();
 		parallel_coordinate_->SetDataset(parallel_dataset_);
+		Utility::GenerateAxisOrder(parallel_dataset_, var_axis_order);
+		parallel_coordinate_->SetAxisOrder(var_axis_order);
 
 		QString str = QString("%0 points.").arg(scatter_point_dataset_->original_point_pos.size());
 		ui_.statusBar->showMessage(str);
@@ -506,6 +512,8 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->is_updating = false;
 
 		parallel_coordinate_->SetDataset(parallel_dataset_);
+		Utility::GenerateAxisOrder(parallel_dataset_, var_axis_order);
+		parallel_coordinate_->SetAxisOrder(var_axis_order);
 		parallel_coordinate_->update();
 
 		int selected_count = 0;
@@ -550,6 +558,14 @@ void ScatterPointGlyph::UpdateTransmap() {
 }
 
 
+void ScatterPointGlyph::UpdatePointMap() {
+	std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
+	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
+		original_point_rendering_layer_->SetHighlightClusters(selection_index);
+	}
+}
+
 void ScatterPointGlyph::UpdatePathMap() {
 
 }
@@ -566,8 +582,7 @@ void ScatterPointGlyph::UpdateTreemap() {
 	std::vector< bool > is_selected;
 	is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
-	std::vector< int > var_order = parallel_coordinate_->GetAxisOrder();
-	trans_map_->SetAxisOrder(var_order);
+	trans_map_->SetAxisOrder(var_axis_order);
 
 	std::vector< CNode* > selected_nodes;
 	if (selected_ids.size() != 0) {
@@ -577,11 +592,11 @@ void ScatterPointGlyph::UpdateTreemap() {
 		}
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 			if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_axis_order, scatter_point_dataset_->var_names);
 	}
 	else {
 		selected_nodes = transmap_data_->cluster_nodes;
-		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_axis_order, scatter_point_dataset_->var_names);
 	}
 
 	tree_map_view_->scene()->update();
@@ -609,29 +624,21 @@ void ScatterPointGlyph::GetSceneRange(float& left, float& right, float& bottom, 
 }
 
 void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
-	std::vector< int > selection_index;
-	trans_map_->GetSelectedClusterIndex(selection_index);
-	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
-		original_point_rendering_layer_->SetHighlightClusters(selection_index);
-	}
-
-	UpdateParallelCoordinate();
-	UpdateTreemap();
+	this->UpdateParallelCoordinate();
+	trans_map_->SetAxisOrder(var_axis_order);
+	this->UpdateTreemap();
+	this->UpdatePointMap();
+	this->main_view_->update();
 }
 
 void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 	if (trans_map_ != NULL) {
 		trans_map_->OnMouseReleased();
 		if (ui_.actionBrush_Cluster->isChecked() || ui_.actionBrush_Path_Sequence->isChecked()) {
-			std::vector< int > selection_index;
-			trans_map_->GetSelectedClusterIndex(selection_index);
-			if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
-				original_point_rendering_layer_->SetHighlightClusters(selection_index);
-			}
-
-			UpdateParallelCoordinate();
-			UpdateTreemap();
-
+			this->UpdateParallelCoordinate();
+			trans_map_->SetAxisOrder(var_axis_order);
+			this->UpdateTreemap();
+			this->UpdatePointMap();
 			this->main_view_->update();
 		}
 	}
@@ -805,4 +812,14 @@ void ScatterPointGlyph::OnActionShowTableLensTriggerd()
 void ScatterPointGlyph::OnActionShowParallelCoordinateTriggered()
 {
 	parallel_coordinate_panel_->setVisible(ui_.actionShow_PCP->isChecked());
+}
+
+void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)
+{
+	parallel_coordinate_->SetHighlightAxis(var_index);
+}
+
+void ScatterPointGlyph::OnPcpHighlightVarChanged(int var_index)
+{
+	trans_map_->HighlightVar(var_index);
 }
