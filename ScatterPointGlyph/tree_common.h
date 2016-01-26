@@ -15,6 +15,7 @@ public:
 	virtual ~TreeCommon();
 
 	CBranch* root() { return root_; }
+	ScatterPointDataset* data() { return dataset_; }
 
 	// Functions for generating the leaf nodes
 	void ConstructDirectly();
@@ -33,6 +34,8 @@ public:
 	// Tree node operations
 	void SplitCluster(int cluster_index);
 	void MergeClusters(std::vector< int >& cluster_index);
+
+	void GetNodeValues(CNode* node, int var_index, std::vector< float >& values);
 
 protected:
 	ScatterPointDataset* dataset_;

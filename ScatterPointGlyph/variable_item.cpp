@@ -7,13 +7,19 @@ VariableItem::VariableItem(int index) {
 	var_index_ = index;
 	is_abs_width_on_ = false;
 	is_highlight_on_ = false;
+	
+	ranges_[0] = 0;
+	ranges_[1] = 1;
 }
 
 VariableItem::~VariableItem() {
 
 }
 
-void VariableItem::SetData(QString var_name, std::vector< float >& var_values, std::vector< int >& node_count, std::vector< QColor >& node_color, int selected_count) {
+void VariableItem::SetData(QString var_name, std::vector< float >& var_values, 
+	std::vector< int >& node_count, std::vector< QColor >& node_color, int selected_count, 
+	std::vector< std::vector< float > >& context) {
+
 	var_name_ = var_name;
 	var_values_ = var_values;
 	node_count_ = node_count;
@@ -30,9 +36,33 @@ void VariableItem::SetData(QString var_name, std::vector< float >& var_values, s
 		else
 			total_width += item_size + item_margin;
 
+	
+	sampled_context_data_.resize(context.size());
+	for (int i = 0; i < context.size(); ++i) {
+		int sample_size = 10;
+		if (context[i].size() < sample_size) {
+			sample_size = context[i].size();
+		}
+		sampled_context_data_[i].resize(sample_size);
+		for (int j = 0; j < sample_size; ++j) {
+			int temp = (int)((float)j / sample_size * (context[i].size() - 1));
+			sampled_context_data_[i][j] = context[i][temp];
+		}
+	}
+
+	ranges_[0] = 0;
+	ranges_[1] = 1;
+
 	this->prepareGeometryChange();
 	this->update(QRectF(0, 0, total_width, total_height));
 }
+
+void VariableItem::SetValueRange(float min_value, float max_value)
+{
+	ranges_[0] = min_value;
+	ranges_[1] = max_value;
+}
+
 
 QRectF VariableItem::boundingRect() const {
 	return QRectF(-170, 0, total_width + 170, total_height);
@@ -61,6 +91,19 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			}
 			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], node_color_[i]);
 
+			if (i >= selected_count_)
+				painter->setPen(QColor(128, 128, 128, 20));
+			else
+				painter->setPen(QColor(128, 128, 128, 255));
+			for (int j = 0; j < sampled_context_data_[i].size() - 1; ++j) {
+				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[i].size() - 1);
+				float y1 = total_height - total_height * sampled_context_data_[i][j];
+				float x2 = temp_width + (float)(temp_bar_width - 1) * (j + 1) / (sampled_context_data_[i].size() - 1);
+				float y2 = total_height - total_height * sampled_context_data_[i][j + 1];
+
+				painter->drawLine(x1, y1, x2, y2);
+			}
+
 			temp_width += temp_bar_width + item_margin;
 		}
 	} else {
@@ -75,6 +118,19 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 				node_color_[i].setAlpha(255);
 			}
 			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], node_color_[i]);
+
+			if (i >= selected_count_)
+				painter->setPen(QColor(128, 128, 128, 20));
+			else
+				painter->setPen(QColor(128, 128, 128, 255));
+			for (int j = 0; j < sampled_context_data_[i].size() - 1; ++j) {
+				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[i].size() - 1);
+				float y1 = total_height - total_height * sampled_context_data_[i][j];
+				float x2 = temp_width + (float)(temp_bar_width - 1) * (j + 1) / (sampled_context_data_[i].size() - 1);
+				float y2 = total_height - total_height * sampled_context_data_[i][j + 1];
+
+				painter->drawLine(x1, y1, x2, y2);
+			}
 
 			temp_width += temp_bar_width;
 		}
@@ -106,3 +162,10 @@ void VariableItem::SetHighlightEnabled(bool enabled)
 	this->update();
 }
 
+QString VariableItem::GetTipString()
+{
+	QString tip_str = var_name_ + ": ";
+	for (int i = 0; i < selected_count_; ++i)
+		tip_str += QString("%0, ").arg(var_values_[i] * (ranges_[1] - ranges_[0]) + ranges_[0]);
+	return tip_str;
+}

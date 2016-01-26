@@ -473,9 +473,9 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 	} else {
 		std::vector< int > selection_index;
 		trans_map_->GetSelectedClusterIndex(selection_index);
-		if (selection_index.size() == 0) {
+		/*if (selection_index.size() == 0) {
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) selection_index.push_back(i);
-		}
+		}*/
 
 		// fix the dataset in case of rendering during the data update
 		parallel_dataset_->is_updating = true;
@@ -554,6 +554,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 	trans_map_->SetNodeRadius(dis_per_pixel * 50);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
+	trans_map_->SetAxisOrder(var_axis_order);
 
 	main_view_->update();
 }
@@ -583,8 +584,6 @@ void ScatterPointGlyph::UpdateTreemap() {
 	std::vector< bool > is_selected;
 	is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
-	trans_map_->SetAxisOrder(var_axis_order);
-
 	std::vector< CNode* > selected_nodes;
 	if (selected_ids.size() != 0) {
 		for (int i = 0; i < selection_index.size(); ++i) {
@@ -593,11 +592,11 @@ void ScatterPointGlyph::UpdateTreemap() {
 		}
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 			if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_axis_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_axis_order, scatter_point_dataset_->var_names);
 	}
 	else {
 		selected_nodes = transmap_data_->cluster_nodes;
-		tree_map_view_->SetData(cluster_tree_->root(), scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_axis_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_axis_order, scatter_point_dataset_->var_names);
 	}
 
 	tree_map_view_->scene()->update();

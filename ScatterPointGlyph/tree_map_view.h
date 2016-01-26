@@ -16,7 +16,7 @@ public:
 	TreeMapView();
 	~TreeMapView();
 
-	void SetData(CNode* root, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names);
+	void SetData(TreeCommon* tree, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names);
 	void SetHighlightVarIndex(int index);
 	void SetTreeMapVisible(bool visible);
 	void SetTableLensVisible(bool visible);
@@ -26,8 +26,11 @@ signals:
 	void NodeSelected(int node_id);
 	void HighlightVarChanged(int var_index);
 
+protected:
+	void mouseMoveEvent(QMouseEvent *event);
+
 private:
-	CNode* root_node_;
+	TreeCommon* tree_;
 	int var_num_;
 	std::vector< int > var_order_;
 

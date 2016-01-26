@@ -594,3 +594,12 @@ void TreeCommon::ProgressNodeAndParent(CNode* node) {
 
 	ProgressNodeAndParent(node->parent);
 }
+
+void TreeCommon::GetNodeValues(CNode* node, int var_index, std::vector< float >& values)
+{
+	std::vector< int > point_index;
+	this->Traverse(node, point_index);
+	values.resize(point_index.size());
+	for (int i = 0; i < point_index.size(); ++i)
+		values[i] = dataset_->point_values[point_index[i]][var_index];
+}

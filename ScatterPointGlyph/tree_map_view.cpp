@@ -1,7 +1,10 @@
 #include "tree_map_view.h"
 #include <QtWidgets/QGraphicsTextItem>
+#include <QtGui/QMouseEvent>
+#include <QtWidgets/QToolTip>
 #include "tree_map_item.h"
 #include "variable_item.h"
+#include "scatter_point_dataset.h"
 
 TreeMapView::TreeMapView() {
 	tree_item_ = NULL;
@@ -19,8 +22,8 @@ TreeMapView::~TreeMapView() {
 
 }
 
-void TreeMapView::SetData(CNode* root, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names) {
-	this->root_node_ = root;
+void TreeMapView::SetData(TreeCommon* tree, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names) {
+	this->tree_ = tree;
 	this->var_num_ = var_num;
 
 	if (scene_ == NULL) {
@@ -55,7 +58,7 @@ void TreeMapView::SetData(CNode* root, int var_num, std::vector< CNode* >& selec
 
 	var_order_ = order;
 
-	tree_item_->SetData(root_node_);
+	tree_item_->SetData(tree_->root());
 	this->UpdateVariableItems(selected_nodes, selected_count, names);
 
 	this->UpdateLayout();
@@ -110,9 +113,12 @@ void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int
 	std::vector< std::vector< float > > var_values;
 	std::vector< std::vector< int > > node_count;
 	std::vector< std::vector< QColor > > node_color;
+	std::vector< std::vector< float > > context_data;
 	var_values.resize(var_num_);
 	node_count.resize(var_num_);
 	node_color.resize(var_num_);
+
+	context_data.resize(selected_nodes.size());
 
 	for (int i = 0; i < var_num_; ++i) {
 		QString var_name = names[i];
@@ -121,9 +127,12 @@ void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int
 			var_values[i].push_back(selected_nodes[j]->average_values[i]);
 			node_count[i].push_back(selected_nodes[j]->point_count);
 			node_color[i].push_back(selected_nodes[j]->color);
+			tree_->GetNodeValues(selected_nodes[j], i, context_data[j]);
+			std::sort(context_data[j].begin(), context_data[j].end());
 		}
 
-		var_items_[i]->SetData(var_name, var_values[i], node_count[i], node_color[i], selected_count);
+		var_items_[i]->SetData(var_name, var_values[i], node_count[i], node_color[i], selected_count, context_data);
+		var_items_[i]->SetValueRange(tree_->data()->original_value_ranges[i][0], tree_->data()->original_value_ranges[i][1]);
 	}
 }
 
@@ -149,4 +158,26 @@ void TreeMapView::SetHighlightVarIndex(int index)
 		var_items_[i]->SetHighlightEnabled(false);
 	if (highlight_var_index_ != -1)
 		var_items_[highlight_var_index_]->SetHighlightEnabled(true);
+}
+
+void TreeMapView::mouseMoveEvent(QMouseEvent *event)
+{
+	QPoint global_pos = event->globalPos();
+	QPointF scene_pos = this->mapToScene(event->pos());
+	
+
+	if (!is_table_lens_visible_) {
+		QToolTip::hideText();
+	} else {
+		int tip_index = -1;
+		for (int i = 0; i < var_items_.size(); ++i) {
+			if (var_items_[i]->sceneBoundingRect().contains(scene_pos)) {
+				QToolTip::showText(global_pos, var_items_[i]->GetTipString(), this, QRect(0, 0, 20, 100), 50000000);
+				tip_index = i;
+				break;
+			}
+		}
+		if (tip_index == -1) QToolTip::hideText();
+			
+	}
 }

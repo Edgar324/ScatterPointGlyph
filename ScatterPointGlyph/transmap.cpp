@@ -304,6 +304,17 @@ void TransMap::UpdateNodeActors() {
 			}
 			polydata->InsertNextCell(VTK_POLYGON, 31, background_ids.data());
 
+			std::vector< vtkIdType > center_cirlce_ids;
+			for (int j = 0; j <= 30; ++j) {
+				float end_arc = j * 3.14159 * 2 / 30;
+				float x = node_radius_ * 0.05 * cos(end_arc);
+				float y = node_radius_ * 0.05 * sin(end_arc);
+
+				center_cirlce_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.003));
+				colors->InsertNextTuple4(0, 0, 0, 255);
+			}
+			polydata->InsertNextCell(VTK_POLYGON, 31, center_cirlce_ids.data());
+
 #ifdef RADAR_GLYPH
 			// paint variance
 			std::vector< int > var_point_ids;
