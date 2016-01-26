@@ -9,6 +9,7 @@ TreeMapView::TreeMapView() {
 
 	is_treemap_visible_ = false;
 	is_table_lens_visible_ = false;
+	highlight_var_index_ = -1;
 
 	this->setFocusPolicy(Qt::StrongFocus);
 	this->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
@@ -45,8 +46,10 @@ void TreeMapView::SetData(CNode* root, int var_num, std::vector< CNode* >& selec
 	if (var_items_.size() == 0) {
 		var_items_.resize(var_num);
 		for (int i = 0; i < var_num; ++i) {
-			var_items_[i] = new VariableItem;
+			var_items_[i] = new VariableItem(i);
 			scene_->addItem(var_items_[i]);
+
+			connect(var_items_[i], SIGNAL(VarSelected(int)), this, SLOT(OnVarSelected(int)));
 		}
 	}
 
@@ -122,4 +125,28 @@ void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int
 
 		var_items_[i]->SetData(var_name, var_values[i], node_count[i], node_color[i], selected_count);
 	}
+}
+
+void TreeMapView::OnVarSelected(int var_index)
+{
+	if (highlight_var_index_ != var_index) {
+		highlight_var_index_ = var_index;
+	} else {
+		highlight_var_index_ = -1;
+	}
+	emit HighlightVarChanged(highlight_var_index_);
+
+	for (int i = 0; i < var_items_.size(); ++i)
+		var_items_[i]->SetHighlightEnabled(false);
+	if (highlight_var_index_ != -1)
+		var_items_[highlight_var_index_]->SetHighlightEnabled(true);
+}
+
+void TreeMapView::SetHighlightVarIndex(int index)
+{
+	highlight_var_index_ = index;
+	for (int i = 0; i < var_items_.size(); ++i)
+		var_items_[i]->SetHighlightEnabled(false);
+	if (highlight_var_index_ != -1)
+		var_items_[highlight_var_index_]->SetHighlightEnabled(true);
 }

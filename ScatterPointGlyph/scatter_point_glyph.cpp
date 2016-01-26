@@ -126,6 +126,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(main_view_, SIGNAL(MouseDrag(int, int)), this, SLOT(OnMouseDragmove(int, int)));
 	connect(main_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTransmapHighlightVarChanged(int)));
 	connect(parallel_coordinate_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnPcpHighlightVarChanged(int)));
+	connect(tree_map_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTreemapHighlightVarChagned(int)));
 
 	trans_map_ = new TransMap(main_view_);
 	trans_map_->SetInteractor(main_view_->GetInteractor());
@@ -817,9 +818,17 @@ void ScatterPointGlyph::OnActionShowParallelCoordinateTriggered()
 void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)
 {
 	parallel_coordinate_->SetHighlightAxis(var_index);
+	tree_map_view_->SetHighlightVarIndex(var_index);
 }
 
 void ScatterPointGlyph::OnPcpHighlightVarChanged(int var_index)
 {
 	trans_map_->HighlightVar(var_index);
+	tree_map_view_->SetHighlightVarIndex(var_index);
+}
+
+void ScatterPointGlyph::OnTreemapHighlightVarChagned(int var_index)
+{
+	trans_map_->HighlightVar(var_index);
+	parallel_coordinate_->SetHighlightAxis(var_index);
 }

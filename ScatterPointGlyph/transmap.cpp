@@ -418,7 +418,10 @@ void TransMap::UpdateNodeActors() {
 				int var_index = axis_order_[j];
 
 				if (var_index == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
-				else alpha = 0.2;
+				else {
+					if (is_highlight_var_fixed_) alpha = 0.05;
+					else alpha = 0.2;
+				}
 
 				float temp_arc = begin_arc;
 				for (int k = 0; k < seg_per_pie; ++k) {

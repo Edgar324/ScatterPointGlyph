@@ -3,8 +3,10 @@
 #include <QtGui/QPainter>
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 
-VariableItem::VariableItem() {
+VariableItem::VariableItem(int index) {
+	var_index_ = index;
 	is_abs_width_on_ = false;
+	is_highlight_on_ = false;
 }
 
 VariableItem::~VariableItem() {
@@ -33,7 +35,7 @@ void VariableItem::SetData(QString var_name, std::vector< float >& var_values, s
 }
 
 QRectF VariableItem::boundingRect() const {
-	return QRectF(-150, 0, total_width + 150, total_height);
+	return QRectF(-170, 0, total_width + 170, total_height);
 }
 
 void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) {
@@ -41,6 +43,10 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 	name_pen.setColor(Qt::black);
 	painter->setPen(name_pen);
 	painter->drawText(QRectF(-150, 0, 150, total_height), var_name_, Qt::AlignBottom | Qt::AlignHCenter);
+
+	if (is_highlight_on_) {
+		painter->fillRect(-170, total_height / 2.0, total_height / 2.0, total_height / 2.0, Qt::red);
+	}
 
 	if (!is_abs_width_on_) {
 		int temp_width = 0, temp_bar_width = 0;
@@ -81,9 +87,21 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 	painter->drawLine(0, total_height, total_width, total_height);
 }
 
+void VariableItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+	if (event->buttons() & Qt::RightButton)
+		emit VarSelected(var_index_);
+}
+
 void VariableItem::SetAbsWidthEnabled(bool enabled)
 {
 	is_abs_width_on_ = enabled;
+
+	this->update();
+}
+
+void VariableItem::SetHighlightEnabled(bool enabled)
+{
+	is_highlight_on_ = enabled;
 
 	this->update();
 }

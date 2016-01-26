@@ -17,12 +17,14 @@ public:
 	~TreeMapView();
 
 	void SetData(CNode* root, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names);
+	void SetHighlightVarIndex(int index);
 	void SetTreeMapVisible(bool visible);
 	void SetTableLensVisible(bool visible);
 	bool IsVisible() { return is_table_lens_visible_ || is_treemap_visible_; }
 
 signals:
 	void NodeSelected(int node_id);
+	void HighlightVarChanged(int var_index);
 
 private:
 	CNode* root_node_;
@@ -31,6 +33,7 @@ private:
 
 	bool is_treemap_visible_;
 	bool is_table_lens_visible_;
+	int highlight_var_index_;
 
 	QGraphicsScene* scene_;
 
@@ -40,6 +43,9 @@ private:
 	void UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names);
 
 	void UpdateLayout();
+
+	private slots:
+	void OnVarSelected(int);
 };
 
 #endif

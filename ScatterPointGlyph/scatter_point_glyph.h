@@ -128,6 +128,7 @@ private slots:
 	void OnTreemapNodeSelected(int node_id);
 	void OnTransmapHighlightVarChanged(int var_index);
 	void OnPcpHighlightVarChanged(int var_index);
+	void OnTreemapHighlightVarChagned(int var_index);
 
 	void OnMainViewInteractionModeChanged();
 	void OnSavePathSequenceTriggered();
