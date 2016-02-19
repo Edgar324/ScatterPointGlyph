@@ -47,6 +47,9 @@
 #include "tree_map_view.h"
 #include "variable_selection_dialog.h"
 #include "utility.h"
+#include "quality_metric.h"
+
+#define USE_QUALITY_METRIC
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -413,6 +416,13 @@ void ScatterPointGlyph::OnClusterFinished() {
 	level_name_label_->setText(QString("Level(0~%0): ").arg(max_level));
 
 	current_view_level_ = 1;
+
+#ifdef USE_QUALITY_METRIC
+	QualityMetric* metric = new QualityMetric;
+	metric->GenerateQualityMeasures(cluster_tree_);
+	metric->SaveMeasures("quality.txt");
+	delete metric;
+#endif
 
 	this->UpdateAllViews();
 }

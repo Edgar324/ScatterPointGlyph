@@ -236,6 +236,7 @@
     <ClCompile Include="path_explore_item.cpp" />
     <ClCompile Include="path_explore_widget.cpp" />
     <ClCompile Include="point_rendering_layer.cpp" />
+    <ClCompile Include="quality_metric.cpp" />
     <ClCompile Include="scatter_point_dataset.cpp" />
     <ClCompile Include="scatter_point_glyph.cpp" />
     <ClCompile Include="scatter_point_view.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="basic_glyph_layer.h" />
     <ClInclude Include="cnode.h" />
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />
+    <ClInclude Include="quality_metric.h" />
     <ClInclude Include="utility.h" />
     <CustomBuild Include="variable_selection_dialog.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
