@@ -169,6 +169,8 @@ void TreeCommon::run() {
 
 	this->ResetLevel(root_, 0);
 
+	this->AssignLeafLevel(root_, max_level_);
+
 	this->AssignColor(root_, 0, 1.0);
 }
 
@@ -193,7 +195,7 @@ void TreeCommon::Traverse(int level, CNode* root_node, std::vector< CNode* >& no
 					is_all_leaf = false;
 					break;
 				}
-			if (is_all_leaf) {
+			if (is_all_leaf && level != max_level_) {
 				nodes.push_back(root_node);
 				root_node->is_expanded = false;
 			}
@@ -202,6 +204,9 @@ void TreeCommon::Traverse(int level, CNode* root_node, std::vector< CNode* >& no
 				for (int i = 0; i < branch->linked_nodes.size(); ++i)
 					Traverse(level, branch->linked_nodes[branch->sorting_index[i]], nodes);
 			}
+		} else if (root_node->type() == CNode::LEAF && root_node->level() < level) {
+			nodes.push_back(root_node);
+			root_node->is_expanded = false;
 		}
 	}
 }
@@ -231,14 +236,37 @@ void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
 	}
 }
 
+void TreeCommon::AssignLeafLevel(CNode* node, int level) {
+	std::queue< CNode* > node_queue;
+	node_queue.push(node);
+
+	while (node_queue.size() != 0) {
+		CNode* temp_node = node_queue.front();
+		node_queue.pop();
+
+		if (temp_node->type() == CNode::BRANCH) {
+			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+			if (branch != NULL) {
+				for (int i = 0; i < branch->linked_nodes.size(); ++i)
+					node_queue.push(branch->linked_nodes[i]);
+			}
+		}
+		else if (temp_node->type() == CNode::LEAF) {
+			temp_node->set_level(level);
+		}
+	}
+}
+
 void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor, bool perm, bool rev) {
 	node->color.setHsl((hstart + hend) / 2 * 255, 0.6 * 255, 0.7 * 255);
 	node->hstart = hstart;
 	node->hend = hend;
-	if (node->type() == CNode::LEAF) return;
 
-	CBranch* branch = (CBranch*)node;
-	int count = branch->linked_nodes.size();
+	int count = 1;
+	if (node->type() != CNode::LEAF) {
+		CBranch* branch = (CBranch*)node;
+		count = branch->linked_nodes.size();
+	}
 
 	float step = (hend - hstart) / count;
 	std::vector< float > temp_start, temp_end;
@@ -275,8 +303,11 @@ void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor
 		}
 	}
 
-	for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-		AssignColor(branch->linked_nodes[i], temp_start[i] + (1.0 - factor) / 2.0 * step, temp_end[i] - (1.0 - factor) / 2.0 * step, factor, perm, rev);
+	if (node->type() != CNode::LEAF) {
+		CBranch* branch = (CBranch*)node;
+		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+			AssignColor(branch->linked_nodes[i], temp_start[i] + (1.0 - factor) / 2.0 * step, temp_end[i] - (1.0 - factor) / 2.0 * step, factor, perm, rev);
+		}
 	}
 }
 
@@ -305,7 +336,7 @@ void TreeCommon::ResetSortingIndex(CNode* node) {
 void TreeCommon::ResetLevel(CNode* node, int level) {
 	if (node == NULL) return;
 	node->set_level(level);
-	if (level > max_level_ && node->type() == CNode::BRANCH) max_level_ = level;
+	if (level > max_level_) max_level_ = level;
 
 	if (node->type() == CNode::BRANCH) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);

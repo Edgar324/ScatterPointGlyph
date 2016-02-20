@@ -46,23 +46,6 @@ std::vector< int >& MultiLabelProcessor::GetResultLabel() {
 }
 
 void MultiLabelProcessor::UpdateEnergyCost() {
-	point_un_.resize(point_num_);
-	point_un_.assign(point_num_, 0);
-
-	std::vector< int > point_edge_num;
-	point_edge_num.resize(point_num_, 0);
-	for (int i = 0; i < edges_.size() - 1; ++i)
-		for (int j = i + 1; j < edges_.size(); ++j)
-			if (edges_[i][j]) {
-				point_un_[i] += edge_weights_[i][j];
-				point_un_[j] += edge_weights_[i][j];
-				point_edge_num[i]++;
-				point_edge_num[j]++;
-			}
-	for (int i = 0; i < point_num_; ++i) {
-		if (point_edge_num[i] != 0) point_un_[i] /= point_edge_num[i];
-		else point_un_[i] = 1.0;
-	}
 
 	ExtractEstimatedModels();
 
@@ -86,9 +69,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 	}
 
 	std::vector< std::vector< float > > average_values;
-	std::vector< float > average_un;
 	average_values.resize(label_num);
-	average_un.resize(label_num, 0);
 
 	for (int i = 0; i < label_num; ++i) {
 		int model_size = estimated_models_[i].size();
@@ -102,20 +83,18 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 				average_values[i][k] += point_value_[site_index][k];
 			center_x += point_pos_[site_index][0];
 			center_y += point_pos_[site_index][1];
-			average_un[i] += point_un_[site_index];
 		}
 		for (int k = 0; k < var_weights_.size(); ++k)
 			average_values[i][k] /= model_size;
 		center_x /= model_size;
 		center_y /= model_size;
-		average_un[i] /= model_size;
 
 		float value_var = 0;
 		for (int j = 0; j < model_size; ++j) {
 			int site_index = estimated_models_[i][j];
 			float value_dis = 0;
 			for (int k = 0; k < var_weights_.size(); ++k)
-				value_dis += abs(point_value_[site_index][k] - average_values[i][k]) * var_weights_[k] * 1;
+				value_dis += abs(point_value_[site_index][k] - average_values[i][k]) * var_weights_[k];
 			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2))/* / max_radius_*/;
 			//if (pos_dis > 1.0) pos_dis = 1.0 + (pos_dis - 1.0) * 5;
 
@@ -126,7 +105,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			value_var += pow(value_dis, 2);
 		}
 		value_var = sqrt(value_var / model_size) + 0.01;
-		label_cost_[i] = (value_var + average_un[i]) * 500;
+		label_cost_[i] = value_var * model_size + 10;
 	}
 
 	for (int i = 0; i < label_num; ++i){
@@ -179,18 +158,11 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 		point_dis_[i].assign(point_num_, 0);
 	}
 	for (int i = 0; i < point_num_ - 1; ++i)
-		for (int j = i + 1; j < point_num_; ++j)
-			if (edges_[i][j]) {
-				point_dis_[i][j] = 0;
-				/*for (int k = 0; k < var_weights_.size(); ++k)
-					point_dis_[i][j] += data_dis_scale_ * abs(point_value_[i][k] - point_value_[j][k]) * var_weights_[k];*/
-				point_dis_[i][j] += sqrt(pow(point_pos_[i][0] - point_pos_[j][0], 2) + pow(point_pos_[i][1] - point_pos_[j][1], 2));
-				//point_dis_[i][j] *= edge_weights_[i][j];
-				point_dis_[j][i] = point_dis_[i][j];
-			} else {
-				point_dis_[i][j] = 1e10;
-				point_dis_[j][i] = point_dis_[i][j];
-			}
+		for (int j = i + 1; j < point_num_; ++j) {
+			point_dis_[i][j] = 0;
+			point_dis_[i][j] += sqrt(pow(point_pos_[i][0] - point_pos_[j][0], 2) + pow(point_pos_[i][1] - point_pos_[j][1], 2));
+			point_dis_[j][i] = point_dis_[i][j];
+		}
 
 	std::vector< float > node_distance;
 	node_distance.resize(point_num_);
@@ -198,16 +170,23 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 	is_reached.resize(point_num_);
 
 	for (int i = 0; i < sample_num_; ++i) {
-		node_distance.assign(point_num_, 1e10);
+		node_distance.assign(point_num_, 1e20);
 		is_reached.assign(point_num_, false);
-		node_distance[sample_center_index[i]] = 0;
+
+		int center_index = sample_center_index[i];
+		node_distance[center_index] = 0;
 
 		for (int j = 0; j < point_num_; ++j) {
-			float min_dist = 1e20;
+			float min_dist = 1e10;
 			int min_index = -1;
-			for (int k = 0; k < point_num_; ++k)
+			/*for (int k = 0; k < point_num_; ++k)
 				if (!is_reached[k] && node_distance[k] < min_dist && node_distance[k] < max_radius_ 
 					&& abs(point_value_[k][0] - point_value_[sample_center_index[i]][0]) <= 0.3 * point_value_[sample_center_index[i]][0] + 0.4) {
+					min_dist = node_distance[k];
+					min_index = k;
+				}*/
+			for (int k = 0; k < point_num_; ++k)
+				if (!is_reached[k] && node_distance[k] < min_dist && point_dis_[k][center_index] < max_radius_) {
 					min_dist = node_distance[k];
 					min_index = k;
 				}

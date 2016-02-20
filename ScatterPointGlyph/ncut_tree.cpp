@@ -5,7 +5,7 @@
 #include "LibNCut/libNcut.h"
 
 NCutTree::NCutTree(ScatterPointDataset* data) 
-	: TreeCommon(data), un_threshold_(0.2)
+	: TreeCommon(data), un_threshold_(0.1)
 {
 	libNcutInitialize();
 }
@@ -30,13 +30,19 @@ void NCutTree::GenerateClusters()
 
 		if (temp_node->type() == CNode::BRANCH) {
 			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-			bool is_un_fit = false;
+			/*bool is_un_fit = false;
 			for (int i = 0; i < dataset_->var_num; ++i)
 				if (branch == root_ || branch->value_variance[i] > un_threshold_) {
 					is_un_fit = true;
 					break;
 				}
-			if (is_un_fit) SplitNode(branch);
+			if (is_un_fit) SplitNode(branch);*/
+
+			float accu_un = 0.0;
+			for (int i = 0; i < dataset_->var_num; ++i) {
+				accu_un += branch->value_variance[i] * dataset_->var_weights[i];
+			}
+			if (branch == root_ || accu_un > un_threshold_) SplitNode(branch);
 
 			for (int i = 0; i < branch->linked_nodes.size(); ++i)
 				node_queue.push(branch->linked_nodes[i]);

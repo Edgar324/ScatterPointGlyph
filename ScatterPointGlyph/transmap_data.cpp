@@ -22,7 +22,7 @@
 
 
 TransMapData::TransMapData() {
-	min_point_num = 5;
+	min_point_num = 3;
 }
 
 TransMapData::~TransMapData() {
@@ -31,7 +31,6 @@ TransMapData::~TransMapData() {
 void TransMapData::ClearData() {
 	cluster_num = 0;
 	var_num = 0;
-	min_point_num = 5;
 	cluster_node_map.clear();
 
 	level_one_nodes.clear();

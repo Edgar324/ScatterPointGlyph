@@ -27,25 +27,47 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 
 	int cluster_num = cluster_nodes.size();
 
+	// nearest neighbor evaluation
 	ScatterPointDataset* dataset = tree->data();
 	float node_rate = (float)cluster_nodes.size() / dataset->point_num;
 	float nnm = 0;
 
 	for (int i = 0; i < dataset->point_num; ++i) {
 		float temp_dis = 1e10;
+		int temp_index = -1;
 		float x = dataset->point_pos[i][0];
 		float y = dataset->point_pos[i][1];
 		for (int j = 0; j < cluster_num; ++j) {
 			float dis = sqrt(pow(x - cluster_nodes[j]->center_pos[0], 2) + pow(y - cluster_nodes[j]->center_pos[1], 2));
-			if (dis < temp_dis) temp_dis = dis;
+			if (dis < temp_dis) {
+				temp_dis = dis;
+				temp_index = j;
+			}
 		}
-		nnm += temp_dis;
+		if (temp_index != -1) {
+			float value_dis = 0;
+			for (int j = 0; j < dataset->var_num; ++j)
+				value_dis += abs(cluster_nodes[temp_index]->average_values[j] - dataset->point_values[i][j]) * dataset->var_weights[j];
+			nnm += value_dis;
+		}
 	}
 	nnm = 1.0 - nnm / dataset->point_num;
 
-	measures.resize(2);
+	// square evaluation
+	float sqrerr = 0.0;
+	for (int i = 0; i < cluster_num; ++i) {
+		float value_dis = 0;
+		if (cluster_nodes[i]->type() != CNode::LEAF) {
+			for (int j = 0; j < dataset->var_num; ++j)
+				value_dis += cluster_nodes[i]->value_variance[j] * dataset->var_weights[j];
+			sqrerr += value_dis * cluster_nodes[i]->point_count;
+		}
+	}
+
+	measures.resize(3);
 	measures[0] = node_rate;
 	measures[1] = nnm;
+	measures[2] = sqrerr;
 }
 
 void QualityMetric::SaveMeasures(const char* file_path) {
@@ -54,7 +76,7 @@ void QualityMetric::SaveMeasures(const char* file_path) {
 	if (output.good()) {
 		output << quality_measures_.size() << std::endl;
 		for (int i = 0; i < quality_measures_.size(); ++i)
-			output << quality_measures_[i][0] << " " << quality_measures_[i][1] << std::endl;
+			output << quality_measures_[i][0] << " " << quality_measures_[i][1] << " " << quality_measures_[i][2] << std::endl;
 		output.close();
 	}
 }

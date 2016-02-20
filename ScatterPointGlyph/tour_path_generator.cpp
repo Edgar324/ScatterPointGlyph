@@ -79,7 +79,7 @@ void TourPathGenerator::SetData(TransMapData* data) {
 		node_dis_[i].assign(trans_data_->level_one_nodes.size(), 0);
 	}
 
-	for (int i = 0; i < node_dis_.size() - 1; ++i)
+	for (int i = 0; i + 1 < node_dis_.size(); ++i)
 		for (int j = i + 1; j < node_dis_.size(); ++j) {
 			/*for (int k = 0; k < trans_data_->dataset->var_weights.size(); ++k)
 				node_dis_[i][j] += abs(trans_data_->level_one_nodes[i]->average_values[k] - trans_data_->level_one_nodes[j]->average_values[k]) * trans_data_->dataset->var_weights[k];*/

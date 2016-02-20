@@ -41,6 +41,14 @@ void VariableSelectionDialog::GetSelectionResult(std::vector< float >& weights) 
 			weights[i] = var_weight_spin_boxes_[i]->value();
 		else
 			weights[i] = -1.0;
+
+	// normalize variable weight
+	float accu_weight = 0;
+	for (int i = 0; i < weights.size(); ++i)
+		if (weights[i] >= 0) accu_weight += weights[i];
+	if (accu_weight == 0) accu_weight = 1.0;
+	for (int i = 0; i < weights.size(); ++i)
+		if (weights[i] >= 0) weights[i] /= accu_weight;
 }
 
 void VariableSelectionDialog::OnAutoStateChanged(int is_enabled) {

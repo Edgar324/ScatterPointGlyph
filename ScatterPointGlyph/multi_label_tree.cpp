@@ -7,8 +7,8 @@
 
 MultiLabelTree::MultiLabelTree(ScatterPointDataset* data)
 	: TreeCommon(data),
-	max_radius_threshold_(0.2),
-	un_threshold_(0.2) {
+	max_radius_threshold_(0.5),
+	un_threshold_(0.1) {
 
 	processor_ = new MultiLabelProcessor;
 
@@ -30,7 +30,7 @@ void MultiLabelTree::SetUncertaintyThreshold(float un_threshold) {
 int MultiLabelTree::GetRadiusLevel(float radius) {
 	int level = 0;
 	float temp_radius = max_radius_threshold_;
-	while (temp_radius / factor_ > radius) {
+	while (temp_radius / factor_ > radius * 3) {
 		temp_radius /= factor_;
 		level++;
 	}
@@ -55,13 +55,19 @@ void MultiLabelTree::GenerateClusters() {
 		if (temp_node->type() == CNode::BRANCH) {
 			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
 			if (branch == NULL || branch->radius / factor_ < this->min_edge_length_) continue;
-			bool is_un_fit = false;
+			float accu_un = 0.0;
+			for (int i = 0; i < dataset_->var_num; ++i) {
+				accu_un += branch->value_variance[i] * dataset_->var_weights[i];
+			}
+
+			/*bool is_un_fit = false;
 			for (int i = 0; i < dataset_->var_num; ++i)
 				if (branch == root_ || branch->value_variance[i] > un_threshold_) {
 					is_un_fit = true;
 					break;
 				}
-			if (is_un_fit) SplitNode(branch);
+			if (is_un_fit) SplitNode(branch);*/
+			if (branch == root_ || accu_un > un_threshold_) SplitNode(branch);
 
 			for (int i = 0; i < branch->linked_nodes.size(); ++i)
 				node_queue.push(branch->linked_nodes[i]);
@@ -142,8 +148,8 @@ void MultiLabelTree::SplitNode(CBranch* node) {
 
 	processor_->SetLabelEstimationRadius(node->radius / factor_);
 	processor_->SetData(pos, value, dataset_->var_weights, connecting_status);
-	// this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
-	processor_->SetEdgeWeights(edge_weights);
+	//this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
+	//processor_->SetEdgeWeights(edge_weights);
 	processor_->GenerateCluster();
 	std::vector< int > node_cluster_index = processor_->GetResultLabel();
 

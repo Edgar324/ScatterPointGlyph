@@ -353,7 +353,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 
 		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_);
 		if (hier_tree != NULL) {
-			hier_tree->SetExpectedClusterNum(8);
+			//hier_tree->SetExpectedClusterNum(1);
 			hier_tree->start();
 		}
 	}
@@ -388,7 +388,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		MultiLabelTree* un_tree = dynamic_cast< MultiLabelTree* >(cluster_tree_);
 		if (un_tree != NULL) {
 			float dis_per_pixel = this->GetMainViewDisPerPixel();
-			un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
+			//un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
 			un_tree->start();
 		}
 	}
@@ -409,13 +409,23 @@ void ScatterPointGlyph::AddPointData2View() {
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
+	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
+		MultiLabelTree* multi_label_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
+		if (multi_label_tree == NULL) return;
+
+		float dis_per_pixel = this->GetMainViewDisPerPixel();
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * dis_per_pixel);
+		level_slider_->setValue(current_view_level_);
+		level_index_label_->setText(QString("%0").arg(current_view_level_));
+	} else {
+		current_view_level_ = 1;
+	}
+
 	int max_level = cluster_tree_->GetMaxLevel();
 	level_slider_->setRange(0, max_level);
-	level_slider_->setValue(1);
-	level_index_label_->setText(QString("%0").arg(1));
+	level_slider_->setValue(current_view_level_);
+	level_index_label_->setText(QString("%0").arg(current_view_level_));
 	level_name_label_->setText(QString("Level(0~%0): ").arg(max_level));
-
-	current_view_level_ = 1;
 
 #ifdef USE_QUALITY_METRIC
 	QualityMetric* metric = new QualityMetric;
@@ -562,7 +572,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->dataset = scatter_point_dataset_;
 	transmap_data_->ProcessData();
 
-	trans_map_->SetNodeRadius(dis_per_pixel * 50);
+	trans_map_->SetNodeRadius(dis_per_pixel * label_pixel_radius_ / 3.0);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
 	trans_map_->SetAxisOrder(var_axis_order);
 

@@ -27,7 +27,7 @@ protected:
 
 	float max_radius_threshold_;
 	float un_threshold_;
-	float factor_ = 1.5;
+	float factor_ = 2.0;
 };
 
 #endif

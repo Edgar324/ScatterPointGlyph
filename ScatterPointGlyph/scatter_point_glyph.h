@@ -89,7 +89,7 @@ private:
 	ScatterPointDataset* scatter_point_dataset_;
 
 	int current_view_level_;
-	const int label_pixel_radius_ = { 100 };
+	const int label_pixel_radius_ = { 150 };
 	std::vector< int > var_axis_order;
 
 	void InitWidget();

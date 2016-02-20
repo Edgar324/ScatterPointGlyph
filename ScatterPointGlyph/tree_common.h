@@ -57,6 +57,8 @@ protected:
 	// Update the level of the node and its children
 	void ResetLevel(CNode* node, int level);
 
+	void AssignLeafLevel(CNode* node, int level);
+
 	// Assign Tree Color
 	// This algorithm is based on the paper: 
 	// Tennekes, Martijn, and Edwin de Jonge. "Tree colors: color schemes for tree-structured data." 
