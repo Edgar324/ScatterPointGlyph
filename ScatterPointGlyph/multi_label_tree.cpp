@@ -57,7 +57,7 @@ void MultiLabelTree::GenerateClusters() {
 			if (branch == NULL || branch->radius / factor_ < this->min_edge_length_) continue;
 			float accu_un = 0.0;
 			for (int i = 0; i < dataset_->var_num; ++i) {
-				accu_un += branch->value_variance[i] * dataset_->var_weights[i];
+				accu_un += branch->variable_variances[i] * dataset_->var_weights[i];
 			}
 
 			/*bool is_un_fit = false;

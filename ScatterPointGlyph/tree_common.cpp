@@ -9,7 +9,7 @@ TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
 	root_(NULL),
 	min_edge_length_(0),
-	data_dis_scale_(0.5),
+	data_dis_scale_(0.0),
 	max_level_(-1) {
 }
 
@@ -127,7 +127,7 @@ void TreeCommon::ConstructDirectly() {
 			if (temp_dis < min_edge_length_) min_edge_length_ = temp_dis;
 		}
 
-	this->ProgressNode(root_);
+	this->ProgressNodeAndParent(root_);
 }
 
 void TreeCommon::GetClusterResult(int level, std::vector< CNode* >& level_nodes) {
@@ -376,7 +376,7 @@ void TreeCommon::ProgressNode(CNode* node) {
 	for (int i = 0; i < dataset_->var_num; ++i)
 		variance[i] = sqrt(variance[i] / point_index.size());
 	node->average_values = average;
-	node->value_variance = variance;
+	node->variable_variances = variance;
 	node->point_count = point_index.size();
 	node->center_pos = center_pos;
 }
@@ -619,7 +619,11 @@ void TreeCommon::ProgressNodeAndParent(CNode* node) {
 	for (int i = 0; i < dataset_->var_num; ++i)
 		variance[i] = sqrt(variance[i] / point_index.size());
 	node->average_values = average;
-	node->value_variance = variance;
+	node->variable_variances = variance;
+	node->general_variance = 0;
+	for (int i = 0; i < variance.size(); ++i)
+		node->general_variance += variance[i] * dataset_->var_weights[i];
+
 	node->point_count = point_index.size();
 	node->center_pos = center_pos;
 

@@ -105,7 +105,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			value_var += pow(value_dis, 2);
 		}
 		value_var = sqrt(value_var / model_size) + 0.01;
-		label_cost_[i] = value_var * model_size + 10;
+		label_cost_[i] = value_var * model_size * 10 + 10;
 	}
 
 	for (int i = 0; i < label_num; ++i){

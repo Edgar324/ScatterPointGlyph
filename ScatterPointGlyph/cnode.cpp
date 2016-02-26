@@ -15,6 +15,7 @@ CNode::CNode() : level_(-1) {
 	this->hend = 1.0;
 
 	this->point_count = 0;
+	this->general_variance = 0;
 }
 
 CNode::~CNode() {

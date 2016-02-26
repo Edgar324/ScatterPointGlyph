@@ -300,7 +300,7 @@ void TransMap::UpdateNodeActors() {
 				float y = node_radius_ * sin(end_arc);
 
 				background_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.001));
-				colors->InsertNextTuple4(255, 255, 255, 255);
+				colors->InsertNextTuple4(255, 255, 255, 10);
 			}
 			polydata->InsertNextCell(VTK_POLYGON, 31, background_ids.data());
 
@@ -322,7 +322,7 @@ void TransMap::UpdateNodeActors() {
 			for (int j = 0; j < dataset_->var_num; ++j) {
 				float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 
-				float temp_radius = node_radius_ * (node->average_values[j] - node->value_variance[j]) * 0.8;
+				float temp_radius = node_radius_ * (node->average_values[j] - node->variable_variances[j]) * 0.8;
 				if (temp_radius < 0) temp_radius = 0;
 				float x = temp_radius * cos(end_arc);
 				float y = temp_radius * sin(end_arc);
@@ -330,7 +330,7 @@ void TransMap::UpdateNodeActors() {
 				vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
 				colors->InsertNextTuple4(128, 128, 128, 128);
 
-				temp_radius = node_radius_ * (node->average_values[j] + node->value_variance[j]) * 0.8;
+				temp_radius = node_radius_ * (node->average_values[j] + node->variable_variances[j]) * 0.8;
 				if (temp_radius > 1.0) temp_radius = 1.0;
 				x = temp_radius * cos(end_arc);
 				y = temp_radius * sin(end_arc);
@@ -440,7 +440,7 @@ void TransMap::UpdateNodeActors() {
 					float sin_value = sin(temp_arc);
 
 					// insert the outer polygon
-					float temp_radius = node_radius_ * (node->average_values[var_index] + node->value_variance[var_index]) * 0.8 + node_radius_ * 0.1;
+					float temp_radius = node_radius_ * (node->average_values[var_index] + node->variable_variances[var_index]) * 0.8 + node_radius_ * 0.1;
 					if (temp_radius > 1.0) temp_radius = 1.0;
 					float x = temp_radius * cos_value;
 					float y = temp_radius * sin_value;
@@ -449,7 +449,7 @@ void TransMap::UpdateNodeActors() {
 					var_point_ids1[2 * k + 1] = id_one;
 
 					// insert the inner polygon
-					temp_radius = node_radius_ * (node->average_values[var_index] - node->value_variance[var_index]) * 0.8 + node_radius_ * 0.1;
+					temp_radius = node_radius_ * (node->average_values[var_index] - node->variable_variances[var_index]) * 0.8 + node_radius_ * 0.1;
 					if (temp_radius < 0) temp_radius = 0;
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
@@ -958,7 +958,7 @@ void TransMap::OnMouseMove() {
 			std::vector< float > ranges = dataset_->dataset->original_value_ranges[highlight_var_index_];
 			float average_value = current_node_->average_values[highlight_var_index_]
 				* (ranges[1] - ranges[0]) + ranges[0];
-			float variance_value = current_node_->value_variance[highlight_var_index_] * (ranges[1] - ranges[0]);
+			float variance_value = current_node_->variable_variances[highlight_var_index_] * (ranges[1] - ranges[0]);
 
 			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[highlight_var_index_], average_value, variance_value);
 		}

@@ -3,7 +3,7 @@
 #include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
-	: TreeCommon(data), expected_cluster_num_(44), type_(CENTER_DISTANCE) {
+	: TreeCommon(data), expected_cluster_num_(2), type_(CENTER_DISTANCE) {
 }
 
 HierarchicalTree::~HierarchicalTree() {

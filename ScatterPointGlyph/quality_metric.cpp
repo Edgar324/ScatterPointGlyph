@@ -59,7 +59,7 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 		float value_dis = 0;
 		if (cluster_nodes[i]->type() != CNode::LEAF) {
 			for (int j = 0; j < dataset->var_num; ++j)
-				value_dis += cluster_nodes[i]->value_variance[j] * dataset->var_weights[j];
+				value_dis += cluster_nodes[i]->variable_variances[j] * dataset->var_weights[j];
 			sqrerr += value_dis * cluster_nodes[i]->point_count;
 		}
 	}

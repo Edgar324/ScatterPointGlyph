@@ -26,7 +26,8 @@ public:
 	int point_count;
 	std::vector< float > center_pos;
 	std::vector< float > average_values;
-	std::vector< float > value_variance;
+	std::vector< float > variable_variances;
+	float general_variance;
 
 	// The parameter for generating this node using multi-label clustering method
 	float radius;

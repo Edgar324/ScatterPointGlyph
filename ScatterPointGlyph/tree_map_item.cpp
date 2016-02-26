@@ -91,11 +91,11 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 		}
 	}
 
-	bool is_child_all_leaf = true;
+	bool is_expandable = false;
 	if (node->type() == CNode::BRANCH) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-			if (branch->linked_nodes[i]->type() != CNode::LEAF) is_child_all_leaf = false;
+			if (branch->linked_nodes[i]->type() != CNode::LEAF) is_expandable = true;
 			break;
 		}
 	}
@@ -103,7 +103,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	// paint the item glyph
 	int topy, center_x, center_y, temp_item_size = item_size;
 	if (max_width - temp_left < item_size)  {
-		if (node->point_count < 5) temp_item_size = 0.5 * item_size;
+		if (node->point_count < 2) temp_item_size = 0.5 * item_size;
 		else temp_item_size = item_size;
 		max_width += temp_item_size;
 	}
@@ -112,81 +112,34 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	center_y = topy + 0.5 * item_size;
 
 	// paint the radar glyph
-	if (node->level() == 0) {
-		QPen normal_pen;
-		normal_pen.setColor(QColor(200, 200, 200, 200));
-		normal_pen.setWidth(2.0);
+	if (!node->is_expanded) {
+		int seg_per_circle = 20;
+		float temp_un = node->general_variance > 0.5 ? 1.0 : node->general_variance / 0.5;
+		float temp_radius = temp_item_size / 2.0 * (temp_un * 0.95 + 0.05);
 
-		painter->setPen(normal_pen);
-		painter->drawEllipse(center_x - item_size / 2, topy, item_size, item_size);
-	} else {
-		QPen axis_pen;
-		axis_pen.setColor(QColor(220, 220, 220));
-		axis_pen.setWidth(2.0);
-		painter->setPen(axis_pen);
-
-		if (!node->is_expanded) {
-#ifdef RADAR_GLYPH
-			std::vector< float > x_vec;
-			std::vector< float > y_vec;
-
-			for (int i = 0; i < node->average_values.size(); ++i) {
-				float end_arc = i * 3.14159 * 2 / node->average_values.size();
-
-				float temp_radius = temp_item_size / 2 * 0.8;
-				float x = temp_radius * cos(end_arc);
-				float y = temp_radius * sin(end_arc);
-
-				x_vec.push_back(x * node->average_values[i]);
-				y_vec.push_back(y * node->average_values[i]);
-
-				painter->drawLine(center_x, center_y, center_x + x, center_y + y);
-			}
-
-			axis_pen.setColor(node->color);
-			painter->setPen(axis_pen);
-			for (int i = 0; i < node->average_values.size(); ++i) {
-				painter->drawLine(center_x + x_vec[i], center_y + y_vec[i], center_x + x_vec[(i + 1) % node->average_values.size()], center_y + y_vec[(i + 1) % node->average_values.size()]);
-			}
-#else
-			int seg_per_pie = 5;
-			for (int i = 0; i < node->average_values.size(); ++i) {
-				float begin_arc = i * 360 / node->average_values.size() * 16;
-				float end_arc = (i + 1) * 360 / node->average_values.size() * 16;
-				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
-				float temp_radius = temp_item_size / 2 * 0.7 * node->average_values[i] + temp_item_size * 0.1;
-
-				axis_pen.setColor(QColor(230, 230, 230));
-				axis_pen.setWidth(1.0);
-				painter->setPen(axis_pen);
-				float begin_degree = -1 * i * 2 * 3.14159 / node->average_values.size();
-				float end_degree = -1 * (i + 1) * 2 * 3.14159 / node->average_values.size();
-				painter->drawLine(center_x, center_y, center_x + temp_radius * cos(begin_degree), center_y + temp_radius * sin(begin_degree));
-				painter->drawLine(center_x, center_y, center_x + temp_radius * cos(end_degree), center_y + temp_radius * sin(end_degree));
-
-				axis_pen.setColor(node->color);
-				axis_pen.setWidth(2.0);
-				painter->setPen(axis_pen);
-			
-				painter->drawArc(center_x - temp_radius, center_y - temp_radius, 2 * temp_radius, 2 * temp_radius, begin_arc, end_arc - begin_arc);
-			}
-#endif
+		QPainterPath circle_path;
+		circle_path.moveTo(center_x + temp_radius, center_y);
+		for (int i = 0; i <= seg_per_circle; ++i) {
+			float x = center_x + temp_radius * cos(i * 2 * 3.14159 / seg_per_circle);
+			float y = center_y + temp_radius * sin(i * 2 * 3.14159 / seg_per_circle);
+			circle_path.lineTo(x, y);
 		}
 
-		QPen normal_pen;
-		normal_pen.setColor(QColor(230, 230, 230));
-		normal_pen.setWidth(2.0);
+		painter->fillPath(circle_path, node->color);
+	}
+
+	QPen normal_pen;
+	normal_pen.setWidth(2.0);
+	normal_pen.setColor(QColor(230, 230, 230));
+	painter->setPen(normal_pen);
+	painter->drawEllipse(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
+
+	if (is_expandable && !node->is_expanded) {
+		normal_pen.setColor(QColor(128, 128, 128, 255));
 		painter->setPen(normal_pen);
 
-		painter->drawEllipse(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
-
-		if (!is_child_all_leaf && !node->is_expanded) {
-			normal_pen.setColor(QColor(128, 128, 128, 255));
-			painter->setPen(normal_pen);
-
-			painter->drawLine(center_x - temp_item_size / 2, topy + 3, center_x - temp_item_size / 2 + 6, topy + 3);
-			painter->drawLine(center_x - temp_item_size / 2 + 3, topy, center_x - temp_item_size / 2 + 3, topy + 6);
-		}
+		painter->drawLine(center_x - temp_item_size / 2, topy + 3, center_x - temp_item_size / 2 + 6, topy + 3);
+		painter->drawLine(center_x - temp_item_size / 2 + 3, topy, center_x - temp_item_size / 2 + 3, topy + 6);
 	}
 
 	QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);

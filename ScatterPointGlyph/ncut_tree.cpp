@@ -40,7 +40,7 @@ void NCutTree::GenerateClusters()
 
 			float accu_un = 0.0;
 			for (int i = 0; i < dataset_->var_num; ++i) {
-				accu_un += branch->value_variance[i] * dataset_->var_weights[i];
+				accu_un += branch->variable_variances[i] * dataset_->var_weights[i];
 			}
 			if (branch == root_ || accu_un > un_threshold_) SplitNode(branch);
 
