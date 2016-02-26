@@ -253,6 +253,9 @@
     <CustomBuild Include="multi_label_tree.h">
       <Filter>Header Files\Tree</Filter>
     </CustomBuild>
+    <CustomBuild Include="map_controller.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h">
@@ -317,6 +320,9 @@
     </ClInclude>
     <ClInclude Include="quality_metric.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_map_controller.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

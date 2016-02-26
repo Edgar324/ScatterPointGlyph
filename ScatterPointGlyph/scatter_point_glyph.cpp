@@ -70,21 +70,10 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_ = new ScatterPointView;
 	main_view_->setFocusPolicy(Qt::StrongFocus);
 
-	level_name_label_ = new QLabel("Level: ");
-	level_name_label_->setFixedWidth(100);
-	level_name_label_->setAlignment(Qt::AlignRight);
-	level_slider_ = new QSlider(Qt::Horizontal);
-	level_slider_->setMaximumWidth(600);
-	level_slider_->setRange(0, 0);
-	level_slider_->setSingleStep(1);
-	level_slider_->setValue(0);
-	level_index_label_ = new QLabel("0");
-	level_index_label_->setFixedWidth(50);
-	QHBoxLayout* level_layout = new QHBoxLayout;
-	level_layout->addWidget(level_name_label_, Qt::AlignLeft);
-	level_layout->addWidget(level_slider_, Qt::AlignLeft);
-	level_layout->addWidget(level_index_label_, Qt::AlignLeft);
-	connect(level_slider_, SIGNAL(valueChanged(int)), this, SLOT(OnViewLevelChanged()));
+	map_control_widget_ = new QWidget;
+	map_control_ui_.setupUi(map_control_widget_);
+	connect(map_control_ui_.level_slider, SIGNAL(valueChanged(int)), this, SLOT(OnViewLevelChanged()));
+	connect(map_control_ui_.glyph_size_spinbox, SIGNAL(valueChanged(int)), this, SLOT(OnGlyphSizeChanged()));
 
 	parallel_coordinate_ = new ParallelCoordinate;
 	parallel_coordinate_->setMinimumHeight(200);
@@ -116,7 +105,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(main_view_);
-	main_layout->addLayout(level_layout);
+	main_layout->addWidget(map_control_widget_);
 	ui_.centralWidget->setLayout(main_layout);
 
 	main_renderer_ = vtkRenderer::New();
@@ -414,18 +403,18 @@ void ScatterPointGlyph::OnClusterFinished() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * dis_per_pixel);
-		level_slider_->setValue(current_view_level_);
-		level_index_label_->setText(QString("%0").arg(current_view_level_));
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel);
+		map_control_ui_.level_slider->setValue(current_view_level_);
+		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	} else {
 		current_view_level_ = 1;
 	}
 
 	int max_level = cluster_tree_->GetMaxLevel();
-	level_slider_->setRange(0, max_level);
-	level_slider_->setValue(current_view_level_);
-	level_index_label_->setText(QString("%0").arg(current_view_level_));
-	level_name_label_->setText(QString("Level(0~%0): ").arg(max_level));
+	map_control_ui_.level_slider->setRange(0, max_level);
+	map_control_ui_.level_slider->setValue(current_view_level_);
+	map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
+	map_control_ui_.level_name_label->setText(QString("Level(0~%0): ").arg(max_level));
 
 #ifdef USE_QUALITY_METRIC
 	QualityMetric* metric = new QualityMetric;
@@ -443,17 +432,17 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * dis_per_pixel);
-		level_slider_->setValue(current_view_level_);
-		level_index_label_->setText(QString("%0").arg(current_view_level_));
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel);
+		map_control_ui_.level_slider->setValue(current_view_level_);
+		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
 
 	this->UpdateAllViews();
 }
 
 void ScatterPointGlyph::OnViewLevelChanged() {
-	current_view_level_ = level_slider_->value();
-	level_index_label_->setText(QString("%0").arg(level_slider_->value()));
+	current_view_level_ = map_control_ui_.level_slider->value();
+	map_control_ui_.level_index_label->setText(QString("%0").arg(map_control_ui_.level_slider->value()));
 
 	this->UpdateAllViews();
 }
@@ -572,7 +561,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->dataset = scatter_point_dataset_;
 	transmap_data_->ProcessData();
 
-	trans_map_->SetNodeRadius(dis_per_pixel * label_pixel_radius_ / 3.0);
+	trans_map_->SetNodeRadius(dis_per_pixel * label_pixel_radius_);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
 	trans_map_->SetAxisOrder(var_axis_order);
 
@@ -850,4 +839,11 @@ void ScatterPointGlyph::OnTreemapHighlightVarChagned(int var_index)
 {
 	trans_map_->HighlightVar(var_index);
 	parallel_coordinate_->SetHighlightAxis(var_index);
+}
+
+void ScatterPointGlyph::OnGlyphSizeChanged()
+{
+	label_pixel_radius_ = map_control_ui_.glyph_size_spinbox->value();
+
+	this->UpdateTransmap();
 }

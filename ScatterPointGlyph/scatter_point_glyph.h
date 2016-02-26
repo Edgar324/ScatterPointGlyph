@@ -3,6 +3,7 @@
 
 #include <QtWidgets/QMainWindow>
 #include "ui_scatter_point_glyph.h"
+#include "ui_map_controller.h"
 
 #include <string>
 #include <vector>
@@ -58,9 +59,8 @@ private:
 	vtkRenderer* dis_matrix_renderer_;
 	vtkRenderer* other_renderer_;
 
-	QLabel* level_name_label_;
-	QSlider* level_slider_;
-	QLabel* level_index_label_;
+	Ui::MapController map_control_ui_;
+	QWidget* map_control_widget_;
 
 	ParallelCoordinate* parallel_coordinate_;
 	ParallelDataset* parallel_dataset_;
@@ -89,7 +89,7 @@ private:
 	ScatterPointDataset* scatter_point_dataset_;
 
 	int current_view_level_;
-	const int label_pixel_radius_ = { 150 };
+	int label_pixel_radius_ = { 50 };
 	std::vector< int > var_axis_order;
 
 	void InitWidget();
@@ -139,6 +139,8 @@ private slots:
 	void OnActionShowTreemapTriggered();
 	void OnActionShowTableLensTriggerd();
 	void OnActionShowParallelCoordinateTriggered();
+
+	void OnGlyphSizeChanged();
 };
 
 #endif // SCATTER_POINT_GLYPH_H
