@@ -48,7 +48,7 @@ void HierarchicalTree::GenerateClusters() {
 			CBranch* branch = new CBranch;
 			branch->linked_nodes.push_back(root_->linked_nodes[min_node_index[0]]);
 			branch->linked_nodes.push_back(root_->linked_nodes[min_node_index[1]]);
-			ProgressNode(branch);
+			ProgressNodeData(branch);
 
 			root_->linked_nodes[min_node_index[0]] = branch;
 			for (int i = min_node_index[1]; i < root_->linked_nodes.size() - 1; ++i)

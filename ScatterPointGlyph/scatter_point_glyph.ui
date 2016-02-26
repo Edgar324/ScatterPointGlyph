@@ -82,8 +82,15 @@
      </property>
      <addaction name="actionOff"/>
     </widget>
-    <addaction name="actionShow_Minimum_Spanning_Tree"/>
     <addaction name="menuShow_Sequence"/>
+    <addaction name="actionShow_Minimum_Spanning_Tree"/>
+    <addaction name="separator"/>
+    <addaction name="actionShow_Transmap"/>
+    <addaction name="actionShow_PCP"/>
+    <addaction name="actionShow_Tree_Map"/>
+    <addaction name="actionShow_Table_Lens"/>
+    <addaction name="separator"/>
+    <addaction name="actionOptions"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -116,6 +123,7 @@
    <addaction name="actionAdd_Path_Sequence"/>
    <addaction name="separator"/>
    <addaction name="actionExec"/>
+   <addaction name="actionBegin_Clustering"/>
    <addaction name="actionSplit"/>
    <addaction name="actionMerge"/>
    <addaction name="separator"/>
@@ -397,6 +405,20 @@
    </property>
    <property name="text">
     <string>Show Table Lens</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionBegin_Clustering">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/begin.png</normaloff>:/ScatterPointGlyph/images/begin.png</iconset>
+   </property>
+   <property name="text">
+    <string>Begin Clustering</string>
    </property>
   </action>
  </widget>

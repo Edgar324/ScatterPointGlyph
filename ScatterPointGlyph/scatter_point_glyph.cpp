@@ -162,6 +162,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	// actions for manipulating cluster nodes
 	connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnExecClusteringTriggered()));
+	connect(ui_.actionBegin_Clustering, SIGNAL(triggered()), this, SLOT(OnBeginClusteringTriggered()));
 	connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
 	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
 
@@ -361,6 +362,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		}
 
 		NCutTree* ncut_tree = dynamic_cast<NCutTree*>(cluster_tree_);
+		ncut_tree->SetTreeMode(TreeCommon::VIEWING_MODE);
 		if (ncut_tree != NULL) {
 			ncut_tree->start();
 		}
@@ -375,6 +377,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		}
 
 		MultiLabelTree* un_tree = dynamic_cast< MultiLabelTree* >(cluster_tree_);
+		un_tree->SetTreeMode(TreeCommon::VIEWING_MODE);
 		if (un_tree != NULL) {
 			float dis_per_pixel = this->GetMainViewDisPerPixel();
 			//un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
@@ -382,6 +385,53 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		}
 	}
 		break;
+	default:
+		break;
+	}
+}
+
+void ScatterPointGlyph::OnBeginClusteringTriggered() {
+	if (scatter_point_dataset_ == NULL) {
+		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
+		return;
+	}
+
+	float dis_per_pixel = this->GetMainViewDisPerPixel();
+
+	switch (sys_mode_)
+	{
+	case ScatterPointGlyph::NCUTS_MODE:
+	{
+		if (cluster_tree_ == NULL) {
+			cluster_tree_ = new NCutTree(scatter_point_dataset_);
+
+			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		NCutTree* ncut_tree = dynamic_cast<NCutTree*>(cluster_tree_);
+		ncut_tree->SetTreeMode(TreeCommon::EXPLORATION_MODE);
+		if (ncut_tree != NULL) {
+			ncut_tree->start();
+		}
+	}
+	break;
+	case ScatterPointGlyph::MULTI_LABEL_MODE:
+	{
+		if (cluster_tree_ == NULL) {
+			cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
+
+			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+		}
+
+		MultiLabelTree* un_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
+		un_tree->SetTreeMode(TreeCommon::EXPLORATION_MODE);
+		if (un_tree != NULL) {
+			float dis_per_pixel = this->GetMainViewDisPerPixel();
+			//un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
+			un_tree->start();
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -754,7 +804,6 @@ void ScatterPointGlyph::OnSavePathSequenceTriggered() {
 void ScatterPointGlyph::OnShowMstTriggered() {
 	if (ui_.actionShow_Minimum_Spanning_Tree->isChecked()) {
 		//ui_.actionShow_Sequence->setChecked(false);
-
 		trans_map_->ShowMinimumSpanningTree(true);
 	} else {
 		trans_map_->ShowMinimumSpanningTree(false);

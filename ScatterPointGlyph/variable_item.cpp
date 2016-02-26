@@ -81,7 +81,7 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 	if (!is_abs_width_on_) {
 		int temp_width = 0, temp_bar_width = 0;
 		for (int i = 0; i < var_values_.size(); ++i) {
-			if (node_count_[i] < 5) temp_bar_width = item_size * 0.5;
+			if (node_count_[i] < 2) temp_bar_width = item_size * 0.5;
 			else temp_bar_width = item_size;
 			if (i >= selected_count_) {
 				node_color_[i].setAlpha(20);

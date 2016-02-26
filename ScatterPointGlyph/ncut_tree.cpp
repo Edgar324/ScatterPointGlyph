@@ -109,7 +109,7 @@ void NCutTree::SplitNode(CBranch* node)
 		branches[i]->parent = node;
 		for (int j = 0; j < node_num; ++j)
 			if (arrayPointer[i * node_num + j] != 0) branches[i]->linked_nodes.push_back(node->linked_nodes[j]);
-		ProgressNode(branches[i]);
+		ProgressNodeData(branches[i]);
 	}
 	node->linked_nodes.clear();
 	for (int i = 0; i < branches.size(); ++i)

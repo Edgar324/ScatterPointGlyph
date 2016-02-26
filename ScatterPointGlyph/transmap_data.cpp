@@ -46,8 +46,10 @@ void TransMapData::ProcessData() {
 		if (cluster_nodes[i]->point_count >= min_point_num) {
 			level_one_nodes.push_back(cluster_nodes[i]);
 		}
-
-	this->UpdateConnectingStatus();
+	if (level_one_nodes.size() > 1)
+		this->UpdateConnectingStatus();
+	else
+		this->node_connecting_status.clear();
 }
 
 void TransMapData::UpdateConnectingStatus() {

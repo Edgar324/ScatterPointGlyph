@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/begin.png</file>
     <file>images/pcp.png</file>
     <file>images/table_lens.png</file>
     <file>images/transmap.png</file>

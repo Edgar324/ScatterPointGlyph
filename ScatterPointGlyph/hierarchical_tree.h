@@ -21,6 +21,7 @@ public:
 	void SetDistanceType(DistanceType type);
 
 protected:
+	virtual void BeginClustering() {}
 	virtual void GenerateClusters();
 	virtual void SplitNode(CBranch* node);
 

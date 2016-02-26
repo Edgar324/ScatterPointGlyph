@@ -18,6 +18,7 @@ public:
 
 protected:
 	virtual void GenerateClusters();
+	virtual void BeginClustering();
 	virtual void SplitNode(CBranch* node);
 
 	// Generate new graph based on the cluster results based on each variable

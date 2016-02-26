@@ -39,6 +39,14 @@ int MultiLabelTree::GetRadiusLevel(float radius) {
 	return level;
 }
 
+void MultiLabelTree::BeginClustering() {
+	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
+	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
+		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
+	}
+	root_->radius = max_radius_threshold_;
+}
+
 void MultiLabelTree::GenerateClusters() {
 	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
 	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
@@ -182,7 +190,7 @@ void MultiLabelTree::SplitNode(CBranch* node) {
 			linked_nodes.push_back(label_nodes[i]);
 		}
 	for (int i = 0; i < linked_nodes.size(); ++i)
-		ProgressNodeAndParent(linked_nodes[i]);
+		ProgressNodeAndParentData(linked_nodes[i]);
 	std::vector< int > tour_list;
 	TourPathGenerator::GenerateRoundPath(linked_nodes, tour_list);
 	node->linked_nodes.clear();

@@ -14,8 +14,15 @@ public:
 	TreeCommon(ScatterPointDataset* data);
 	virtual ~TreeCommon();
 
+	enum TreeMode 
+	{
+		EXPLORATION_MODE = 0x0,
+		VIEWING_MODE
+	};
+
 	CBranch* root() { return root_; }
 	ScatterPointDataset* data() { return dataset_; }
+	void SetTreeMode(TreeMode mode);
 
 	// Functions for generating the leaf nodes
 	void ConstructDirectly();
@@ -43,16 +50,15 @@ protected:
 	int max_level_;
 	float min_edge_length_;
 	float data_dis_scale_;
+	TreeMode tree_mode_;
 
 	std::map< int, CNode* > id_node_map_;
 	CNode* common_parent_node_;
 
 	void run();
 	virtual void GenerateClusters() = 0;
+	virtual void BeginClustering() = 0;
 	virtual void SplitNode(CBranch* node) = 0;
-
-	// Update node parameters
-	void ProgressNode(CNode* node);
 
 	// Update the level of the node and its children
 	void ResetLevel(CNode* node, int level);
@@ -71,10 +77,14 @@ protected:
 
 	void Traverse(CNode* node, std::vector< int >& linked_points);
 	void Traverse(int level, std::vector< CNode* >& nodes);
-	void Traverse(int level, CNode* root_node, std::vector< CNode* >& nodes);
+	void TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes);
+	void TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes);
 
 	// Tree node operations
-	void ProgressNodeAndParent(CNode* node);
+	// Update node parameters
+	void ProgressNodeData(CNode* node);
+	void ProgressNodeAndParentData(CNode* node);
+
 	void RemoveChildNode(CNode* node, bool is_empty_deleted = false);
 	void UpdateChildLevel(CBranch* node);
 	int FindCommonParent(CNode* node, std::vector< int >& node_ids);

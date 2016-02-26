@@ -10,11 +10,16 @@ TreeCommon::TreeCommon(ScatterPointDataset* data)
 	root_(NULL),
 	min_edge_length_(0),
 	data_dis_scale_(0.0),
-	max_level_(-1) {
+	max_level_(-1),
+	tree_mode_(EXPLORATION_MODE) {
 }
 
 TreeCommon::~TreeCommon() {
 
+}
+
+void TreeCommon::SetTreeMode(TreeMode mode) {
+	tree_mode_ = mode;
 }
 
 void TreeCommon::ConstructOnOctree(float thre) {
@@ -127,7 +132,7 @@ void TreeCommon::ConstructDirectly() {
 			if (temp_dis < min_edge_length_) min_edge_length_ = temp_dis;
 		}
 
-	this->ProgressNodeAndParent(root_);
+	this->ProgressNodeAndParentData(root_);
 }
 
 void TreeCommon::GetClusterResult(int level, std::vector< CNode* >& level_nodes) {
@@ -163,7 +168,10 @@ void TreeCommon::run() {
 
 	this->ConstructDirectly();
 
-	this->GenerateClusters();
+	if (tree_mode_ == EXPLORATION_MODE)
+		this->BeginClustering();
+	else
+		this->GenerateClusters();
 
 	this->ResetSortingIndex(root_);
 
@@ -176,10 +184,35 @@ void TreeCommon::run() {
 
 void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 	nodes.clear();
-	Traverse(level, root_, nodes);
+	if (tree_mode_ == VIEWING_MODE)
+		TraverseLevelNodes(level, root_, nodes);
+	else
+		TraversAllNodes(root_, nodes);
 }
 
-void TreeCommon::Traverse(int level, CNode* root_node, std::vector< CNode* >& nodes) {
+void TreeCommon::TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes) {
+	if (root_node != NULL && root_node->type() == CNode::BRANCH) {
+		CBranch* branch = dynamic_cast<CBranch*>(root_node);
+		branch->is_expanded = true;
+		branch->is_highlighted = false;
+
+		bool is_expandable = true;
+		for (int i = 0; i < branch->linked_nodes.size(); ++i) 
+			if (branch->linked_nodes[i]->type() == CNode::LEAF) {
+				is_expandable = false;
+				break;
+			}
+		if (!is_expandable) {
+			branch->is_expanded = false;
+			nodes.push_back(branch);
+		} else {
+			for (int i = 0; i < branch->linked_nodes.size(); ++i)
+				TraversAllNodes(branch->linked_nodes[branch->sorting_index[i]], nodes);
+		}
+	}
+}
+
+void TreeCommon::TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes) {
 	root_node->is_expanded = true;
 
 	if (root_node->level() == level) {
@@ -202,7 +235,7 @@ void TreeCommon::Traverse(int level, CNode* root_node, std::vector< CNode* >& no
 			else {
 				branch->is_highlighted = false;
 				for (int i = 0; i < branch->linked_nodes.size(); ++i)
-					Traverse(level, branch->linked_nodes[branch->sorting_index[i]], nodes);
+					TraverseLevelNodes(level, branch->linked_nodes[branch->sorting_index[i]], nodes);
 			}
 		} else if (root_node->type() == CNode::LEAF && root_node->level() < level) {
 			nodes.push_back(root_node);
@@ -347,40 +380,6 @@ void TreeCommon::ResetLevel(CNode* node, int level) {
 	}
 }
 
-void TreeCommon::ProgressNode(CNode* node) {
-	if (node == NULL) return;
-
-	// update the statistics
-	std::vector< int > point_index;
-	this->Traverse(node, point_index);
-
-	std::vector< float > average, variance, center_pos;
-	average.resize(dataset_->var_num, 0);
-	variance.resize(dataset_->var_num, 0);
-	center_pos.resize(2, 0);
-	for (int i = 0; i < point_index.size(); ++i) {
-		center_pos[0] += dataset_->point_pos[point_index[i]][0];
-		center_pos[1] += dataset_->point_pos[point_index[i]][1];
-
-		for (int j = 0; j < dataset_->var_num; ++j)
-			average[j] += dataset_->point_values[point_index[i]][j];
-	}
-	for (int i = 0; i < dataset_->var_num; ++i)
-		average[i] /= point_index.size();
-	center_pos[0] /= point_index.size();
-	center_pos[1] /= point_index.size();
-
-	for (int i = 0; i < point_index.size(); ++i)
-		for (int j = 0; j < dataset_->var_num; ++j)
-			variance[j] += pow(dataset_->point_values[point_index[i]][j] - average[j], 2);
-	for (int i = 0; i < dataset_->var_num; ++i)
-		variance[i] = sqrt(variance[i] / point_index.size());
-	node->average_values = average;
-	node->variable_variances = variance;
-	node->point_count = point_index.size();
-	node->center_pos = center_pos;
-}
-
 void TreeCommon::SortTree(std::vector< int >& node_ids) {
 	int node_count = 0;
 	this->SortNode(root_, node_ids, node_count);
@@ -447,7 +446,11 @@ void TreeCommon::SplitCluster(int cluster_index) {
 		}
 	if (is_child_leaf) this->SplitNode(branch);
 
-	CBranch* temp_parent = branch->parent;
+	ResetLevel(branch, branch->level());
+	ResetSortingIndex(branch);
+	AssignColor(branch, branch->hstart, branch->hend);
+
+	/*CBranch* temp_parent = branch->parent;
 	if (temp_parent == NULL) return;
 
 	int node_index = -1;
@@ -472,7 +475,7 @@ void TreeCommon::SplitCluster(int cluster_index) {
 
 		ResetLevel(temp_parent, temp_parent->level());
 		AssignColor(temp_parent, temp_parent->hstart, temp_parent->hend);
-	}
+	}*/
 }
 
 void TreeCommon::MergeClusters(std::vector< int >& cluster_index) {
@@ -496,18 +499,18 @@ void TreeCommon::MergeClusters(std::vector< int >& cluster_index) {
 
 	if (is_all_branch) {
 		// find the maximum level node
-		int max_level_index = -10000;
-		CNode* max_level_node = NULL;
+		int min_level_index = 10000;
+		CNode* min_level_node = NULL;
 		for (int i = 0; i < cluster_nodes.size(); ++i)
-			if (cluster_nodes[i]->level() > max_level_index) {
-				max_level_index = cluster_nodes[i]->level();
-				max_level_node = cluster_nodes[i];
+			if (cluster_nodes[i]->level() < min_level_index) {
+				min_level_index = cluster_nodes[i]->level();
+				min_level_node = cluster_nodes[i];
 			}
-		if (max_level_node != NULL) {
-			CBranch* parent_node = max_level_node->parent;
+		if (min_level_node != NULL) {
+			CBranch* parent_node = min_level_node->parent;
 			CBranch* new_branch = new CBranch;
-			new_branch->set_level(max_level_node->level());
-			new_branch->radius = max_level_node->radius;
+			new_branch->set_level(min_level_node->level());
+			new_branch->radius = min_level_node->radius;
 			new_branch->parent = parent_node;
 			parent_node->linked_nodes.push_back(new_branch);
 			id_node_map_.insert(std::map< int, CNode* >::value_type(new_branch->id(), new_branch));
@@ -516,12 +519,15 @@ void TreeCommon::MergeClusters(std::vector< int >& cluster_index) {
 
 			for (int i = 0; i < cluster_nodes.size(); ++i) {
 				RemoveChildNode(cluster_nodes[i], true);
-				cluster_nodes[i]->parent = new_branch;
-				new_branch->linked_nodes.push_back(cluster_nodes[i]);
+				CBranch* branch = dynamic_cast<CBranch*>(cluster_nodes[i]);
+				for (int j = 0; j < branch->linked_nodes.size(); ++j)
+					new_branch->linked_nodes.push_back(branch->linked_nodes[j]);
 			}
 
-			ProgressNodeAndParent(new_branch);
+			ResetSortingIndex(new_branch);
 			UpdateChildLevel(new_branch->parent);
+			ProgressNodeAndParentData(new_branch);
+			AssignColor(common_parent_node_, common_parent_node_->hstart, common_parent_node_->hend);
 		}
 		return;
 	}
@@ -546,8 +552,10 @@ void TreeCommon::RemoveChildNode(CNode* node, bool is_empty_deleted) {
 
 		if (temp_parent->linked_nodes.size() == 0 && is_empty_deleted)
 			this->RemoveChildNode(temp_parent, true);
-		else
-			ProgressNodeAndParent(temp_parent);
+		else {
+			ProgressNodeAndParentData(temp_parent);
+			ResetSortingIndex(temp_parent);
+		}
 	}
 }
 
@@ -590,8 +598,8 @@ int TreeCommon::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
 	return value;
 }
 
-void TreeCommon::ProgressNodeAndParent(CNode* node) {
-	if (node == NULL || node == common_parent_node_) return;
+void TreeCommon::ProgressNodeData(CNode* node) {
+	if (node == NULL) return;
 
 	// update the statistics
 	std::vector< int > point_index;
@@ -623,11 +631,14 @@ void TreeCommon::ProgressNodeAndParent(CNode* node) {
 	node->general_variance = 0;
 	for (int i = 0; i < variance.size(); ++i)
 		node->general_variance += variance[i] * dataset_->var_weights[i];
-
 	node->point_count = point_index.size();
 	node->center_pos = center_pos;
+}
 
-	ProgressNodeAndParent(node->parent);
+void TreeCommon::ProgressNodeAndParentData(CNode* node) {
+	if (node == NULL || node == common_parent_node_) return;
+	ProgressNodeData(node);
+	ProgressNodeAndParentData(node->parent);
 }
 
 void TreeCommon::GetNodeValues(CNode* node, int var_index, std::vector< float >& values)

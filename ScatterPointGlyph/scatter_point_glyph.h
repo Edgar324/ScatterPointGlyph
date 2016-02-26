@@ -114,6 +114,7 @@ private slots:
 	void OnActionExitTriggered();
 
 	void OnSysmodeChanged();
+	void OnBeginClusteringTriggered();
 	void OnExecClusteringTriggered();
 	void OnClusterFinished();
 	void OnMainViewUpdated();
