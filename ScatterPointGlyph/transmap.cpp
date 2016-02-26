@@ -151,11 +151,13 @@ void TransMap::ShowVarTrend(int var_index) {
 	if (var_index >= 0) this->path_generator_->GenerateVarTrend(var_index);
 
 	this->highlight_node_sequence.clear();
-	for (int i = 0; i < this->path_generator_->edge_list.size() / 2; ++i) {
-		this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[i * 2]]);
-	}
-	if (this->path_generator_->edge_list.size() != 0) {
-		this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[this->path_generator_->edge_list.size() - 1]]);
+	if (this->is_var_trend_fixed_) {
+		for (int i = 0; i < this->path_generator_->edge_list.size() / 2; ++i) {
+			this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[i * 2]]);
+		}
+		if (this->path_generator_->edge_list.size() != 0) {
+			this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[this->path_generator_->edge_list.size() - 1]]);
+		}
 	}
 
 	this->UpdateHightlightActor();
@@ -269,6 +271,7 @@ void TransMap::UpdateNodeActors() {
 			mapper->SetInputData(polydata);
 			node_actor->SetMapper(mapper);
 			node_actor->GetProperty()->SetLineWidth(3.0);
+			node_actor->GetProperty()->SetLineStipplePattern(0xF00F);
 
 			node_glyph_actors.push_back(node_actor);
 			node_glyph_polys.push_back(polydata);
@@ -276,16 +279,29 @@ void TransMap::UpdateNodeActors() {
 			if (Enabled) this->DefaultRenderer->AddActor(node_actor);
 
 			this->node_picker->AddPickList(node_actor);
+
+			vtkTextActor3D* actor = vtkTextActor3D::New();
+			actor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+			actor->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
+			actor->GetTextProperty()->SetBold(true);
+			actor->GetTextProperty()->SetFontFamilyToArial();
+			this->DefaultRenderer->AddActor(actor);
+			point_num_text_actors.push_back(actor);
 		}
 	}
 	else {
 		for (int i = dataset_->cluster_nodes.size(); i < node_glyph_actors.size(); ++i) {
-			if (Enabled) this->DefaultRenderer->RemoveActor(node_glyph_actors[i]);
+			if (Enabled) {
+				this->DefaultRenderer->RemoveActor(node_glyph_actors[i]);
+				this->DefaultRenderer->RemoveActor(point_num_text_actors[i]);
+			}
 			this->node_picker->DeletePickList(node_glyph_actors[i]);
 			node_glyph_actors[i]->Delete();
+			point_num_text_actors[i]->Delete();
 		}
 		node_glyph_actors.resize(dataset_->cluster_nodes.size());
 		node_glyph_polys.resize(dataset_->cluster_nodes.size());
+		point_num_text_actors.resize(dataset_->cluster_nodes.size());
 	}
 
 	// update node actors
@@ -339,6 +355,23 @@ void TransMap::UpdateNodeActors() {
 				colors->InsertNextTuple4(0, 0, 0, 255);
 			}
 			polydata->InsertNextCell(VTK_POLYGON, 31, center_cirlce_ids.data());
+
+			std::vector< vtkIdType > radius_circle_ids;
+			for (int j = 0; j <= 30; ++j) {
+				float end_arc = j * 3.14159 * 2 / 30;
+				float x = node_radius_ * cos(end_arc);
+				float y = node_radius_ * sin(end_arc);
+
+				radius_circle_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.001));
+				colors->InsertNextTuple4(180, 180, 180, 1255);
+			}
+
+			vtkIdType circle_ids[2];
+			for (int j = 0; j < 30; ++j) {
+				circle_ids[0] = radius_circle_ids[j];
+				circle_ids[1] = radius_circle_ids[j + 1];
+				polydata->InsertNextCell(VTK_LINE, 2, circle_ids);
+			}
 
 #ifdef RADAR_GLYPH
 			// paint variance
@@ -542,6 +575,15 @@ void TransMap::UpdateNodeActors() {
 			}
 #endif // RADAR_GLYPH
 
+			// update point num text
+			char buffer[20];
+			itoa(node->point_count, buffer, 10);
+			point_num_text_actors[i]->SetInput(buffer);
+			point_num_text_actors[i]->SetPosition(node_center_x - node_radius_, node_center_y + node_radius_ * 0.5, 0.003);
+			point_num_text_actors[i]->GetTextProperty()->SetFontSize(20);
+			float scale = node_radius_ * 0.5 / 30;
+			point_num_text_actors[i]->SetScale(scale, scale, scale);
+			point_num_text_actors[i]->Modified();
 		} else {
 			vtkPoints* points = vtkPoints::New();
 			vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
@@ -580,6 +622,15 @@ void TransMap::UpdateNodeActors() {
 
 			for (int k = 0; k < 22; ++k)
 				colors->InsertNextTuple3(node->color.red(), node->color.green(), node->color.blue());
+
+			char buffer[20];
+			itoa(node->point_count, buffer, 10);
+			point_num_text_actors[i]->SetInput(buffer);
+			point_num_text_actors[i]->SetPosition(node_center_x - temp_radius * 2, node_center_y + temp_radius * 0.5, 0.003);
+			point_num_text_actors[i]->GetTextProperty()->SetFontSize(20);
+			float scale = node_radius_ * 0.5 / 30;
+			point_num_text_actors[i]->SetScale(scale, scale, scale);
+			point_num_text_actors[i]->Modified();
 		}
 
 		this->node_glyph_actors[i]->Modified();
@@ -665,7 +716,7 @@ void TransMap::UpdateHightlightActor() {
 	if (seq_size < highlight_node_sequence.size()) {
 		for (int i = 0; i < highlight_node_sequence.size() - seq_size; ++i) {
 			vtkTextActor3D* actor = vtkTextActor3D::New();
-			actor->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+			actor->GetTextProperty()->SetColor(1.0, 0.0, 0.0);
 			actor->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
 			actor->GetTextProperty()->SetBold(true);
 			actor->GetTextProperty()->SetFontFamilyToArial();
@@ -723,9 +774,9 @@ void TransMap::UpdateHightlightActor() {
 			char buffer[20];
 			itoa(hightlight_node_index, buffer, 10);
 			seqence_text_actors[hightlight_node_index]->SetInput(buffer);
-			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius_, node_center_y + node_radius_ * 0.5, 0.003);
+			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x + node_radius_ * 0.9, node_center_y + node_radius_ * 0.5, 0.003);
 			seqence_text_actors[hightlight_node_index]->GetTextProperty()->SetFontSize(20);
-			float scale = node_radius_ * 0.5 / 20;
+			float scale = node_radius_ * 0.5 / 30;
 			seqence_text_actors[hightlight_node_index]->SetScale(scale, scale, scale);
 			seqence_text_actors[hightlight_node_index]->Modified();
 			hightlight_node_index++;
@@ -746,12 +797,13 @@ void TransMap::UpdateHightlightActor() {
 
 			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);
 
+			float temp_radius = node_radius_ * 0.2;
 			char buffer[20];
 			itoa(hightlight_node_index, buffer, 10);
 			seqence_text_actors[hightlight_node_index]->SetInput(buffer);
-			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius_, node_center_y + node_radius_ * 0.5, 0.003);
+			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x + temp_radius * 0.9, node_center_y + temp_radius * 0.5, 0.003);
 			seqence_text_actors[hightlight_node_index]->GetTextProperty()->SetFontSize(20);
-			float scale = node_radius_ * 0.5 / 20;
+			float scale = node_radius_ * 0.5 / 30;
 			seqence_text_actors[hightlight_node_index]->SetScale(scale, scale, scale);
 			seqence_text_actors[hightlight_node_index]->Modified();
 			hightlight_node_index++;

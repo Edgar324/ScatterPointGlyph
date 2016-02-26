@@ -448,8 +448,8 @@ void ScatterPointGlyph::OnViewLevelChanged() {
 }
 
 void ScatterPointGlyph::UpdateAllViews() {
-	this->UpdateParallelCoordinate();
 	this->UpdateTransmap();
+	this->UpdateParallelCoordinate();
 	this->UpdateTreemap();
 	this->UpdatePointMap();
 }

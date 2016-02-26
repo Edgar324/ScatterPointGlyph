@@ -89,6 +89,7 @@ protected:
 
 	std::vector< vtkActor* > node_glyph_actors;
 	std::vector< vtkPolyData* > node_glyph_polys;
+	std::vector< vtkTextActor3D* > point_num_text_actors;
 
 	vtkActor* trans_glyph_actors;
 	vtkPolyDataMapper* trans_glyph_mapper;
