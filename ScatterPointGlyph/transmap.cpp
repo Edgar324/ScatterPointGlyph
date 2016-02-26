@@ -54,6 +54,8 @@ TransMap::TransMap() {
 
 	this->node_radius_ = 10;
 	this->current_node_ = NULL;
+	this->scatter_data_ = NULL;
+	this->dataset_ = NULL;
 
 	this->highlight_actor = vtkActor::New();
 	this->highlight_poly = vtkPolyData::New();
@@ -105,10 +107,24 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 	this->trans_edges.clear();
 
 	if (is_mst_fixed_) this->path_generator_->GenerateSpanningTree();
-	if (is_var_trend_fixed_ && var_trend_index_ != -1) this->path_generator_->GenerateVarTrend(var_trend_index_);
+	if (is_var_trend_fixed_ && var_trend_index_ != -1) {
+		this->path_generator_->GenerateVarTrend(var_trend_index_);
+
+		this->highlight_node_sequence.clear();
+		for (int i = 0; i < this->path_generator_->edge_list.size() / 2; ++i) {
+			this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[i * 2]]);
+		}
+		if (this->path_generator_->edge_list.size() != 0) {
+			this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[this->path_generator_->edge_list.size() - 1]]);
+		}
+	}
 
 	this->BuildRepresentation();
 	this->SetEnabled(true);
+}
+
+void TransMap::SetNodeRadius(float r) {
+	this->node_radius_ = r;
 }
 
 void TransMap::ShowMinimumSpanningTree(bool enabled) {
@@ -134,6 +150,15 @@ void TransMap::ShowVarTrend(int var_index) {
 	var_trend_index_ = var_index;
 	if (var_index >= 0) this->path_generator_->GenerateVarTrend(var_index);
 
+	this->highlight_node_sequence.clear();
+	for (int i = 0; i < this->path_generator_->edge_list.size() / 2; ++i) {
+		this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[i * 2]]);
+	}
+	if (this->path_generator_->edge_list.size() != 0) {
+		this->highlight_node_sequence.push_back(dataset_->level_one_nodes[this->path_generator_->edge_list[this->path_generator_->edge_list.size() - 1]]);
+	}
+
+	this->UpdateHightlightActor();
 	this->UpdateTransEdgeActor();
 }
 

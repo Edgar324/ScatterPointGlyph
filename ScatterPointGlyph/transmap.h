@@ -50,7 +50,7 @@ public:
 	}
 
 	void SetData(ScatterPointDataset* ori_data, TransMapData* data);
-	void SetNodeRadius(float r) { this->node_radius_ = r; }
+	void SetNodeRadius(float r);
 	void SetInteractionState(WidgetState s);
 	void SetAxisOrder(std::vector< int >& order);
 
