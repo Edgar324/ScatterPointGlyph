@@ -44,6 +44,11 @@ public:
 
 	void GetNodeValues(CNode* node, int var_index, std::vector< float >& values);
 
+	void Traverse(CNode* node, std::vector< int >& linked_points);
+	void Traverse(int level, std::vector< CNode* >& nodes);
+	void TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes);
+	void TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes);
+
 protected:
 	ScatterPointDataset* dataset_;
 	CBranch* root_;
@@ -74,11 +79,6 @@ protected:
 	// Assign sequence index for each branch node
 	void ResetSortingIndex(CNode* node);
 	int SortNode(CNode* node, std::vector< int >& node_ids, int& node_count);
-
-	void Traverse(CNode* node, std::vector< int >& linked_points);
-	void Traverse(int level, std::vector< CNode* >& nodes);
-	void TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes);
-	void TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes);
 
 	// Tree node operations
 	// Update node parameters

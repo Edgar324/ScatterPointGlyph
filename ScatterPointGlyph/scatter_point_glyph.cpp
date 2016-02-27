@@ -231,7 +231,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	scatter_point_dataset_->ClearData();
 
 	//std::ifstream input_file(file_path.toLocal8Bit());
-	std::ifstream input_file("./TestData/wine.sc");
+	std::ifstream input_file("./TestData/auto-mpg.sc");
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -549,7 +549,13 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 
 		int cluster_num;
 		std::vector< int > cluster_index;
-		cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
+		cluster_index.resize(scatter_point_dataset_->point_num, -1);
+		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) {
+			std::vector< int > temp_vec;
+			cluster_tree_->Traverse(transmap_data_->cluster_nodes[i], temp_vec);
+			for (int j = 0; j < temp_vec.size(); ++j) cluster_index[temp_vec[j]] = i;
+		}
+		//cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
 
 		for (int i = 0; i < selection_index.size(); ++i) {
 			parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(i);
