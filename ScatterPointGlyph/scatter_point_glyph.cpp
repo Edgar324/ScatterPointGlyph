@@ -843,7 +843,7 @@ void ScatterPointGlyph::OnShowVarTrendTriggered() {
 }
 
 void ScatterPointGlyph::UpdateMenus() {
-	QList< QAction* > actions = transmap_tip_mode_group_->actions();
+	QList< QAction* > actions = transmap_tip_mode_group_->actions(); 
 	for (int i = 1; i < actions.size(); ++i) {
 		transmap_tip_mode_group_->removeAction(actions.at(i));
 		ui_.menuShow_Sequence->removeAction(actions.at(i));
