@@ -231,7 +231,8 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	scatter_point_dataset_->ClearData();
 
 	//std::ifstream input_file(file_path.toLocal8Bit());
-	std::ifstream input_file("./TestData/auto-mpg.sc");
+	//std::ifstream input_file("./TestData/auto-mpg.sc");
+	std::ifstream input_file("./TestData/wine.sc");
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -836,6 +837,9 @@ void ScatterPointGlyph::OnShowVarTrendTriggered() {
 	}
 
 	main_view_->update();
+
+	this->UpdateTreemap();
+	this->UpdateParallelCoordinate();
 }
 
 void ScatterPointGlyph::UpdateMenus() {
