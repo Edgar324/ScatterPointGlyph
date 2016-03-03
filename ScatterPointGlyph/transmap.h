@@ -69,6 +69,9 @@ public:
 	void GetSelectedClusterIds(std::vector< int >& ids);
 	void GetSelectedClusterNodes(std::vector< CNode* >& nodes);
 
+    void SetDensityMapVisibility(bool visibility);
+    void UpdateDensityActor(std::vector< QColor >& node_colors);
+
 protected:
 	TransMap();
 	~TransMap();
@@ -109,6 +112,10 @@ protected:
 	vtkPolyDataMapper* selection_brush_mapper;
 	vtkPolyData* selection_brush_poly;
 
+    vtkActor* density_actor_;
+	vtkPolyDataMapper* density_mapper_;
+	vtkPolyData* density_poly_;
+
 	vtkPropPicker* node_picker;
 	vtkTooltipItem* tool_tip_item_;
 
@@ -128,6 +135,7 @@ private:
 	bool is_var_trend_fixed_ = false;
 	int var_trend_index_ = -1;
     bool is_hovering_ = false;
+    bool is_densitymap_shown_ = true;
 
     int current_selected_var_index_;
 	std::vector< int > highlight_var_index_;

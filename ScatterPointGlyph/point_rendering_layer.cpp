@@ -163,7 +163,7 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 				if (cindex < 0)
 					color_array->SetTuple4(j, 0, 0, 0, 255);
 				else
-					color_array->SetTuple4(j, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 100);
+					color_array->SetTuple4(j, cluster_color_[cindex], cluster_color_[cindex + 1], cluster_color_[cindex + 2], 255);
 			}
 	}
 	
@@ -195,7 +195,7 @@ void PointRenderingLayer::SetCategoryOff() {
 		}
 	} else {
 		for (int i = 0; i < dataset_->original_point_pos.size(); ++i) {
-			color_array->SetTuple4(i, 128, 128, 128, 50);
+			color_array->SetTuple4(i, 128, 128, 128, 255);
 		}
 	}
 	color_array->Modified();

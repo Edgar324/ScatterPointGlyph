@@ -777,6 +777,11 @@ void ScatterPointGlyph::UpdateTransmap() {
 	trans_map_->SetNodeRadius(dis_per_pixel * label_pixel_radius_);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
 	trans_map_->SetAxisOrder(var_axis_order);
+    std::vector< QColor > point_colors;
+    for (int i = 0; i < cluster_index.size(); ++i) {
+        point_colors.push_back(colors[cluster_index[i]]);
+    }
+    trans_map_->UpdateDensityActor(point_colors);
 
 	main_view_->update();
 }
