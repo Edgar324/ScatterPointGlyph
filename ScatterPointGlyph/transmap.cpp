@@ -166,8 +166,12 @@ void TransMap::ShowVarTrend(int var_index) {
 }
 
 void TransMap::HighlightVar(int var_index) {
-	this->highlight_var_index_ = var_index;
-	if (this->highlight_var_index_ != -1) {
+    bool is_exist = false;
+    for (int i = 0; i < highlight_var_index_.size(); ++i) {
+        if (highlight_var_index_[i] == var_index) is_exist = true;
+    }
+    if (!is_exist) highlight_var_index_.push_back(var_index);
+	if (this->highlight_var_index_.size() != 0) {
 		this->is_highlight_var_fixed_ = true;
 	} else {
 		this->is_highlight_var_fixed_ = false;
@@ -521,10 +525,21 @@ void TransMap::UpdateNodeActors() {
 
 				int var_index = axis_order_[j];
 
-				if (var_index == highlight_var_index_ || highlight_var_index_ == -1) alpha = 1.0;
+                bool is_var_highlighted = false;
+                for (int k = 0; k < highlight_var_index_.size(); ++k)
+                    if (highlight_var_index_[k] == var_index) {
+                        is_var_highlighted = true;
+                        break;
+                    }
+				if (is_var_highlighted) alpha = 1.0;
 				else {
-					if (is_highlight_var_fixed_) alpha = 0.05;
-					else alpha = 0.2;
+                    if (highlight_var_index_.size() != 0) {
+                        if (is_hovering_) alpha = 0.5;
+                        else alpha = 0.0;
+                    }
+                    else {
+                        alpha = 1.0;
+                    }
 				}
 
 				float temp_arc = begin_arc;
@@ -576,13 +591,13 @@ void TransMap::UpdateNodeActors() {
 				polydata->InsertNextCell(VTK_TRIANGLE_STRIP, (int)var_point_ids1.size(), var_point_ids1.data());
 				polydata->InsertNextCell(VTK_TRIANGLE_STRIP, (int)var_point_ids2.size(), var_point_ids2.data());
 
-				for (int k = 0; k < seg_per_pie - 1; ++k) {
+				/*for (int k = 0; k < seg_per_pie - 1; ++k) {
 					line_ids[0] = var_point_ids1[2 * k];
 					line_ids[1] = var_point_ids1[2 * (k + 1)];
 					polydata->InsertNextCell(VTK_LINE, 2, line_ids);
-				}
+				}*/
 
-				if (var_index == highlight_var_index_ && current_node_ != NULL) {
+				if (var_index == current_selected_var_index_ && current_node_ != NULL) {
 					std::vector< int > comp_ids;
 					comp_ids.resize(seg_per_pie);
 
@@ -1049,17 +1064,26 @@ void TransMap::OnRightButtonDown() {
 		float degree = acos(xt / length);
 		if (yt < 0) degree = 2 * 3.14159 - degree;
 		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
-		if (axis_order_[temp_index] == this->highlight_var_index_ && is_highlight_var_fixed_)
-			this->highlight_var_index_ = -1;
-		else
-			this->highlight_var_index_ = axis_order_[temp_index];
 
-		this->parent_view->SetHighlightVarIndex(highlight_var_index_);
-	} else {
-		this->highlight_var_index_ = -1;
-	}
+        int var_index = axis_order_[temp_index];
+        int hindex = -1;
+        for (int i = 0; i < this->highlight_var_index_.size(); ++i) {
+            if (this->highlight_var_index_[i] == var_index) {
+                hindex = i;
+                break;
+            }
+        }
+        if (hindex != -1) {
+            for (int i = hindex; i < this->highlight_var_index_.size() - 1; ++i)
+                this->highlight_var_index_[i] = this->highlight_var_index_[i + 1];
+            this->highlight_var_index_.resize(this->highlight_var_index_.size() - 1);
+        }
+        else {
+            this->highlight_var_index_.push_back(var_index);
+        }
+	} 
 
-	if (this->highlight_var_index_ == -1) {
+	if (this->highlight_var_index_.size() == 0) {
 		is_highlight_var_fixed_ = false;
 		current_node_ = NULL;
 	} else {
@@ -1072,13 +1096,19 @@ void TransMap::OnRightButtonDown() {
 }
 
 void TransMap::OnMouseMove() {
-	if (!this->DefaultRenderer || is_highlight_var_fixed_) return;
+	if (!this->DefaultRenderer) return;
 
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
 	current_node_ = GetSelectedNode(x, y);
 
-	int temp_highlight_index = -1;
+    if (current_node_ == NULL && this->current_selected_var_index_ != -1) {
+        this->UpdateNodeActors();
+        this->parent_view->update();
+        this->current_selected_var_index_ = -1;
+    }
+
+	current_selected_var_index_ = -1;
 	if (current_node_ != NULL && IsLevelOneNode(current_node_)) {
 		double woldpos[4];
 		vtkInteractorObserver::ComputeDisplayToWorld(x, y, 0, woldpos);
@@ -1090,25 +1120,39 @@ void TransMap::OnMouseMove() {
 		float degree = acos(xt / length);
 		if (yt < 0) degree = 2 * 3.14159 - degree;
 		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
-		temp_highlight_index = axis_order_[temp_index];
+		current_selected_var_index_ = axis_order_[temp_index];
 	}
-	if (temp_highlight_index != this->highlight_var_index_) {
-		this->highlight_var_index_ = temp_highlight_index;
+	if (current_selected_var_index_ != -1) {
 		this->UpdateNodeActors();
 		this->parent_view->update();
-		this->parent_view->SetHighlightVarIndex(highlight_var_index_);
+		this->parent_view->SetHighlightVarIndex(current_selected_var_index_);
 
-		if (temp_highlight_index != -1) {
-			std::vector< float > ranges = dataset_->dataset->original_value_ranges[highlight_var_index_];
-			float average_value = current_node_->average_values[highlight_var_index_]
+		if (current_selected_var_index_ != -1) {
+			std::vector< float > ranges = dataset_->dataset->original_value_ranges[current_selected_var_index_];
+			float average_value = current_node_->average_values[current_selected_var_index_]
 				* (ranges[1] - ranges[0]) + ranges[0];
-			float variance_value = current_node_->variable_variances[highlight_var_index_] * (ranges[1] - ranges[0]);
+			float variance_value = current_node_->variable_variances[current_selected_var_index_] * (ranges[1] - ranges[0]);
 
-			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[highlight_var_index_], average_value, variance_value);
+			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[current_selected_var_index_], average_value, variance_value);
 		}
 		else
 			this->parent_view->HideTooltip();
 	}
+    if (current_selected_var_index_ != -1) {
+        if (!is_hovering_) {
+            is_hovering_ = true;
+            this->UpdateNodeActors();
+            this->parent_view->update();
+        }
+    }
+    else {
+        if (is_hovering_) {
+            is_hovering_ = false;
+            this->UpdateNodeActors();
+            this->parent_view->update();
+        }
+    }
+        
 }
 
 void TransMap::OnMouseMove(int x, int y) {

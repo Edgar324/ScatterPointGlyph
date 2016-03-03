@@ -127,7 +127,10 @@ private:
 	bool is_mst_fixed_ = false;
 	bool is_var_trend_fixed_ = false;
 	int var_trend_index_ = -1;
-	int highlight_var_index_ = -1;
+    bool is_hovering_ = false;
+
+    int current_selected_var_index_;
+	std::vector< int > highlight_var_index_;
 	bool is_highlight_var_fixed_ = false;
 
 	void UpdateNodeActors();

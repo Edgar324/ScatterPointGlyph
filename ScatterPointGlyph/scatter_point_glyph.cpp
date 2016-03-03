@@ -383,12 +383,6 @@ void ScatterPointGlyph::OnSysmodeChanged() {
 }
 
 void ScatterPointGlyph::OnExecClusteringTriggered() {
-    GlyphDesignDialog design_dialog;
-    design_dialog.SetVariables(scatter_point_dataset_->var_names);
-    if (design_dialog.exec() == QDialog::Accepted) {
-        return;
-    }
-
 	if (scatter_point_dataset_ == NULL) {
 		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
 		return;
