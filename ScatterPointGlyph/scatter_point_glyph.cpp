@@ -50,6 +50,7 @@
 #include "utility.h"
 #include "quality_metric.h"
 #include "wrf_data_manager.h"
+#include "glyph_design_dialog.h"
 
 #define USE_QUALITY_METRIC
 
@@ -156,8 +157,8 @@ void ScatterPointGlyph::InitWidget() {
 	connect(transmap_tip_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnShowVarTrendTriggered()));
 
 	// load data actions
-    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
-    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
+    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
     
 
 	// actions for tips on the cluster transition map
@@ -382,6 +383,12 @@ void ScatterPointGlyph::OnSysmodeChanged() {
 }
 
 void ScatterPointGlyph::OnExecClusteringTriggered() {
+    GlyphDesignDialog design_dialog;
+    design_dialog.SetVariables(scatter_point_dataset_->var_names);
+    if (design_dialog.exec() == QDialog::Accepted) {
+        return;
+    }
+
 	if (scatter_point_dataset_ == NULL) {
 		QMessageBox::information(this, tr("Warning"), tr("Please load data first."));
 		return;

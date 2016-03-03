@@ -224,6 +224,15 @@
     <ClCompile Include="wrfdata\wrf_utility.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_design_dialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_glyph_design_dialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_design_dialog.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -269,6 +278,12 @@
       <Filter>Header Files\Tree</Filter>
     </CustomBuild>
     <CustomBuild Include="map_controller.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_design_dialog.h">
+      <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_design_dialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -359,6 +374,9 @@
     </ClInclude>
     <ClInclude Include="wrfdata\wrf_utility.h">
       <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
