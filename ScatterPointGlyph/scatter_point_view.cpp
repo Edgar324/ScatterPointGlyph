@@ -90,5 +90,6 @@ void ScatterPointView::HideTooltip()
 
 void ScatterPointView::SetHighlightVarIndex(int var_index)
 {
+    if (var_index == -1) QToolTip::hideText();
 	emit HighlightVarChanged(var_index);
 }

@@ -87,7 +87,6 @@ void ScatterPointGlyph::InitWidget() {
 	parallel_coordinate_panel_ = new QDockWidget(QString("Parallel Coordinate"), this);
 	parallel_coordinate_panel_->setWidget(parallel_coordinate_);
 	this->addDockWidget(Qt::BottomDockWidgetArea, parallel_coordinate_panel_);
-	ui_.menuView->addAction(parallel_coordinate_panel_->toggleViewAction());
 	parallel_coordinate_panel_->setVisible(false);
 
 	tree_map_view_ = new TreeMapView;
@@ -95,7 +94,6 @@ void ScatterPointGlyph::InitWidget() {
 	tree_map_panel_ = new QDockWidget(QString("Tree Map and Table Lens"), this);
 	tree_map_panel_->setWidget(tree_map_view_);
 	this->addDockWidget(Qt::RightDockWidgetArea, tree_map_panel_);
-	ui_.menuView->addAction(tree_map_panel_->toggleViewAction());
 	tree_map_panel_->setVisible(false);
 
 	path_explore_view_ = new PathExploreWidget;
@@ -105,7 +103,6 @@ void ScatterPointGlyph::InitWidget() {
 	path_explore_panel_ = new QDockWidget(QString("Path Records"), this);
 	path_explore_panel_->setWidget(path_explore_view_);
 	this->tabifyDockWidget(tree_map_panel_, path_explore_panel_);
-	ui_.menuView->addAction(path_explore_panel_->toggleViewAction());
 	path_explore_panel_->setVisible(false);
 
     detailed_data_tableview_ = new QTableView;
@@ -114,7 +111,6 @@ void ScatterPointGlyph::InitWidget() {
     data_table_panel_ = new QDockWidget(QString("Data"), this);
     data_table_panel_->setWidget(detailed_data_tableview_);
     this->tabifyDockWidget(tree_map_panel_, data_table_panel_);
-    ui_.menuView->addAction(data_table_panel_->toggleViewAction());
     data_table_panel_->setVisible(false);
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
@@ -190,6 +186,8 @@ void ScatterPointGlyph::InitWidget() {
 	connect(ui_.actionShow_Tree_Map, SIGNAL(triggered()), this, SLOT(OnActionShowTreemapTriggered()));
 	connect(ui_.actionShow_Table_Lens, SIGNAL(triggered()), this, SLOT(OnActionShowTableLensTriggerd()));
 	connect(ui_.actionShow_PCP, SIGNAL(triggered()), this, SLOT(OnActionShowParallelCoordinateTriggered()));
+    connect(ui_.actionShow_Density_Map, SIGNAL(triggered()), this, SLOT(OnActionShowDensityMapTriggered()));
+    connect(ui_.actionShow_Data_Table, SIGNAL(triggered()), this, SLOT(OnActionShowDataTableTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -736,6 +734,24 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 
 		parallel_coordinate_->SetDataset(parallel_dataset_);
 		Utility::GenerateAxisOrder(parallel_dataset_, var_axis_order);
+
+        std::vector< int > focus_index;
+        if (trans_map_ != NULL) trans_map_->GetFocusVarIndex(focus_index);
+        for (int i = 0; i < focus_index.size(); ++i) {
+            int temp_pos = -1;
+            for (int j = 0; j < var_axis_order.size(); ++j)
+                if (var_axis_order[j] == focus_index[i]) {
+                    temp_pos = j;
+                    break;
+                }
+            if (temp_pos != -1) {
+                for (int j = temp_pos; j > i; --j) {
+                    var_axis_order[j] = var_axis_order[j - 1];
+                }
+                var_axis_order[i] = focus_index[i];
+            }
+        }
+
 		parallel_coordinate_->SetAxisOrder(var_axis_order);
 		parallel_coordinate_->update();
 
@@ -1041,6 +1057,16 @@ void ScatterPointGlyph::OnActionShowTableLensTriggerd()
 void ScatterPointGlyph::OnActionShowParallelCoordinateTriggered()
 {
 	parallel_coordinate_panel_->setVisible(ui_.actionShow_PCP->isChecked());
+}
+
+void ScatterPointGlyph::OnActionShowDensityMapTriggered() {
+    if (trans_map_ != NULL) {
+        trans_map_->SetDensityMapVisibility(ui_.actionShow_Density_Map->isChecked());
+    }
+}
+
+void ScatterPointGlyph::OnActionShowDataTableTriggered() {
+    data_table_panel_->setVisible(ui_.actionShow_Data_Table->isChecked());
 }
 
 void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)

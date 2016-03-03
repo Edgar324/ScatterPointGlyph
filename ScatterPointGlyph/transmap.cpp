@@ -92,7 +92,7 @@ TransMap::TransMap() {
 	this->density_mapper_ = vtkPolyDataMapper::New();
 	this->density_mapper_->SetInputData(this->density_poly_);
 	this->density_actor_->SetMapper(this->density_mapper_);
-    //density_actor_->SetVisibility(false);
+    density_actor_->SetVisibility(false);
 
 	//this->tool_tip_item_ = vtkTooltipItem::New();
 
@@ -143,7 +143,7 @@ void TransMap::SetNodeRadius(float r) {
 }
 
 void TransMap::ShowMinimumSpanningTree(bool enabled) {
-	this->trans_edges.clear();
+	this->linked_edges.clear();
 	this->is_mst_fixed_ = enabled;
 	if (enabled) this->path_generator_->GenerateSpanningTree();
 	this->UpdateTransEdgeActor();
@@ -175,14 +175,14 @@ void TransMap::ShowVarTrend(int var_index) {
 
 void TransMap::HighlightVar(int var_index) {
     bool is_exist = false;
-    for (int i = 0; i < highlight_var_index_.size(); ++i) {
-        if (highlight_var_index_[i] == var_index) is_exist = true;
+    for (int i = 0; i < focus_var_index_.size(); ++i) {
+        if (focus_var_index_[i] == var_index) is_exist = true;
     }
-    if (!is_exist) highlight_var_index_.push_back(var_index);
-	if (this->highlight_var_index_.size() != 0) {
-		this->is_highlight_var_fixed_ = true;
+    if (!is_exist) focus_var_index_.push_back(var_index);
+	if (this->focus_var_index_.size() != 0) {
+		this->is_focus_var_fixed_ = true;
 	} else {
-		this->is_highlight_var_fixed_ = false;
+		this->is_focus_var_fixed_ = false;
 	}
 
 	this->UpdateNodeActors();
@@ -213,6 +213,10 @@ void TransMap::SetAxisOrder(std::vector< int >& order) {
 void TransMap::OnNodeSelected(int node_id) {
 	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.find(node_id);
 	if (iter != dataset_->cluster_node_map.end()) OnNodeSelected(iter->second);
+}
+
+void TransMap::GetFocusVarIndex(std::vector< int >& focus_index) {
+    focus_index = this->focus_var_index_;
 }
 
 int TransMap::GetSelectedClusterIndex() {
@@ -541,14 +545,14 @@ void TransMap::UpdateNodeActors() {
 				int var_index = axis_order_[j];
 
                 bool is_var_highlighted = false;
-                for (int k = 0; k < highlight_var_index_.size(); ++k)
-                    if (highlight_var_index_[k] == var_index) {
+                for (int k = 0; k < focus_var_index_.size(); ++k)
+                    if (focus_var_index_[k] == var_index) {
                         is_var_highlighted = true;
                         break;
                     }
 				if (is_var_highlighted) alpha = 1.0;
 				else {
-                    if (highlight_var_index_.size() != 0) {
+                    if (focus_var_index_.size() != 0) {
                         if (is_hovering_) alpha = 0.5;
                         else alpha = 0.0;
                     }
@@ -612,7 +616,7 @@ void TransMap::UpdateNodeActors() {
 					polydata->InsertNextCell(VTK_LINE, 2, line_ids);
 				}*/
 
-				if (var_index == current_selected_var_index_ && current_node_ != NULL) {
+				if (var_index == current_highlight_var_index_ && current_node_ != NULL) {
 					std::vector< int > comp_ids;
 					comp_ids.resize(seg_per_pie);
 
@@ -785,16 +789,16 @@ void TransMap::UpdateTransEdgeActor() {
 
 		float value_dis = 0.05;
 
-		cell_ids[0] = trans_points->InsertNextPoint(begin_pos[0] + node_radius_ * orth_vec[0] * value_dis, begin_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0);
-		cell_ids[1] = trans_points->InsertNextPoint(end_pos[0] + node_radius_ * orth_vec[0] * value_dis, end_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0);
-		cell_ids[2] = trans_points->InsertNextPoint(end_pos[0] - node_radius_ * orth_vec[0] * value_dis, end_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0);
-		cell_ids[3] = trans_points->InsertNextPoint(begin_pos[0] - node_radius_ * orth_vec[0] * value_dis, begin_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0);
+		cell_ids[0] = trans_points->InsertNextPoint(begin_pos[0] + node_radius_ * orth_vec[0] * value_dis, begin_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0.001);
+		cell_ids[1] = trans_points->InsertNextPoint(end_pos[0] + node_radius_ * orth_vec[0] * value_dis, end_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0.001);
+		cell_ids[2] = trans_points->InsertNextPoint(end_pos[0] - node_radius_ * orth_vec[0] * value_dis, end_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0.001);
+		cell_ids[3] = trans_points->InsertNextPoint(begin_pos[0] - node_radius_ * orth_vec[0] * value_dis, begin_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0.001);
 		trans_glyph_polys->InsertNextCell(VTK_POLYGON, 4, cell_ids);
 
         value_dis = 0.2;
-        cell_ids[0] = trans_points->InsertNextPoint(end_pos[0] + node_radius_ * orth_vec[0] * value_dis, end_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0);
-        cell_ids[1] = trans_points->InsertNextPoint(arrow_end_pos[0], arrow_end_pos[1], 0);
-		cell_ids[2] = trans_points->InsertNextPoint(end_pos[0] - node_radius_ * orth_vec[0] * value_dis, end_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0);
+        cell_ids[0] = trans_points->InsertNextPoint(end_pos[0] + node_radius_ * orth_vec[0] * value_dis, end_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0.001);
+        cell_ids[1] = trans_points->InsertNextPoint(arrow_end_pos[0], arrow_end_pos[1], 0.001);
+		cell_ids[2] = trans_points->InsertNextPoint(end_pos[0] - node_radius_ * orth_vec[0] * value_dis, end_pos[1] - node_radius_ * orth_vec[1] * value_dis, 0.001);
         trans_glyph_polys->InsertNextCell(VTK_POLYGON, 3, cell_ids);
 	}
 
@@ -1125,27 +1129,27 @@ void TransMap::OnRightButtonDown() {
 
         int var_index = axis_order_[temp_index];
         int hindex = -1;
-        for (int i = 0; i < this->highlight_var_index_.size(); ++i) {
-            if (this->highlight_var_index_[i] == var_index) {
+        for (int i = 0; i < this->focus_var_index_.size(); ++i) {
+            if (this->focus_var_index_[i] == var_index) {
                 hindex = i;
                 break;
             }
         }
         if (hindex != -1) {
-            for (int i = hindex; i < this->highlight_var_index_.size() - 1; ++i)
-                this->highlight_var_index_[i] = this->highlight_var_index_[i + 1];
-            this->highlight_var_index_.resize(this->highlight_var_index_.size() - 1);
+            for (int i = hindex; i < this->focus_var_index_.size() - 1; ++i)
+                this->focus_var_index_[i] = this->focus_var_index_[i + 1];
+            this->focus_var_index_.resize(this->focus_var_index_.size() - 1);
         }
         else {
-            this->highlight_var_index_.push_back(var_index);
+            this->focus_var_index_.push_back(var_index);
         }
 	} 
 
-	if (this->highlight_var_index_.size() == 0) {
-		is_highlight_var_fixed_ = false;
+	if (this->focus_var_index_.size() == 0) {
+		is_focus_var_fixed_ = false;
 		current_node_ = NULL;
 	} else {
-		is_highlight_var_fixed_ = true;
+		is_focus_var_fixed_ = true;
 		current_node_ = selected_node;
 	}
 
@@ -1160,13 +1164,15 @@ void TransMap::OnMouseMove() {
 	int y = this->Interactor->GetEventPosition()[1];
 	current_node_ = GetSelectedNode(x, y);
 
-    if (current_node_ == NULL && this->current_selected_var_index_ != -1) {
+    float pre_highlight = current_highlight_var_index_;
+
+    if (current_node_ == NULL && this->current_highlight_var_index_ != -1) {
         this->UpdateNodeActors();
         this->parent_view->update();
-        this->current_selected_var_index_ = -1;
+        this->current_highlight_var_index_ = -1;
     }
 
-	current_selected_var_index_ = -1;
+	current_highlight_var_index_ = -1;
 	if (current_node_ != NULL && IsLevelOneNode(current_node_)) {
 		double woldpos[4];
 		vtkInteractorObserver::ComputeDisplayToWorld(x, y, 0, woldpos);
@@ -1178,25 +1184,24 @@ void TransMap::OnMouseMove() {
 		float degree = acos(xt / length);
 		if (yt < 0) degree = 2 * 3.14159 - degree;
 		int temp_index = (int)(degree / (2 * 3.1416) * dataset_->var_num);
-		current_selected_var_index_ = axis_order_[temp_index];
+		current_highlight_var_index_ = axis_order_[temp_index];
 	}
-	if (current_selected_var_index_ != -1) {
+	if (current_highlight_var_index_ != -1) {
 		this->UpdateNodeActors();
 		this->parent_view->update();
-		this->parent_view->SetHighlightVarIndex(current_selected_var_index_);
 
-		if (current_selected_var_index_ != -1) {
-			std::vector< float > ranges = dataset_->dataset->original_value_ranges[current_selected_var_index_];
-			float average_value = current_node_->average_values[current_selected_var_index_]
+		if (current_highlight_var_index_ != -1) {
+			std::vector< float > ranges = dataset_->dataset->original_value_ranges[current_highlight_var_index_];
+			float average_value = current_node_->average_values[current_highlight_var_index_]
 				* (ranges[1] - ranges[0]) + ranges[0];
-			float variance_value = current_node_->variable_variances[current_selected_var_index_] * (ranges[1] - ranges[0]);
+			float variance_value = current_node_->variable_variances[current_highlight_var_index_] * (ranges[1] - ranges[0]);
 
-			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[current_selected_var_index_], average_value, variance_value);
+			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[current_highlight_var_index_], average_value, variance_value);
 		}
 		else
 			this->parent_view->HideTooltip();
 	}
-    if (current_selected_var_index_ != -1) {
+    if (current_highlight_var_index_ != -1) {
         if (!is_hovering_) {
             is_hovering_ = true;
             this->UpdateNodeActors();
@@ -1210,7 +1215,9 @@ void TransMap::OnMouseMove() {
             this->parent_view->update();
         }
     }
-        
+
+    if (pre_highlight != current_highlight_var_index_) 
+        this->parent_view->SetHighlightVarIndex(current_highlight_var_index_);
 }
 
 void TransMap::OnMouseMove(int x, int y) {
@@ -1548,5 +1555,8 @@ void TransMap::Sort(std::vector< int >& index_one, std::vector< int >& index_two
 
 void TransMap::SetDensityMapVisibility(bool visibility)
 {
+    is_densitymap_shown_ = visibility;
     density_actor_->SetVisibility(visibility);
+
+    this->parent_view->update();
 }

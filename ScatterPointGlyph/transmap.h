@@ -64,6 +64,7 @@ public:
 	void OnMouseReleased(bool is_left_button = true);
 	void OnMouseMove(int x, int y);
 
+    void GetFocusVarIndex(std::vector< int >& focus_index);
 	int GetSelectedClusterIndex();
 	void GetSelectedClusterIndex(std::vector< int >& index);
 	void GetSelectedClusterIds(std::vector< int >& ids);
@@ -137,9 +138,10 @@ private:
     bool is_hovering_ = false;
     bool is_densitymap_shown_ = true;
 
-    int current_selected_var_index_;
-	std::vector< int > highlight_var_index_;
-	bool is_highlight_var_fixed_ = false;
+    int current_highlight_var_index_;
+
+	std::vector< int > focus_var_index_;
+	bool is_focus_var_fixed_ = false;
 
 	void UpdateNodeActors();
 	void GenerateTransEdgeFromHighlight();

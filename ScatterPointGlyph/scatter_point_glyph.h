@@ -145,9 +145,11 @@ private slots:
 	void OnShowVarTrendTriggered();
 
 	void OnActionShowTransmapTriggered();
+    void OnActionShowDensityMapTriggered();
 	void OnActionShowTreemapTriggered();
 	void OnActionShowTableLensTriggerd();
 	void OnActionShowParallelCoordinateTriggered();
+    void OnActionShowDataTableTriggered();
 
 	void OnGlyphSizeChanged();
 };

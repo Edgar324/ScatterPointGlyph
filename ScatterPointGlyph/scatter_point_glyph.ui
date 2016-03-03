@@ -86,9 +86,11 @@
     <addaction name="actionShow_Minimum_Spanning_Tree"/>
     <addaction name="separator"/>
     <addaction name="actionShow_Transmap"/>
+    <addaction name="actionShow_Density_Map"/>
     <addaction name="actionShow_PCP"/>
     <addaction name="actionShow_Tree_Map"/>
     <addaction name="actionShow_Table_Lens"/>
+    <addaction name="actionShow_Data_Table"/>
     <addaction name="separator"/>
     <addaction name="actionOptions"/>
    </widget>
@@ -109,9 +111,11 @@
    <addaction name="actionVTK_Unstructured_Grid_Data"/>
    <addaction name="separator"/>
    <addaction name="actionShow_Transmap"/>
+   <addaction name="actionShow_Density_Map"/>
    <addaction name="actionShow_Tree_Map"/>
    <addaction name="actionShow_Table_Lens"/>
    <addaction name="actionShow_PCP"/>
+   <addaction name="actionShow_Data_Table"/>
    <addaction name="separator"/>
    <addaction name="actionShow_Minimum_Spanning_Tree"/>
    <addaction name="separator"/>
@@ -419,6 +423,30 @@
    </property>
    <property name="text">
     <string>Begin Clustering</string>
+   </property>
+  </action>
+  <action name="actionShow_Density_Map">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/densitymap.png</normaloff>:/ScatterPointGlyph/images/densitymap.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Density Map</string>
+   </property>
+  </action>
+  <action name="actionShow_Data_Table">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/table.png</normaloff>:/ScatterPointGlyph/images/table.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Data Table</string>
    </property>
   </action>
  </widget>
