@@ -103,7 +103,7 @@ void TreeMapView::UpdateLayout() {
 	}
 
 	QSize temp = tree_item_->GetSize();
-	scene_->setSceneRect(-50, 0, temp.width(), total_height);
+	scene_->setSceneRect(-150, 0, temp.width() + 200, total_height);
 
 	scene_->update();
 	this->update();

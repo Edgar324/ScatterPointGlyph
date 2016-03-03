@@ -29,6 +29,8 @@ public:
 	std::vector< float > variable_variances;
 	float general_variance;
 
+    float saliency;
+
 	// The parameter for generating this node using multi-label clustering method
 	float radius;
 

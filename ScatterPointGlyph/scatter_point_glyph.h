@@ -110,6 +110,7 @@ private:
 private slots:
 	void OnActionOpenVtkFileTriggered();
 	void OnActionOpenScatterFileTriggered();
+    void OnActionOpenGridFileTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
 

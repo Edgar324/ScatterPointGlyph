@@ -209,6 +209,21 @@
     <ClCompile Include="quality_metric.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="wrfdata\wrf_data_common.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="wrfdata\wrf_data_manager.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="wrfdata\wrf_nc_lambcc_projection_data.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="wrfdata\wrf_nc_square_projection_data.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="wrfdata\wrf_utility.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -323,6 +338,27 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_map_controller.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scatter_grid_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_data_common.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_data_manager.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_nc_lambcc_projection_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_nc_map_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_nc_square_projection_data.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="wrfdata\wrf_utility.h">
+      <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

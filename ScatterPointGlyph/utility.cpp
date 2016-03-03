@@ -154,3 +154,29 @@ void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& ax
 		TourPathGenerator::GenerateRoundPath(corr_values, axis_order);
 	}
 }
+
+void Utility::GridConnection(std::vector< CNode*>& nodes, int w, int h, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length)
+{
+    connecting_status.resize(nodes.size());
+	for (int i = 0; i < nodes.size(); ++i) {
+		connecting_status[i].resize(nodes.size());
+		connecting_status[i].assign(nodes.size(), false);
+	}
+    for (int i = 0; i < h; i++) {
+        int n1 = i * w;
+        int n2 = (i + 1) * w;
+        for (int j = 0; j < w; j++) {
+            int p1 = n1 + j;
+            int p2 = n1 + j + 1;
+            int p3 = n2 + j;
+            if (i < h - 1) {
+                connecting_status[p1][p3] = true;
+                connecting_status[p3][p1] = true;
+            }
+            if (j < w - 1) {
+                connecting_status[p1][p2] = true;
+                connecting_status[p2][p1] = true;
+            }
+        }
+    }
+}

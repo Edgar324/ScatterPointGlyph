@@ -30,7 +30,7 @@ void MultiLabelTree::SetUncertaintyThreshold(float un_threshold) {
 int MultiLabelTree::GetRadiusLevel(float radius) {
 	int level = 0;
 	float temp_radius = max_radius_threshold_;
-	while (temp_radius / factor_ > radius * 3) {
+	while (temp_radius / factor_ > radius) {
 		temp_radius /= factor_;
 		level++;
 	}
@@ -48,10 +48,6 @@ void MultiLabelTree::BeginClustering() {
 }
 
 void MultiLabelTree::GenerateClusters() {
-	id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
-	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
-		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
-	}
 	root_->radius = max_radius_threshold_;
 
 	std::queue< CNode* > node_queue;
@@ -124,7 +120,7 @@ void MultiLabelTree::GenerateSegmentUncertainty(std::vector< CNode* >& nodes, st
 }
 
 void MultiLabelTree::SplitNode(CBranch* node) {
-	if (node == NULL || node->linked_nodes.size() == 0) {
+	if (node == NULL || node->linked_nodes.size() <= 1) {
 		std::cout << "Need data initialization first." << std::endl;
 		return;
 	}
@@ -138,7 +134,8 @@ void MultiLabelTree::SplitNode(CBranch* node) {
 
 	std::vector< std::vector< bool > > connecting_status;
 	float temp_min_length;
-	Utility::VtkTriangulation(node->linked_nodes, connecting_status, temp_min_length);
+    this->GetConnectionStatus(node->linked_nodes, connecting_status, temp_min_length);
+	//Utility::VtkTriangulation(node->linked_nodes, connecting_status, temp_min_length);
 	for (int i = 0; i < node->linked_nodes.size() - 1; ++i)
 		for (int j = i + 1; j < node->linked_nodes.size(); ++j)
 			if (connecting_status[i][j]) {
@@ -154,12 +151,35 @@ void MultiLabelTree::SplitNode(CBranch* node) {
 	for (int i = 0; i < node->linked_nodes.size(); ++i)
 		edge_weights[i].resize(node->linked_nodes.size(), 0.5);
 
-	processor_->SetLabelEstimationRadius(node->radius / factor_);
-	processor_->SetData(pos, value, dataset_->var_weights, connecting_status);
-	//this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
-	//processor_->SetEdgeWeights(edge_weights);
-	processor_->GenerateCluster();
-	std::vector< int > node_cluster_index = processor_->GetResultLabel();
+    std::vector< int > node_cluster_index;
+    bool is_splitted = false;
+    float temp_radius = node->radius / factor_;
+    while (!is_splitted) {
+        processor_->SetLabelEstimationRadius(temp_radius);
+	    processor_->SetData(pos, value, dataset_->var_weights, connecting_status);
+	    //this->GenerateSegmentUncertainty(node->linked_nodes, connecting_status, edge_weights);
+	    //processor_->SetEdgeWeights(edge_weights);
+	    processor_->GenerateCluster();
+        node_cluster_index = processor_->GetResultLabel();
+
+        int first_label = -1, second_label = -1;
+        for (int i = 0; i < node_cluster_index.size(); ++i) 
+            if (node_cluster_index[i] >= 0) {
+                first_label = node_cluster_index[i];
+                for (int j = i + 1; j < node_cluster_index.size(); ++j) 
+                    if (node_cluster_index[j] >= 0 && node_cluster_index[j] != first_label) {
+                        second_label = node_cluster_index[j];
+                        break;
+                    }
+                break;
+            }
+        if (first_label != -1 && second_label != -1 && first_label != second_label) {
+            is_splitted = true;
+        }
+        else {
+            temp_radius /= factor_;
+        }
+    }
 
 	std::vector< CBranch* > label_nodes;
 	label_nodes.resize(node->linked_nodes.size(), NULL);

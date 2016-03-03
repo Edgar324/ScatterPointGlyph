@@ -11,6 +11,13 @@ public:
 	ScatterPointDataset();
 	virtual ~ScatterPointDataset();
 
+    enum DataType {
+        POINT_DATA = 0x0,
+        GRID_DATA
+    };
+
+    virtual DataType type() { return POINT_DATA; }
+
 	// original data, var_names, var_weights, original_point_values should be set manually
 	int var_num = {0};
 	std::vector< QString > var_names;
@@ -27,6 +34,7 @@ public:
 	std::vector< std::vector< float > > original_point_pos;
 	// the position ranges of the points before normalization
 	std::vector< std::vector< float > > original_pos_ranges;
+    float max_pos_range;
 
 	// the value ranges of the points before normalization
 	std::vector< std::vector< float > > original_value_ranges;
@@ -46,7 +54,7 @@ public:
 	void DirectConstruct();
 	void ClearData();
 
-private:
+protected:
 	// The x and y coordinate share the same scale. All values are normalized to [0, 1]
 	void NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
 	void NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);

@@ -99,13 +99,21 @@ bool TourPathGenerator::GenerateSpanningTree() {
 	std::vector< float > weights;
 	for (int i = 0; i < ncount - 1; ++i)
 		for (int j = i + 1; j < ncount; ++j)
-			if (/*trans_data_->node_connecting_status[i][j]*/true) {
+			if (trans_data_->node_connecting_status[i][j]) {
 				node_edges.push_back(std::pair< int, int >(i, j));
-				double temp_weight(sqrt(pow(
+				/*double temp_weight(sqrt(pow(
 					static_cast<double>(trans_data_->level_one_nodes[i]->center_pos[0] - trans_data_->level_one_nodes[j]->center_pos[0]), 2.0) +
-					pow(static_cast<double>(trans_data_->level_one_nodes[i]->center_pos[1] - trans_data_->level_one_nodes[j]->center_pos[1]), 2.0)));
+					pow(static_cast<double>(trans_data_->level_one_nodes[i]->center_pos[1] - trans_data_->level_one_nodes[j]->center_pos[1]), 2.0)));*/
+                double temp_weight = 0;
+                for (int k = 0; k < trans_data_->var_num; ++k) {
+                    temp_weight += abs(trans_data_->level_one_nodes[i]->average_values[k] - trans_data_->level_one_nodes[j]->average_values[k]) * trans_data_->dataset->var_weights[k];
+                }
 				weights.push_back(temp_weight);
-			}
+            }
+            else {
+                node_edges.push_back(std::pair< int, int >(i, j));
+				weights.push_back(1000);
+            }
 
 	Graph g(ncount);
 	WeightMap weight_map(get(edge_weight, g));
@@ -120,15 +128,15 @@ bool TourPathGenerator::GenerateSpanningTree() {
 
 	kruskal_minimum_spanning_tree(g, std::back_inserter(spanning_tree));
 
-	edge_list.clear();
+	linked_edge_list.clear();
 	std::cout << "Print the edges in the MST:" << std::endl;
 	for (std::vector < Edge >::iterator ei = spanning_tree.begin();
 		ei != spanning_tree.end(); ++ei) {
 		std::cout << source(*ei, g) << " <--> " << target(*ei, g)
 			<< " with weight of " << weight[*ei]
 			<< std::endl;
-		edge_list.push_back(source(*ei, g));
-		edge_list.push_back(target(*ei, g));
+		linked_edge_list.push_back(source(*ei, g));
+		linked_edge_list.push_back(target(*ei, g));
 	}
 
 	return true;
@@ -155,10 +163,10 @@ bool TourPathGenerator::GenerateVarTrend(int var_index) {
 				node_index[i] = node_index[j];
 				node_index[j] = temp_index;
 			}
-	this->edge_list.clear();
+	this->trans_edge_list.clear();
 	for (int i = 0; i < node_index.size() - 1; ++i) {
-		this->edge_list.push_back(node_index[i]);
-		this->edge_list.push_back(node_index[i + 1]);
+		this->trans_edge_list.push_back(node_index[i]);
+		this->trans_edge_list.push_back(node_index[i + 1]);
 	}
 
 	return true;

@@ -34,6 +34,7 @@
 
 #include "point_rendering_layer.h"
 #include "scatter_point_dataset.h"
+#include "scatter_grid_dataset.h"
 #include "scatter_point_view.h"
 #include "hierarchical_tree.h"
 #include "multi_label_tree.h"
@@ -48,6 +49,7 @@
 #include "variable_selection_dialog.h"
 #include "utility.h"
 #include "quality_metric.h"
+#include "wrf_data_manager.h"
 
 #define USE_QUALITY_METRIC
 
@@ -154,7 +156,9 @@ void ScatterPointGlyph::InitWidget() {
 	connect(transmap_tip_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnShowVarTrendTriggered()));
 
 	// load data actions
-	connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
+    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+    
 
 	// actions for tips on the cluster transition map
 	ui_.mainToolBar->insertAction(ui_.actionShow_Minimum_Spanning_Tree, ui_.menuShow_Sequence->menuAction());
@@ -295,6 +299,59 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	this->AddPointData2View();
 }
 
+void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
+    WrfDataManager* manager = WrfDataManager::GetInstance();
+    manager->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("G:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
+    manager->LoadEnsembleData(WRF_PRECIPITABLE_WATER, std::string("G:/Data/ens_l/pwat_eatm_latlon_all_20150401_20150430_liao5WubTq.nc"));
+    manager->LoadEnsembleData(WRF_T2M, std::string("G:/Data/ens_l/tmp_2m_latlon_all_20150401_20150430_liaoSwbPtU.nc"));
+    manager->LoadEnsembleData(WRF_MSLP, std::string("G:/Data/ens_l/pres_msl_latlon_all_20150401_20150430_liaoawNRCR.nc"));
+
+    QDateTime temp_datetime = QDateTime(QDate(2015, 4, 5), QTime(0, 0));
+
+    std::vector< WrfGridValueMap* > apcp_maps, prec_maps, t2m_maps, mslp_maps;
+    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_ACCUMULATED_PRECIPITATION, 24, apcp_maps);
+    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_PRECIPITABLE_WATER, 24, prec_maps);
+    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_T2M, 24, t2m_maps);
+    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_MSLP, 24, mslp_maps);
+
+    ScatterGridDataset* grid_data = new ScatterGridDataset;
+    scatter_point_dataset_ = grid_data;
+    MapRange range = apcp_maps[0]->map_range;
+    grid_data->w = apcp_maps[0]->map_range.x_grid_number;
+    grid_data->h = apcp_maps[0]->map_range.y_grid_number;
+    grid_data->point_num = grid_data->w * grid_data->h;
+    grid_data->var_num = 4;
+    grid_data->var_names.push_back(QString("APCP"));
+    grid_data->var_names.push_back(QString("PREW"));
+    grid_data->var_names.push_back(QString("T2M"));
+    grid_data->var_names.push_back(QString("MSLP"));
+    grid_data->original_point_pos.resize(grid_data->point_num);
+    grid_data->original_point_values.resize(grid_data->point_num);
+    grid_data->var_weights.resize(4, 0.25);
+
+    int accu_index = 0;
+    for (int i = 0; i < grid_data->h; ++i)
+        for (int j = 0; j < grid_data->w; ++j) {
+            grid_data->original_point_pos[accu_index].resize(2);
+            grid_data->original_point_pos[accu_index][0] = range.start_x + j * range.x_grid_space;
+            grid_data->original_point_pos[accu_index][1] = range.start_y + i * range.y_grid_space;
+
+            grid_data->original_point_values[accu_index].resize(4);
+            grid_data->original_point_values[accu_index][0] = apcp_maps[0]->values[accu_index];
+            grid_data->original_point_values[accu_index][1] = prec_maps[0]->values[accu_index];
+            grid_data->original_point_values[accu_index][2] = t2m_maps[0]->values[accu_index];
+            grid_data->original_point_values[accu_index][3] = mslp_maps[0]->values[accu_index];
+
+            accu_index++;
+        }
+
+    scatter_point_dataset_->DirectConstruct();
+
+	this->UpdateMenus();
+
+	this->AddPointData2View();
+}
+
 void ScatterPointGlyph::OnActionCloseTriggered() {
 
 }
@@ -427,7 +484,7 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 		MultiLabelTree* un_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
 		un_tree->SetTreeMode(TreeCommon::EXPLORATION_MODE);
 		if (un_tree != NULL) {
-			float dis_per_pixel = this->GetMainViewDisPerPixel();
+			//float dis_per_pixel = this->GetMainViewDisPerPixel();
 			//un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
 			un_tree->start();
 		}
@@ -454,7 +511,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	} else {
@@ -483,7 +540,7 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
@@ -510,18 +567,42 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->ClearData();
 		parallel_dataset_->subset_names.push_back(QString("MDS Data"));
 		parallel_dataset_->subset_records.resize(1);
-		parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->original_point_values[0].size());
-		for (int i = 0; i < scatter_point_dataset_->original_point_values[0].size(); ++i) {
-			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][0]));
-			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][1]));
+        std::vector< std::vector< float > > value_ranges;
+        value_ranges.resize(scatter_point_dataset_->var_num);
+        for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
+            value_ranges[i].resize(2);
+            value_ranges[i][0] = 1e20;
+            value_ranges[i][1] = -1e20;
+        }
+
+		for (int i = 0; i < scatter_point_dataset_->original_point_values.size(); ++i) {
+			ParallelRecord* record = new ParallelRecord;
+			record->values = scatter_point_dataset_->original_point_values[i];
+            for (int j = 0; j < record->values.size(); ++j) {
+                if (value_ranges[j][0] > record->values[j]) value_ranges[j][0] = record->values[j];
+                if (value_ranges[j][1] < record->values[j]) value_ranges[j][1] = record->values[j];
+            }
+			parallel_dataset_->subset_records[0].push_back(record);
+		}
+
+        for (int i = 0; i < scatter_point_dataset_->var_num; ++i)
+            if (value_ranges[i][1] - value_ranges[i][0] == 0) {
+                value_ranges[i][0] -= 0.5;
+                value_ranges[i][1] += 0.5;
+            }
+        for (int i = 0; i < parallel_dataset_->subset_records[0].size(); ++i) {
+            for (int j = 0; j < scatter_point_dataset_->var_num; ++j) {
+                parallel_dataset_->subset_records[0][i]->values[j] = (parallel_dataset_->subset_records[0][i]->values[j] - value_ranges[j][0]) / (value_ranges[j][1] - value_ranges[j][0]);
+            }
+        }
+
+        parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->var_num);
+		for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(value_ranges[i][0]));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(value_ranges[i][1]));
 			parallel_dataset_->axis_names.push_back(scatter_point_dataset_->var_names[i]);
 		}
 
-		for (int i = 0; i < scatter_point_dataset_->point_values.size(); ++i) {
-			ParallelRecord* record = new ParallelRecord;
-			record->values = scatter_point_dataset_->point_values[i];
-			parallel_dataset_->subset_records[0].push_back(record);
-		}
 		parallel_dataset_->CompleteInput();
 		parallel_dataset_->UpdateGaussian();
 		parallel_coordinate_->SetDataset(parallel_dataset_);
@@ -558,20 +639,49 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		}
 		//cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
 
+        std::vector< std::vector< float > > value_ranges;
+        value_ranges.resize(scatter_point_dataset_->var_num);
+        for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
+            value_ranges[i].resize(2);
+            value_ranges[i][0] = 1e20;
+            value_ranges[i][1] = -1e20;
+        }
+
 		for (int i = 0; i < selection_index.size(); ++i) {
 			parallel_dataset_->subset_names[i] = QString("Cluster %0").arg(i);
 			parallel_dataset_->subset_colors[i] = QColor(cluster_color[3 * selection_index[i]], cluster_color[3 * selection_index[i] + 1], cluster_color[3 * selection_index[i] + 2]);
 			for (int j = 0; j < scatter_point_dataset_->point_num; ++j)
 				if (cluster_index[j] == selection_index[i]) {
 					ParallelRecord* record = new ParallelRecord;
-					record->values = scatter_point_dataset_->point_values[j];
+					record->values = scatter_point_dataset_->original_point_values[j];
+
+                    for (int k = 0; k < record->values.size(); ++k) {
+                        if (value_ranges[k][0] > record->values[k]) value_ranges[k][0] = record->values[k];
+                        if (value_ranges[k][1] < record->values[k]) value_ranges[k][1] = record->values[k];
+                    }
+
 					parallel_dataset_->subset_records[i].push_back(record);
 				}
 		}
+
+        for (int i = 0; i < scatter_point_dataset_->var_num; ++i)
+            if (value_ranges[i][1] - value_ranges[i][0] == 0) {
+                value_ranges[i][0] -= 0.5;
+                value_ranges[i][1] += 0.5;
+            }
+        for (int i = 0; i < parallel_dataset_->subset_records.size(); ++i) {
+            for (int j = 0; j < parallel_dataset_->subset_records[i].size(); ++j) {
+                for (int k = 0; k < scatter_point_dataset_->var_num; ++k) {
+                    parallel_dataset_->subset_records[i][j]->values[k] = (parallel_dataset_->subset_records[i][j]->values[k] - value_ranges[k][0]) / (value_ranges[k][1] - value_ranges[k][0]);
+                }
+            }
+            
+        }
+
 		for (int i = 0; i < scatter_point_dataset_->original_value_ranges.size(); ++i) {
 			parallel_dataset_->axis_names[i] = scatter_point_dataset_->var_names[i];
-			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][0]));
-			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(scatter_point_dataset_->original_value_ranges[i][1]));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(value_ranges[i][0]));
+			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(value_ranges[i][1]));
 		}
 		parallel_dataset_->CompleteInput();
 		parallel_dataset_->UpdateGaussian();
@@ -673,6 +783,7 @@ float ScatterPointGlyph::GetMainViewDisPerPixel() {
 	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 1, 0, 0, point_one);
 	double point_two[4];
 	vtkInteractorObserver::ComputeWorldToDisplay(this->main_renderer_, 2, 0, 0, point_two);
+
 	return (1.0 / abs(point_one[0] - point_two[0]));
 }
 
@@ -821,8 +932,6 @@ void ScatterPointGlyph::OnShowMstTriggered() {
 
 void ScatterPointGlyph::OnShowVarTrendTriggered() {
 	if (!ui_.actionOff->isChecked()) {
-		ui_.actionShow_Minimum_Spanning_Tree->setChecked(false);
-
 		int var_index = -1;
 		QList< QAction* > actions = transmap_tip_mode_group_->actions();
 		for (int i = 0; i < actions.size(); ++i)

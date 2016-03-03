@@ -60,10 +60,16 @@ protected:
 	std::map< int, CNode* > id_node_map_;
 	CNode* common_parent_node_;
 
+    std::map< int, int > grid_id_seq_map_;
+
+    std::vector< std::vector< bool > > node_connecting_status_;
+
 	void run();
 	virtual void GenerateClusters() = 0;
 	virtual void BeginClustering() = 0;
 	virtual void SplitNode(CBranch* node) = 0;
+
+    void GetConnectionStatus(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length);
 
 	// Update the level of the node and its children
 	void ResetLevel(CNode* node, int level);

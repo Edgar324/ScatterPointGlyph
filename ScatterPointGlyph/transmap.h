@@ -89,8 +89,13 @@ protected:
 
 	std::vector< vtkActor* > node_glyph_actors;
 	std::vector< vtkPolyData* > node_glyph_polys;
-	std::vector< vtkTextActor3D* > point_num_text_actors;
 
+    std::vector< int > linked_edges;
+    vtkActor* linked_glyph_actors;
+	vtkPolyDataMapper* linked_glyph_mapper;
+	vtkPolyData* linked_glyph_polys;
+
+    std::vector< int > trans_edges;
 	vtkActor* trans_glyph_actors;
 	vtkPolyDataMapper* trans_glyph_mapper;
 	vtkPolyData* trans_glyph_polys;
@@ -107,7 +112,6 @@ protected:
 	vtkPropPicker* node_picker;
 	vtkTooltipItem* tool_tip_item_;
 
-	std::vector< int > trans_edges;
 	std::list< CNode* > highlight_node_sequence;
 
 	TourPathGenerator* path_generator_;

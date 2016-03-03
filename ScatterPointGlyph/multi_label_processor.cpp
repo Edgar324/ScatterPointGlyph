@@ -98,24 +98,24 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2))/* / max_radius_*/;
 			//if (pos_dis > 1.0) pos_dis = 1.0 + (pos_dis - 1.0) * 5;
 
-			data_cost_[site_index][i] = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
+			data_cost_[site_index][i] = data_dis_scale_ * value_dis * 10000 + (1.0 - data_dis_scale_) * pos_dis;
 			//data_cost_[site_index][i] *= average_un[i];
 			//data_cost_[site_index][i] *= 10;
 
 			value_var += pow(value_dis, 2);
 		}
 		value_var = sqrt(value_var / model_size) + 0.01;
-		label_cost_[i] = value_var * model_size * 10 + 10;
+		label_cost_[i] = value_var;
 	}
 
 	for (int i = 0; i < label_num; ++i){
 		smooth_cost_[i][i] = 0;
 
 		for (int j = i + 1; j < label_num; ++j) {
-			smooth_cost_[i][j] = 0;
-			for (int k = 0; k < var_weights_.size(); ++k)
+			smooth_cost_[i][j] = 0.1;
+			/*for (int k = 0; k < var_weights_.size(); ++k)
 				smooth_cost_[i][j] += abs(average_values[i][k] - average_values[j][k]) * var_weights_[k];
-			smooth_cost_[i][j] += 0.1;
+			smooth_cost_[i][j] += 0.1;*/
 			smooth_cost_[j][i] = smooth_cost_[i][j];
 		}
 	}

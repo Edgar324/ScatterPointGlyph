@@ -25,7 +25,8 @@ public:
 
 	PathRecord* GetPath();
 
-	std::vector< int > edge_list;
+	std::vector< int > trans_edge_list;
+    std::vector< int > linked_edge_list;
 	std::vector< int > tour_node_list;
 
 private:

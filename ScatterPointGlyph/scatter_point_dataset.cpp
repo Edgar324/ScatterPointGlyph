@@ -95,8 +95,8 @@ void ScatterPointDataset::ExecMds() {
 	original_point_pos.resize(original_point_values.size());
 	for (int i = 0; i < original_point_values.size(); ++i) {
 		original_point_pos[i].resize(2);
-		original_point_pos[i][0] = X1->get(i, 0);
-		original_point_pos[i][1] = X1->get(i, 1);
+		original_point_pos[i][0] = X1->get(i, 0) * 1000;
+		original_point_pos[i][1] = X1->get(i, 1) * 1000;
 	}
 }
 
@@ -129,7 +129,7 @@ void ScatterPointDataset::NormalizeValues(std::vector< std::vector< float > >& v
 void ScatterPointDataset::NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges) {
 	ranges.resize(vec[0].size());
 
-	float max_range = -1e10;
+	max_pos_range = -1e10;
 	for (int i = 0; i < vec[0].size(); ++i){
 		float minValue = 1e10;
 		float maxValue = -1e10;
@@ -138,7 +138,7 @@ void ScatterPointDataset::NormalizePosition(std::vector< std::vector< float > >&
 			if (minValue > vec[j][i]) minValue = vec[j][i];
 			if (maxValue < vec[j][i]) maxValue = vec[j][i];
 		}
-		if (maxValue - minValue > max_range) max_range = maxValue - minValue;
+		if (maxValue - minValue > max_pos_range) max_pos_range = maxValue - minValue;
 
 		ranges[i].resize(2);
 		ranges[i][0] = minValue;
@@ -148,10 +148,10 @@ void ScatterPointDataset::NormalizePosition(std::vector< std::vector< float > >&
 	for (int i = 0; i < vec[0].size(); ++i){
 		float mid_value = (ranges[i][0] + ranges[i][1]) / 2;
 		
-		ranges[i][0] = mid_value - max_range / 2;
-		ranges[i][1] = mid_value + max_range / 2;
+		ranges[i][0] = mid_value - max_pos_range / 2;
+		ranges[i][1] = mid_value + max_pos_range / 2;
 
 		for (int j = 0; j < vec.size(); ++j)
-			vec[j][i] = (vec[j][i] - mid_value) / max_range + 0.5;
+			vec[j][i] = (vec[j][i] - mid_value) / max_pos_range + 0.5;
 	}
 }

@@ -22,6 +22,7 @@ public:
 
 	// data that can be completed in ProcessData
 	std::vector< CNode* > level_one_nodes;
+    std::vector< float > node_saliency;
 	std::vector< std::vector< bool > > node_connecting_status;
 	std::map< int, CNode* > cluster_node_map;
 

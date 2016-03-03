@@ -3,13 +3,14 @@
 #include <time.h>
 
 #include "scatter_point_dataset.h"
+#include "scatter_grid_dataset.h"
 #include "utility.h"
 
 TreeCommon::TreeCommon(ScatterPointDataset* data)
 	: dataset_(data),
 	root_(NULL),
 	min_edge_length_(0),
-	data_dis_scale_(0.0),
+	data_dis_scale_(1.0),
 	max_level_(-1),
 	tree_mode_(EXPLORATION_MODE) {
 }
@@ -167,6 +168,23 @@ void TreeCommon::run() {
 	root_->is_highlighted = false;
 
 	this->ConstructDirectly();
+
+    id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
+	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
+		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
+	}
+
+    if (dataset_->type() == ScatterPointDataset::POINT_DATA) {
+        Utility::VtkTriangulation(root_->linked_nodes, node_connecting_status_, min_edge_length_);
+    }
+    else {
+        ScatterGridDataset* grid_data = dynamic_cast<ScatterGridDataset*>(dataset_);
+        Utility::GridConnection(root_->linked_nodes, grid_data->w, grid_data->h, node_connecting_status_, min_edge_length_);
+
+        grid_id_seq_map_.clear();
+        for (int i = 0; i < root_->linked_nodes.size(); ++i)
+            grid_id_seq_map_.insert(std::map<int, int>::value_type(root_->linked_nodes[i]->id(), i));
+    }
 
 	if (tree_mode_ == EXPLORATION_MODE)
 		this->BeginClustering();
@@ -648,4 +666,35 @@ void TreeCommon::GetNodeValues(CNode* node, int var_index, std::vector< float >&
 	values.resize(point_index.size());
 	for (int i = 0; i < point_index.size(); ++i)
 		values[i] = dataset_->point_values[point_index[i]][var_index];
+}
+
+void TreeCommon::GetConnectionStatus(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& edge_length)
+{
+    if (dataset_->type() == ScatterPointDataset::POINT_DATA) {
+        Utility::VtkTriangulation(nodes, connecting_status, edge_length);
+    }
+    else {
+        connecting_status.resize(nodes.size());
+	    for (int i = 0; i < nodes.size(); ++i) {
+		    connecting_status[i].resize(nodes.size());
+		    connecting_status[i].assign(nodes.size(), false);
+	    }
+
+        min_edge_length_ = 1e10;
+
+        for (int i = 0; i < nodes.size() - 1; ++i) {
+            std::map< int, int >::iterator iter_one = grid_id_seq_map_.find(nodes[i]->id());
+            if (iter_one == grid_id_seq_map_.end()) continue;
+            for (int j = i + 1; j < nodes.size(); ++j) {
+                std::map< int, int >::iterator iter_two = grid_id_seq_map_.find(nodes[j]->id());
+                if (iter_two == grid_id_seq_map_.end()) continue;
+
+                connecting_status[i][j] = node_connecting_status_[iter_one->second][iter_two->second];
+                connecting_status[j][i] = connecting_status[i][j];
+
+                if (min_edge_length_ > 1e05)
+                    edge_length = sqrt(pow(nodes[i]->center_pos[0] - nodes[j]->center_pos[0], 2) + pow(nodes[i]->center_pos[1] - nodes[j]->center_pos[1], 2));
+            }
+        }
+    }
 }

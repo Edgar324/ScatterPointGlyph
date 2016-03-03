@@ -46,10 +46,40 @@ void TransMapData::ProcessData() {
 		if (cluster_nodes[i]->point_count >= min_point_num) {
 			level_one_nodes.push_back(cluster_nodes[i]);
 		}
-	if (level_one_nodes.size() > 1)
-		this->UpdateConnectingStatus();
-	else
-		this->node_connecting_status.clear();
+    if (level_one_nodes.size() > 1) {
+        this->UpdateConnectingStatus();
+        // update node saliency
+        node_saliency.resize(level_one_nodes.size());
+        node_saliency.assign(level_one_nodes.size(), 0.0);
+        for (int i = 0; i < level_one_nodes.size(); ++i) {
+            for (int j = 0; j < level_one_nodes.size(); ++j)
+                if (i != j && this->node_connecting_status[i][j]) {
+                    float var_dis = 0;
+                    for (int k = 0; k < dataset->var_num; ++k)
+                        var_dis += abs(level_one_nodes[i]->average_values[k] - level_one_nodes[j]->average_values[k]) * dataset->var_weights[k];
+                    float space_dis = 0;
+                    space_dis = sqrt(pow(level_one_nodes[i]->center_pos[0] - level_one_nodes[j]->center_pos[0], 2) + pow(level_one_nodes[i]->center_pos[1] - level_one_nodes[j]->center_pos[1], 2));
+                    node_saliency[i] += var_dis * exp(-1 * space_dis / 0.25);
+                }
+        }
+        float max_saliency = -1e10;
+        for (int i = 0; i < level_one_nodes.size(); ++i)
+            if (max_saliency < node_saliency[i]) max_saliency = node_saliency[i];
+        if (max_saliency > 0) {
+            for (int i = 0; i < level_one_nodes.size(); ++i) 
+                level_one_nodes[i]->saliency = node_saliency[i] / max_saliency;
+        } else {
+            max_saliency = 1.0;
+            for (int i = 0; i < level_one_nodes.size(); ++i) 
+                level_one_nodes[i]->saliency = 0.5;
+        }
+    }
+    else {
+        this->node_connecting_status.clear();
+        node_saliency.resize(this->level_one_nodes.size());
+        node_saliency.assign(this->level_one_nodes.size(), 0.5);
+        for (int i = 0; i < level_one_nodes.size(); ++i) level_one_nodes[i]->saliency = 0.5;
+    }
 }
 
 void TransMapData::UpdateConnectingStatus() {

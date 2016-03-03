@@ -70,7 +70,7 @@ void PointRenderingLayer::SetData(ScatterPointDataset* data) {
 	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
 	colors->SetNumberOfComponents(4);
 	for (int i = 0; i < dataset_->original_point_pos.size(); ++i) {
-		colors->InsertNextTuple4(128, 128, 128, 50);
+		colors->InsertNextTuple4(128, 128, 128, 150);
 	}
 	poly_data_->GetPointData()->SetScalars(colors);
 
