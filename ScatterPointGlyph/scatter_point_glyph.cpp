@@ -122,6 +122,12 @@ void ScatterPointGlyph::InitWidget() {
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
 	main_renderer_->SetViewport(0.0, 0.0, 1.0, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
+
+    indicator_renderer_ = vtkRenderer::New();
+    main_view_->GetRenderWindow()->AddRenderer(indicator_renderer_);
+	indicator_renderer_->SetViewport(0.85, 0.8, 1.0, 1.0);
+	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
+
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
 	connect(main_view_, SIGNAL(LeftButtonUp()), this, SLOT(OnMainviewLeftButtonUp()));
@@ -134,6 +140,7 @@ void ScatterPointGlyph::InitWidget() {
 	trans_map_ = new TransMap(main_view_);
 	trans_map_->SetInteractor(main_view_->GetInteractor());
 	trans_map_->SetDefaultRenderer(this->main_renderer_);
+    trans_map_->SetIndicatorRenderer(this->indicator_renderer_);
 	transmap_data_ = new TransMapData;
 
 	original_point_rendering_layer_ = new PointRenderingLayer;

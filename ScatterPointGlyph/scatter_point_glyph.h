@@ -58,7 +58,7 @@ private:
 	Ui::ScatterPointGlyphClass ui_;
 	ScatterPointView* main_view_;
 	vtkRenderer* main_renderer_;
-	vtkRenderer* dis_matrix_renderer_;
+	vtkRenderer* indicator_renderer_;
 	vtkRenderer* other_renderer_;
 
 	Ui::MapController map_control_ui_;

@@ -53,6 +53,7 @@ public:
 	void SetNodeRadius(float r);
 	void SetInteractionState(WidgetState s);
 	void SetAxisOrder(std::vector< int >& order);
+    void SetIndicatorRenderer(vtkRenderer* renderer);
 
 	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
 
@@ -117,6 +118,11 @@ protected:
 	vtkPolyDataMapper* density_mapper_;
 	vtkPolyData* density_poly_;
 
+    vtkActor* indicator_actor_;
+	vtkPolyDataMapper* indicator_mapper_;
+	vtkPolyData* indicator_poly_;
+    vtkTextActor3D* indicator_text_;
+
 	vtkPropPicker* node_picker;
 	vtkTooltipItem* tool_tip_item_;
 
@@ -129,6 +135,8 @@ private:
 	ScatterPointDataset* scatter_data_;
 	float node_radius_;
 	std::vector< int > axis_order_;
+
+    vtkRenderer* glyph_indicator_renderer_;
 
 	CNode* current_node_;
 

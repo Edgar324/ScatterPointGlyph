@@ -260,6 +260,9 @@
    </property>
   </action>
   <action name="actionAdd_Path_Sequence">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/save.png</normaloff>:/ScatterPointGlyph/images/save.png</iconset>
@@ -318,6 +321,9 @@
   <action name="actionChameleon_Clustering">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">

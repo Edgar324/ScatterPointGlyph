@@ -56,6 +56,7 @@ TransMap::TransMap() {
 	this->current_node_ = NULL;
 	this->scatter_data_ = NULL;
 	this->dataset_ = NULL;
+    this->glyph_indicator_renderer_ = NULL;
 
 	this->highlight_actor = vtkActor::New();
 	this->highlight_poly = vtkPolyData::New();
@@ -93,6 +94,19 @@ TransMap::TransMap() {
 	this->density_mapper_->SetInputData(this->density_poly_);
 	this->density_actor_->SetMapper(this->density_mapper_);
     density_actor_->SetVisibility(false);
+
+    this->indicator_actor_ = vtkActor::New();
+	this->indicator_poly_ = vtkPolyData::New();
+	this->indicator_mapper_ = vtkPolyDataMapper::New();
+	this->indicator_mapper_->SetInputData(this->indicator_poly_);
+	this->indicator_actor_->SetMapper(this->indicator_mapper_);
+    this->indicator_actor_->GetProperty()->SetColor(0.7, 0.7, 0.7);
+
+    indicator_text_ = vtkTextActor3D::New();
+    indicator_text_->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+	indicator_text_->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
+	indicator_text_->GetTextProperty()->SetBold(true);
+	indicator_text_->GetTextProperty()->SetFontFamilyToArial();
 
 	//this->tool_tip_item_ = vtkTooltipItem::New();
 
@@ -210,6 +224,10 @@ void TransMap::SetAxisOrder(std::vector< int >& order) {
 	this->UpdateNodeActors();
 }
 
+void TransMap::SetIndicatorRenderer(vtkRenderer* renderer) {
+    glyph_indicator_renderer_ = renderer;
+}
+
 void TransMap::OnNodeSelected(int node_id) {
 	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
     while (iter != dataset_->cluster_node_map.end() && iter->second->id() != node_id) iter++; 
@@ -322,8 +340,58 @@ void TransMap::UpdateNodeActors() {
     for (int i = 0; i < dataset_->level_one_nodes.size(); ++i)
         if (dataset_->level_one_nodes[i]->point_count > max_node_point_num)
             max_node_point_num = dataset_->level_one_nodes[i]->point_count;
-	// update node actors
+
+    // update node actors
 	vtkIdType cell_ids[5];
+
+    // update indicator actor
+    vtkPoints* indicator_points = vtkPoints::New();
+	indicator_poly_->Initialize();
+	indicator_poly_->SetPoints(indicator_points);
+	vtkCellArray* indicator_poly_array = vtkCellArray::New();
+	indicator_poly_->SetPolys(indicator_poly_array);
+
+    int seg_per_circle = 50;
+    int seg_num = seg_per_circle - 1;
+    float gray_value = 128;
+    std::vector< vtkIdType > inner_ids, outer_ids;
+    for (int j = 0; j <= seg_num; ++j) {
+        float end_arc = -1 * j * 3.14159 * 2 / seg_per_circle + 3.14159 * 0.5;
+        float x = 1.0 * cos(end_arc) * 1.05;
+		float y = 1.0 * sin(end_arc) * 1.05;
+
+        vtkIdType id_one = indicator_points->InsertNextPoint(x, y, 0.000);
+        inner_ids.push_back(id_one);
+
+        x = 1.0 * cos(end_arc) * 1.18;
+		y = 1.0 * sin(end_arc) * 1.18;
+
+        vtkIdType id_two = indicator_points->InsertNextPoint(x, y, 0.000);
+        outer_ids.push_back(id_two);
+    }
+
+    for (int j = 0; j < outer_ids.size() - 1; ++j) {
+        cell_ids[0] = outer_ids[j];
+        cell_ids[1] = outer_ids[j + 1];
+        cell_ids[2] = inner_ids[j];
+        indicator_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+
+        cell_ids[0] = outer_ids[j + 1];
+        cell_ids[1] = inner_ids[j + 1];
+        cell_ids[2] = inner_ids[j];
+        indicator_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+    }
+    indicator_actor_->Modified();
+
+    char buffer[20];
+	itoa(max_node_point_num, buffer, 10);
+    std::string str = std::string("Max Point Num: ") + std::string(buffer);
+	indicator_text_->SetInput(str.c_str());
+	indicator_text_->SetPosition(-1, -1.5, 0);
+	indicator_text_->GetTextProperty()->SetFontSize(20);
+	float scale = 0.2 / 20;
+	indicator_text_->SetScale(scale, scale, scale);
+	indicator_text_->Modified();
     
 	for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
 		CNode* node = dataset_->cluster_nodes[i];
@@ -401,7 +469,7 @@ void TransMap::UpdateNodeActors() {
 
             // paint encoding for the point number
             float point_rate = (float)node->point_count / max_node_point_num;
-            int seg_num = seg_per_circle * point_rate;
+            int seg_num = (seg_per_circle - 1) * point_rate;
             float gray_value = 250 * (1.0 - exp(-3 * (1.0 - node->saliency)));
             std::vector< vtkIdType > inner_ids, outer_ids;
             for (int j = 0; j <= seg_num; ++j) {
@@ -996,6 +1064,12 @@ void TransMap::SetEnabled(int enabling) {
 		this->DefaultRenderer->AddActor(this->highlight_actor);
 		this->DefaultRenderer->AddActor(this->selection_brush_actor);
 
+        if (this->glyph_indicator_renderer_ != NULL) {
+            this->glyph_indicator_renderer_->AddActor(indicator_actor_);
+            this->glyph_indicator_renderer_->ResetCamera();
+            this->glyph_indicator_renderer_->AddActor(indicator_text_);
+        }
+
 		this->InvokeEvent(vtkCommand::EnableEvent, NULL);
 	} else {
 		if (!this->Enabled) return;
@@ -1019,6 +1093,11 @@ void TransMap::SetEnabled(int enabling) {
         this->DefaultRenderer->RemoveActor(density_actor_);
 		this->DefaultRenderer->RemoveActor(this->highlight_actor);
 		this->DefaultRenderer->RemoveActor(this->selection_brush_actor);
+
+        if (this->glyph_indicator_renderer_ != NULL) {
+            this->glyph_indicator_renderer_->RemoveActor(indicator_actor_);
+            this->glyph_indicator_renderer_->RemoveActor(indicator_text_);
+        }
 
 		this->Interactor->RemoveObserver(vtkCommand::LeftButtonPressEvent);
 		this->Interactor->RemoveObserver(vtkCommand::MouseMoveEvent);
