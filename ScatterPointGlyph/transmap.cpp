@@ -78,7 +78,7 @@ TransMap::TransMap() {
 	this->linked_glyph_mapper = vtkPolyDataMapper::New();
 	this->linked_glyph_mapper->SetInputData(this->linked_glyph_polys);
 	this->linked_glyph_actors->SetMapper(this->linked_glyph_mapper);
-	this->linked_glyph_actors->GetProperty()->SetColor(0.7, 0.7, 0.7);
+	this->linked_glyph_actors->GetProperty()->SetColor(0.15, 0.65, 0.3);
 
 	this->selection_brush_poly = vtkPolyData::New();
 	this->selection_brush_mapper = vtkPolyDataMapper::New();
@@ -891,7 +891,7 @@ void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
 	colors->SetNumberOfComponents(4);
     density_poly_->GetPointData()->SetScalars(colors);
 
-    float radius = 0.1 * scatter_data_->max_pos_range;
+    float radius = 0.03 * scatter_data_->max_pos_range;
     vtkIdType ids[21];
     for (int i = 0; i < node_colors.size(); ++i) {
         float x = scatter_data_->original_point_pos[i][0];

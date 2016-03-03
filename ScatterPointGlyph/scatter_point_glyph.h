@@ -88,6 +88,7 @@ private:
 	QActionGroup* sys_mode_action_group_;
 	QActionGroup* main_view_interaction_mode_group_;
 	QActionGroup* transmap_tip_mode_group_;
+    QActionGroup* color_mapping_group_;
 
 	SystemMode sys_mode_;
 	TreeCommon* cluster_tree_;
@@ -143,6 +144,7 @@ private slots:
 	void OnSavePathSequenceTriggered();
 	void OnShowMstTriggered();
 	void OnShowVarTrendTriggered();
+    void OnMappingVarValueTriggered();
 
 	void OnActionShowTransmapTriggered();
     void OnActionShowDensityMapTriggered();

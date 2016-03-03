@@ -9,6 +9,8 @@ class ScatterPointDataset;
 class vtkActor;
 class vtkPolyData;
 class vtkPolyDataMapper;
+class vtkScalarBarActor;
+class vtkLookupTable;
 
 class PointRenderingLayer : public vtk3DWidget
 {
@@ -56,7 +58,11 @@ private:
 	vtkPolyDataMapper* mapper_;
 	vtkPolyData* poly_data_;
 
+    vtkScalarBarActor* bar_actor_;
+    vtkLookupTable* scalar_lookup_table_;
+
 	void UpdatePointGlyph();
+    void UpdateValueMapping();
 };
 
 #endif

@@ -82,6 +82,17 @@
      </property>
      <addaction name="actionOff"/>
     </widget>
+    <widget class="QMenu" name="menuColor_Mapping">
+     <property name="title">
+      <string>Color Mapping</string>
+     </property>
+     <property name="icon">
+      <iconset resource="scatter_point_glyph.qrc">
+       <normaloff>:/ScatterPointGlyph/images/mapping.png</normaloff>:/ScatterPointGlyph/images/mapping.png</iconset>
+     </property>
+     <addaction name="actionColor_Mapping_Off"/>
+    </widget>
+    <addaction name="menuColor_Mapping"/>
     <addaction name="menuShow_Sequence"/>
     <addaction name="actionShow_Minimum_Spanning_Tree"/>
     <addaction name="separator"/>
@@ -453,6 +464,17 @@
    </property>
    <property name="text">
     <string>Show Data Table</string>
+   </property>
+  </action>
+  <action name="actionColor_Mapping_Off">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Off</string>
    </property>
   </action>
  </widget>

@@ -26,6 +26,9 @@
 #include "vtkPointData.h"
 #include "vtkCellArray.h"
 #include "vtkVertexGlyphFilter.h"
+#include "vtkScalarBarActor.h"
+#include "vtkLookupTable.h"
+#include "vtkTextProperty.h"
 #include "scatter_point_dataset.h"
 
 PointRenderingLayer::PointRenderingLayer() {
@@ -37,6 +40,22 @@ PointRenderingLayer::PointRenderingLayer() {
 	actor_->SetMapper(mapper_);
 	actor_->GetProperty()->SetPointSize(6);
 	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
+
+    bar_actor_ = vtkScalarBarActor::New();
+    bar_actor_->SetNumberOfLabels(4);
+    bar_actor_->SetMaximumWidthInPixels(60);
+    bar_actor_->GetLabelTextProperty()->SetFontFamilyToArial();
+    bar_actor_->GetLabelTextProperty()->SetBold(true);
+    bar_actor_->GetLabelTextProperty()->SetShadow(false);
+    bar_actor_->GetLabelTextProperty()->SetColor(0.0, 0.0, 0.0);
+    bar_actor_->SetVisibility(false);
+
+    scalar_lookup_table_ = vtkLookupTable::New();
+
+    scalar_lookup_table_->SetValueRange(0, 1.0);
+    scalar_lookup_table_->SetHueRange(0.8, 0.8);
+    scalar_lookup_table_->SetAlphaRange(0.2, 1.0);
+    scalar_lookup_table_->Build();
 
 	is_category_on_ = false;
 }
@@ -89,6 +108,8 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 		this->Enabled = 1;
 
 		this->DefaultRenderer->AddActor(this->actor_);
+
+        this->DefaultRenderer->AddActor(bar_actor_);
 	}
 	else {
 		if (!this->Enabled) return;
@@ -96,6 +117,7 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->DefaultRenderer->RemoveActor(this->actor_);
+        this->DefaultRenderer->RemoveActor(bar_actor_);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
 	}
@@ -105,13 +127,10 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 
 void PointRenderingLayer::SetPointValue(std::vector< float >& values){
 	point_values_ = values;
-
-	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
-	for (int i = 0; i < values.size(); ++i) {
-		int grey = (int)((1.0 - values[i]) * 255);
-		color_array->SetTuple3(i, grey, grey, grey);
-	}
-	color_array->Modified();
+    if (values.size() == 0)
+        this->SetCategoryOff();
+    else
+	    this->UpdateValueMapping();
 }
 
 void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index, std::vector< QColor >& colors) {
@@ -130,6 +149,8 @@ void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >&
 }
 
 void PointRenderingLayer::SetHighlightCluster(int index) {
+    bar_actor_->SetVisibility(false);
+
 	if (is_category_on_) SetCategoryOn();
 	else SetCategoryOff();
 
@@ -151,6 +172,8 @@ void PointRenderingLayer::SetHighlightCluster(int index) {
 }
 
 void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
+    bar_actor_->SetVisibility(false);
+
 	if (is_category_on_) SetCategoryOn();
 	else SetCategoryOff();
 
@@ -171,8 +194,6 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 }
 
 void PointRenderingLayer::SetCategoryOn() {
-	is_category_on_ = true;
-
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < point_index_.size(); ++i) {
 		int cindex = point_index_[i] * 3;
@@ -185,18 +206,40 @@ void PointRenderingLayer::SetCategoryOn() {
 }
 
 void PointRenderingLayer::SetCategoryOff() {
-	is_category_on_ = false;
-
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	if (point_values_.size() != 0) {
-		for (int i = 0; i < point_values_.size(); ++i) {
-			int grey = (int)((1.0 - point_values_[i]) * 255);
-			color_array->SetTuple4(i, grey, grey, grey, 50);
-		}
+        UpdateValueMapping();
 	} else {
 		for (int i = 0; i < dataset_->original_point_pos.size(); ++i) {
 			color_array->SetTuple4(i, 128, 128, 128, 255);
 		}
+	}
+	color_array->Modified();
+}
+
+void PointRenderingLayer::UpdateValueMapping() {
+    float min_value = 1000000;
+    float max_value = -1000000;
+    for (int i = 0; i < point_values_.size(); ++i) {
+        if (min_value > point_values_[i]) min_value = point_values_[i];
+        if (max_value < point_values_[i]) max_value = point_values_[i];
+    }
+    scalar_lookup_table_->SetValueRange(min_value, max_value);
+    scalar_lookup_table_->SetTableRange(min_value, max_value);
+    scalar_lookup_table_->SetHueRange(0.8, 0.8);
+    scalar_lookup_table_->SetSaturationRange(0.3, 0.9);
+    scalar_lookup_table_->SetValueRange(1.0, 0.6);
+    scalar_lookup_table_->Build();
+
+    bar_actor_->SetLookupTable(scalar_lookup_table_);
+    bar_actor_->Modified();
+    bar_actor_->SetVisibility(true);
+
+    vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+    double rgb[3];
+	for (int i = 0; i < point_values_.size(); ++i) {
+        scalar_lookup_table_->GetColor(point_values_[i], rgb);
+		color_array->SetTuple4(i, rgb[0] * 255, rgb[1] * 255, rgb[2] * 255, 255);
 	}
 	color_array->Modified();
 }

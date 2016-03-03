@@ -120,13 +120,18 @@ void ScatterPointGlyph::InitWidget() {
 
 	main_renderer_ = vtkRenderer::New();
 	main_view_->GetRenderWindow()->AddRenderer(main_renderer_);
-	main_renderer_->SetViewport(0.0, 0.0, 1.0, 1.0);
+	main_renderer_->SetViewport(0.0, 0.0, 0.85, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 
     indicator_renderer_ = vtkRenderer::New();
     main_view_->GetRenderWindow()->AddRenderer(indicator_renderer_);
 	indicator_renderer_->SetViewport(0.85, 0.8, 1.0, 1.0);
 	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
+
+    other_renderer_ = vtkRenderer::New();
+    main_view_->GetRenderWindow()->AddRenderer(other_renderer_);
+	other_renderer_->SetViewport(0.85, 0.0, 1.0, 0.8);
+	other_renderer_->SetBackground(1.0, 1.0, 1.0);
 
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
 	connect(main_view_, SIGNAL(GlyphSelected(int, int)), this, SLOT(OnGlyphSelected(int, int)));
@@ -171,12 +176,18 @@ void ScatterPointGlyph::InitWidget() {
 	transmap_tip_mode_group_->setExclusive(true);
 	connect(transmap_tip_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnShowVarTrendTriggered()));
 
+    color_mapping_group_ = new QActionGroup(this);
+	color_mapping_group_->addAction(ui_.actionColor_Mapping_Off);
+	color_mapping_group_->setExclusive(true);
+	connect(color_mapping_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMappingVarValueTriggered()));
+
 	// load data actions
     //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
     connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
     
 
 	// actions for tips on the cluster transition map
+    ui_.mainToolBar->insertAction(ui_.actionShow_Minimum_Spanning_Tree, ui_.menuColor_Mapping->menuAction());
 	ui_.mainToolBar->insertAction(ui_.actionShow_Minimum_Spanning_Tree, ui_.menuShow_Sequence->menuAction());
 	connect(ui_.actionShow_Minimum_Spanning_Tree, SIGNAL(triggered()), this, SLOT(OnShowMstTriggered()));
 
@@ -553,6 +564,8 @@ void ScatterPointGlyph::OnClusterFinished() {
 }
 
 void ScatterPointGlyph::OnMainViewUpdated() {
+    if (scatter_point_dataset_ == NULL) return;
+
 	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		MultiLabelTree* multi_label_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
 		if (multi_label_tree == NULL) return;
@@ -1027,6 +1040,29 @@ void ScatterPointGlyph::OnShowVarTrendTriggered() {
 	this->UpdateParallelCoordinate();
 }
 
+void ScatterPointGlyph::OnMappingVarValueTriggered() {
+    if (!ui_.actionColor_Mapping_Off->isChecked()) {
+		int var_index = -1;
+		QList< QAction* > actions = color_mapping_group_->actions();
+		for (int i = 0; i < actions.size(); ++i)
+			if (actions.at(i)->isChecked()) {
+				var_index = i;
+				break;
+			}
+
+		std::vector< float > values;
+        for (int i = 0; i < scatter_point_dataset_->original_point_values.size(); ++i) 
+            values.push_back(scatter_point_dataset_->original_point_values[i][var_index - 1]);
+        original_point_rendering_layer_->SetPointValue(values);
+        main_view_->update();
+	} else {
+		trans_map_->ShowVarTrend(-1);
+        std::vector< float > values;
+        original_point_rendering_layer_->SetPointValue(values);
+        main_view_->update();
+	}
+}
+
 void ScatterPointGlyph::UpdateMenus() {
 	QList< QAction* > actions = transmap_tip_mode_group_->actions(); 
 	for (int i = 1; i < actions.size(); ++i) {
@@ -1043,6 +1079,21 @@ void ScatterPointGlyph::UpdateMenus() {
 		transmap_tip_mode_group_->addAction(action);
 	}
 	//transmap_tip_mode_group_->setExclusive(true);
+
+    QList< QAction* > actions_mapping = color_mapping_group_->actions(); 
+	for (int i = 1; i < actions_mapping.size(); ++i) {
+		color_mapping_group_->removeAction(actions_mapping.at(i));
+		ui_.menuColor_Mapping->removeAction(actions_mapping.at(i));
+		delete actions_mapping.at(i);
+	}
+
+	ui_.actionColor_Mapping_Off->setChecked(true);
+	for (int i = 0; i < scatter_point_dataset_->var_names.size(); ++i) {
+		QAction* action = ui_.menuColor_Mapping->addAction(scatter_point_dataset_->var_names[i]);
+		action->setCheckable(true);
+		action->setChecked(false);
+		color_mapping_group_->addAction(action);
+	}
 }
 
 void ScatterPointGlyph::OnActionShowTransmapTriggered()
