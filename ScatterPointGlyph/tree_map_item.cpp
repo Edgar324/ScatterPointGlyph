@@ -145,7 +145,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
 	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id(), item_rect));
 	if (node->is_highlighted) {
-		painter->setPen(Qt::red);
+		painter->setPen(QColor(255, 0.55 * 255, 0.24 * 255));
 		painter->drawRect(item_rect);
 	}
 

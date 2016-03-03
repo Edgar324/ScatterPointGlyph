@@ -129,6 +129,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(main_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTransmapHighlightVarChanged(int)));
 	connect(parallel_coordinate_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnPcpHighlightVarChanged(int)));
 	connect(tree_map_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTreemapHighlightVarChagned(int)));
+    connect(tree_map_view_, SIGNAL(NodeSelected(int)), this, SLOT(OnTreemapNodeSelected(int)));
 
 	trans_map_ = new TransMap(main_view_);
 	trans_map_->SetInteractor(main_view_->GetInteractor());

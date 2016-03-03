@@ -211,7 +211,8 @@ void TransMap::SetAxisOrder(std::vector< int >& order) {
 }
 
 void TransMap::OnNodeSelected(int node_id) {
-	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.find(node_id);
+	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+    while (iter != dataset_->cluster_node_map.end() && iter->second->id() != node_id) iter++; 
 	if (iter != dataset_->cluster_node_map.end()) OnNodeSelected(iter->second);
 }
 
@@ -412,8 +413,8 @@ void TransMap::UpdateNodeActors() {
 				colors->InsertNextTuple4(gray_value, gray_value, gray_value, 255);
                 inner_ids.push_back(id_one);
 
-                x = node_radius_ * cos(end_arc) * 1.2;
-				y = node_radius_ * sin(end_arc) * 1.2;
+                x = node_radius_ * cos(end_arc) * 1.18;
+				y = node_radius_ * sin(end_arc) * 1.18;
 
                 vtkIdType id_two = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
 				colors->InsertNextTuple4(gray_value, gray_value, gray_value, 255);
@@ -895,7 +896,7 @@ void TransMap::UpdateHightlightActor() {
 		float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		if (IsLevelOneNode(temp_node)) {
-			/*vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.003);
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.003);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius_ * cos(end_arc);
@@ -909,7 +910,7 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);*/
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0.55 * 255, 0.24 * 255);
 
 			char buffer[20];
 			itoa(hightlight_node_index, buffer, 10);
@@ -921,7 +922,7 @@ void TransMap::UpdateHightlightActor() {
 			seqence_text_actors[hightlight_node_index]->Modified();
 			hightlight_node_index++;
 		} else {
-			/*vtkIdType pre_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0.003);
+			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x * 0.4, node_center_y + y * 0.4, 0.003);
 			for (int k = 1; k <= 20; ++k) {
 				end_arc = (float)k / 20 * 3.14159 * 2;
 				x = node_radius_ * cos(end_arc);
@@ -935,7 +936,7 @@ void TransMap::UpdateHightlightActor() {
 				pre_id = current_id;
 			}
 
-			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0, 0);*/
+			for (int k = 0; k < 21; ++k) color_array->InsertNextTuple3(255, 0.55 * 255, 0.24 * 255);
 
 			float temp_radius = node_radius_ * 0.2;
 			char buffer[20];
@@ -1231,7 +1232,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.000);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.003);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();
@@ -1257,7 +1258,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.000);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.003);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();
