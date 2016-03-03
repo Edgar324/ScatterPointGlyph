@@ -31,6 +31,8 @@
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QSlider>
+#include <QtWidgets/QTableView>
+#include <QtGui/QStandardItemModel>
 
 #include "point_rendering_layer.h"
 #include "scatter_point_dataset.h"
@@ -52,7 +54,7 @@
 #include "wrf_data_manager.h"
 #include "glyph_design_dialog.h"
 
-#define USE_QUALITY_METRIC
+//#define USE_QUALITY_METRIC
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -105,6 +107,15 @@ void ScatterPointGlyph::InitWidget() {
 	this->tabifyDockWidget(tree_map_panel_, path_explore_panel_);
 	ui_.menuView->addAction(path_explore_panel_->toggleViewAction());
 	path_explore_panel_->setVisible(false);
+
+    detailed_data_tableview_ = new QTableView;
+    detailed_data_tableview_->setMinimumWidth(700);
+    table_model_ = new QStandardItemModel;
+    data_table_panel_ = new QDockWidget(QString("Data"), this);
+    data_table_panel_->setWidget(detailed_data_tableview_);
+    this->tabifyDockWidget(tree_map_panel_, data_table_panel_);
+    ui_.menuView->addAction(data_table_panel_->toggleViewAction());
+    data_table_panel_->setVisible(false);
 
 	QVBoxLayout* main_layout = new QVBoxLayout;
 	main_layout->addWidget(main_view_);
@@ -561,6 +572,40 @@ void ScatterPointGlyph::UpdateAllViews() {
 	this->UpdateParallelCoordinate();
 	this->UpdateTreemap();
 	this->UpdatePointMap();
+    this->UpdateTableView();
+}
+
+void ScatterPointGlyph::UpdateTableView() {
+    std::vector< int > selection_index;
+	trans_map_->GetSelectedClusterIndex(selection_index);
+
+    std::vector< int > cluster_index;
+	cluster_index.resize(scatter_point_dataset_->point_num, -1);
+    for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) {
+		std::vector< int > temp_vec;
+		cluster_tree_->Traverse(transmap_data_->cluster_nodes[i], temp_vec);
+		for (int j = 0; j < temp_vec.size(); ++j) cluster_index[temp_vec[j]] = i;
+	}
+
+    table_model_->clear();
+    QStringList headers;
+    for (int i = 0; i < scatter_point_dataset_->var_num; ++i)
+        headers << scatter_point_dataset_->var_names[i];
+    table_model_->setHorizontalHeaderLabels(headers);
+
+    for (int i = 0; i < selection_index.size(); ++i) {
+		for (int j = 0; j < scatter_point_dataset_->point_num; ++j)
+			if (cluster_index[j] == selection_index[i]) {
+                int row_count = table_model_->rowCount();
+                table_model_->insertRow(row_count);
+                for (int k = 0; k < scatter_point_dataset_->var_num; ++k) {
+                    table_model_->setData(table_model_->index(row_count, k), scatter_point_dataset_->original_point_values[j][k], Qt::DisplayRole);
+                }
+			}
+	}
+    detailed_data_tableview_->setModel(table_model_);
+    detailed_data_tableview_->setSortingEnabled(true);
+    detailed_data_tableview_->update();
 }
 
 void ScatterPointGlyph::UpdateParallelCoordinate() {
@@ -803,6 +848,7 @@ void ScatterPointGlyph::GetSceneRange(float& left, float& right, float& bottom, 
 
 void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
 	this->UpdateParallelCoordinate();
+    this->UpdateTableView();
 	trans_map_->SetAxisOrder(var_axis_order);
 	this->UpdateTreemap();
 	this->UpdatePointMap();

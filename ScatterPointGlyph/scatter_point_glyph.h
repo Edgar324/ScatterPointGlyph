@@ -18,6 +18,8 @@ class QDockWidget;
 class QActionGroup;
 class QSlider;
 class QLabel;
+class QTableView;
+class QStandardItemModel;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
@@ -73,6 +75,10 @@ private:
 	TreeMapView* tree_map_view_;
 	QDockWidget* tree_map_panel_;
 
+    QStandardItemModel* table_model_;
+    QTableView* detailed_data_tableview_;
+    QDockWidget* data_table_panel_;
+
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
 
@@ -103,6 +109,7 @@ private:
 	void UpdateTransmap();
 	void UpdatePathMap();
 	void UpdateTreemap();
+    void UpdateTableView();
 
 	void UpdateMenus();
 	void UpdateAllViews();
