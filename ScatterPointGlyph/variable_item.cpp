@@ -4,6 +4,8 @@
 #include <QtWidgets/QGraphicsSceneMouseEvent>
 
 VariableItem::VariableItem(int index) {
+    var_name_ = "Unknown";
+    var_color_ = QColor(200, 200, 200);
 	var_index_ = index;
 	is_abs_width_on_ = false;
 	is_highlight_on_ = false;
@@ -16,14 +18,14 @@ VariableItem::~VariableItem() {
 
 }
 
-void VariableItem::SetData(QString var_name, std::vector< float >& var_values, 
-	std::vector< int >& node_count, std::vector< QColor >& node_color, int selected_count, 
+void VariableItem::SetData(QString var_name, QColor var_color, std::vector< float >& var_values, 
+	std::vector< int >& node_count, int selected_count, 
 	std::vector< std::vector< float > >& context) {
 
 	var_name_ = var_name;
 	var_values_ = var_values;
 	node_count_ = node_count;
-	node_color_ = node_color;
+	var_color_ = var_color;
 	selected_count_ = selected_count;
 
 	total_node_count_ = 0;
@@ -84,12 +86,12 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			if (node_count_[i] < 2) temp_bar_width = item_size * 0.5;
 			else temp_bar_width = item_size;
 			if (i >= selected_count_) {
-				node_color_[i].setAlpha(20);
+				var_color_.setAlpha(20);
 			}
 			else {
-				node_color_[i].setAlpha(255);
+				var_color_.setAlpha(255);
 			}
-			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], node_color_[i]);
+			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], var_color_);
 
 			if (i >= selected_count_)
 				painter->setPen(QColor(128, 128, 128, 20));
@@ -112,12 +114,12 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			temp_bar_width = (float)node_count_[i] / total_node_count_ * total_width;
 
 			if (i >= selected_count_) {
-				node_color_[i].setAlpha(20);
+				var_color_.setAlpha(20);
 			}
 			else {
-				node_color_[i].setAlpha(255);
+				var_color_.setAlpha(255);
 			}
-			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], node_color_[i]);
+			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[i], var_color_);
 
 			if (i >= selected_count_)
 				painter->setPen(QColor(128, 128, 128, 20));

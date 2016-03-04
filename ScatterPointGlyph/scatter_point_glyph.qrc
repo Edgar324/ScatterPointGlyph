@@ -1,6 +1,9 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/2dscatter.png</file>
     <file>images/mapping.png</file>
+    <file>images/3dscatter.png</file>
+    <file>images/scatterplot.png</file>
     <file>images/table.png</file>
     <file>images/densitymap.png</file>
     <file>images/begin.png</file>

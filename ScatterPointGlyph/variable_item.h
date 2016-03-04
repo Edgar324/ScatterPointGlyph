@@ -15,7 +15,7 @@ public:
 	VariableItem(int var_index);
 	~VariableItem();
 
-	void SetData(QString var_name, std::vector< float >& var_values, std::vector< int >& node_count, std::vector< QColor >& node_color, int selected_count, std::vector< std::vector< float > >& context);
+	void SetData(QString var_name, QColor var_color, std::vector< float >& var_values, std::vector< int >& node_count, int selected_count, std::vector< std::vector< float > >& context);
 	void SetValueRange(float min_value, float max_value);
 	void SetAbsWidthEnabled(bool enabled);
 	void SetHighlightEnabled(bool enabled);
@@ -34,7 +34,7 @@ private:
 
 	std::vector< float > var_values_;
 	std::vector< int > node_count_;
-	std::vector< QColor > node_color_;
+	QColor var_color_;
 	QString var_name_;
 	int selected_count_;
 	int total_node_count_;

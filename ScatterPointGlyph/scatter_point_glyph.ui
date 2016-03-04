@@ -121,6 +121,7 @@
    <addaction name="actionOpen_File"/>
    <addaction name="actionVTK_Unstructured_Grid_Data"/>
    <addaction name="separator"/>
+   <addaction name="actionShow_Scatter_Plot"/>
    <addaction name="actionShow_Transmap"/>
    <addaction name="actionShow_Density_Map"/>
    <addaction name="actionShow_Tree_Map"/>
@@ -136,6 +137,9 @@
    <addaction name="actionBrush_Path_Sequence"/>
    <addaction name="actionBrush_Cluster"/>
    <addaction name="actionAdd_Path_Sequence"/>
+   <addaction name="separator"/>
+   <addaction name="actionShow_2D_Result_Scatter_Plot"/>
+   <addaction name="actionShow_Result_3D_Scatter_Plot"/>
    <addaction name="separator"/>
    <addaction name="actionExec"/>
    <addaction name="actionBegin_Clustering"/>
@@ -475,6 +479,39 @@
    </property>
    <property name="text">
     <string>Off</string>
+   </property>
+  </action>
+  <action name="actionShow_Scatter_Plot">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/scatterplot.png</normaloff>:/ScatterPointGlyph/images/scatterplot.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Scatter Plot</string>
+   </property>
+  </action>
+  <action name="actionShow_2D_Result_Scatter_Plot">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/2dscatter.png</normaloff>:/ScatterPointGlyph/images/2dscatter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show 2D Result Scatter Plot</string>
+   </property>
+  </action>
+  <action name="actionShow_Result_3D_Scatter_Plot">
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/3dscatter.png</normaloff>:/ScatterPointGlyph/images/3dscatter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Result 3D Scatter Plot</string>
    </property>
   </action>
  </widget>

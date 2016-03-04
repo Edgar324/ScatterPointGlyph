@@ -15,6 +15,7 @@ public:
 	~TreeMapItem();
 
 	void SetData(CNode* data);
+    void SetUsingColor(bool enabled);
 	QSize GetSize();
 
 signals:
@@ -31,6 +32,8 @@ private:
 
 	std::map< int, QRectF > item_pos_map_;
 	std::map< int, CNode* > item_map_;
+
+    bool is_color_used_ = false;
 
 	int item_size = 30;
 	int item_margin = 3;

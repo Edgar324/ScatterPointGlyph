@@ -11,6 +11,7 @@ class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkScalarBarActor;
 class vtkLookupTable;
+class vtkRenderer;
 
 class PointRenderingLayer : public vtk3DWidget
 {
@@ -41,6 +42,8 @@ public:
 	void SetCategoryOn();
 	void SetCategoryOff();
 
+    void SetColorBarRenderer(vtkRenderer* renderer);
+
 	std::vector< int >& GetClusterColor() { return cluster_color_; }
 
 private:
@@ -53,6 +56,8 @@ private:
 	std::vector< int > current_selection_index_;
 
 	ScatterPointDataset* dataset_;
+
+    vtkRenderer* color_bar_renderer_;
 
 	vtkActor* actor_;
 	vtkPolyDataMapper* mapper_;

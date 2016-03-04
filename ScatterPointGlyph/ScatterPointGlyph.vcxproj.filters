@@ -233,6 +233,9 @@
     <ClCompile Include="glyph_design_dialog.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
+    <ClCompile Include="color_mapping_generator.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -377,6 +380,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="color_mapping_generator.h">
+      <Filter>Header Files\Utility</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -146,6 +146,7 @@ private slots:
 	void OnShowVarTrendTriggered();
     void OnMappingVarValueTriggered();
 
+    void OnActionShowScatterPlotTriggered();
 	void OnActionShowTransmapTriggered();
     void OnActionShowDensityMapTriggered();
 	void OnActionShowTreemapTriggered();

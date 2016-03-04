@@ -1,5 +1,6 @@
 #include "scatter_point_dataset.h"
 #include "SimpleMatrix.h"
+#include "color_mapping_generator.h"
 
 ScatterPointDataset::ScatterPointDataset() {
 	
@@ -20,6 +21,7 @@ void ScatterPointDataset::ClearData() {
 
 	var_names.clear();
 	var_weights.clear();
+    var_colors.clear();
 	original_point_values.clear();
 	original_value_ranges.clear();
 }
@@ -27,6 +29,9 @@ void ScatterPointDataset::ClearData() {
 void ScatterPointDataset::DirectConstruct() {
 	var_num = var_names.size();
 	point_num = original_point_values.size();
+
+    // assign variable colors
+    ColorMappingGenerator::GetInstance()->GetQualitativeColors(var_num, var_colors);
 
 	point_pos = original_point_pos;
 	point_values = original_point_values;

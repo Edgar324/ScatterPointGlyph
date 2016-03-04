@@ -35,6 +35,7 @@ PointRenderingLayer::PointRenderingLayer() {
 	this->poly_data_ = vtkPolyData::New();
 	this->mapper_ = vtkPolyDataMapper::New();
 	this->actor_ = vtkActor::New();
+    this->color_bar_renderer_ = NULL;
 
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
@@ -48,6 +49,7 @@ PointRenderingLayer::PointRenderingLayer() {
     bar_actor_->GetLabelTextProperty()->SetBold(true);
     bar_actor_->GetLabelTextProperty()->SetShadow(false);
     bar_actor_->GetLabelTextProperty()->SetColor(0.0, 0.0, 0.0);
+    bar_actor_->SetPosition(0.45, 0.1);
     bar_actor_->SetVisibility(false);
 
     scalar_lookup_table_ = vtkLookupTable::New();
@@ -109,7 +111,10 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 
 		this->DefaultRenderer->AddActor(this->actor_);
 
-        this->DefaultRenderer->AddActor(bar_actor_);
+        if (color_bar_renderer_ != NULL) {
+            this->color_bar_renderer_->AddActor(bar_actor_);
+            this->color_bar_renderer_->ResetCamera();
+        }
 	}
 	else {
 		if (!this->Enabled) return;
@@ -117,7 +122,8 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->DefaultRenderer->RemoveActor(this->actor_);
-        this->DefaultRenderer->RemoveActor(bar_actor_);
+        if (color_bar_renderer_ != NULL)
+            this->color_bar_renderer_->RemoveActor(bar_actor_);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
 	}
@@ -127,8 +133,10 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 
 void PointRenderingLayer::SetPointValue(std::vector< float >& values){
 	point_values_ = values;
-    if (values.size() == 0)
+    if (values.size() == 0) {
         this->SetCategoryOff();
+        bar_actor_->SetVisibility(false);
+    }
     else
 	    this->UpdateValueMapping();
 }
@@ -242,4 +250,9 @@ void PointRenderingLayer::UpdateValueMapping() {
 		color_array->SetTuple4(i, rgb[0] * 255, rgb[1] * 255, rgb[2] * 255, 255);
 	}
 	color_array->Modified();
+}
+
+void PointRenderingLayer::SetColorBarRenderer(vtkRenderer* renderer)
+{
+    this->color_bar_renderer_ = renderer;
 }

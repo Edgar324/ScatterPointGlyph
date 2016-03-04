@@ -125,7 +125,10 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 			circle_path.lineTo(x, y);
 		}
 
-		painter->fillPath(circle_path, node->color);
+        if (is_color_used_)
+		    painter->fillPath(circle_path, node->color);
+        else
+            painter->fillPath(circle_path, QColor(200, 200, 200));
 	}
 
 	QPen normal_pen;
@@ -217,4 +220,10 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 			return;
 		}
 	}
+}
+
+void TreeMapItem::SetUsingColor(bool enabled)
+{
+    is_color_used_ = enabled;
+    this->update();
 }

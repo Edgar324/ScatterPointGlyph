@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cnode.cpp" />
+    <ClCompile Include="color_mapping_generator.cpp" />
     <ClCompile Include="gco-v3.0\GCoptimization.cpp" />
     <ClCompile Include="gco-v3.0\graph.cpp" />
     <ClCompile Include="gco-v3.0\LinkedBlockList.cpp" />
@@ -308,6 +309,7 @@
   <ItemGroup>
     <ClInclude Include="basic_glyph_layer.h" />
     <ClInclude Include="cnode.h" />
+    <ClInclude Include="color_mapping_generator.h" />
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_map_controller.h" />
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />

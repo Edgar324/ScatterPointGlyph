@@ -307,7 +307,7 @@ void TransMap::UpdateNodeActors() {
 			mapper->SetInputData(polydata);
 			node_actor->SetMapper(mapper);
 			node_actor->GetProperty()->SetLineWidth(3.0);
-			node_actor->GetProperty()->SetLineStipplePattern(0xF00F);
+			//node_actor->GetProperty()->SetLineStipplePattern(0xF00F);
 
 			node_glyph_actors.push_back(node_actor);
 			node_glyph_polys.push_back(polydata);
@@ -429,12 +429,30 @@ void TransMap::UpdateNodeActors() {
 
 				background_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.000));
 				
-                if (is_densitymap_shown_)
+                colors->InsertNextTuple4(255, 255, 255, 255);
+                /*if (is_densitymap_shown_)
                     colors->InsertNextTuple4(255, 255, 255, 255);
                 else
-                    colors->InsertNextTuple4(255, 255, 255, 10);
+                    colors->InsertNextTuple4(255, 255, 255, 10);*/
 			}
 			polydata->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, background_ids.data());
+
+            // insert background contour
+            std::vector< vtkIdType > background_contour_ids;
+			for (int j = 0; j <= seg_per_circle; ++j) {
+				float end_arc = j * 3.14159 * 2 / seg_per_circle;
+				float x = node_radius_ * cos(end_arc);
+				float y = node_radius_ * sin(end_arc);
+
+				background_contour_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.000));
+				
+                colors->InsertNextTuple4(200, 200, 200, 255);
+			}
+            for (int j = 0; j < background_contour_ids.size() - 1; ++j) {
+                cell_ids[0] = background_contour_ids[j];
+                cell_ids[1] = background_contour_ids[j + 1];
+                polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
+            }
 
 			std::vector< vtkIdType > center_cirlce_ids;
 			for (int j = 0; j <= seg_per_circle; ++j) {
@@ -612,6 +630,7 @@ void TransMap::UpdateNodeActors() {
 				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
 
 				int var_index = axis_order_[j];
+                QColor pie_color = dataset_->dataset->var_colors[var_index];
 
                 bool is_var_highlighted = false;
                 for (int k = 0; k < focus_var_index_.size(); ++k)
@@ -641,7 +660,7 @@ void TransMap::UpdateNodeActors() {
 					float x = temp_radius * cos_value;
 					float y = temp_radius * sin_value;
 					vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128 * alpha);
+					colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 128 * alpha);
 					var_point_ids1[2 * k + 1] = id_one;
 
 					// insert the inner polygon
@@ -651,7 +670,7 @@ void TransMap::UpdateNodeActors() {
 					y = temp_radius * sin_value;
 
 					vtkIdType id_two = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 128 * alpha);
+					colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 128 * alpha);
 					var_point_ids2[2 * k + 1] = id_two;
 
 					// insert the gray polygon
@@ -664,7 +683,7 @@ void TransMap::UpdateNodeActors() {
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
 					vtkIdType id_three = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.002);
-					colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 255 * alpha);
+					colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 255 * alpha);
 					var_point_ids1[2 * k] = id_three;
 					var_point_ids2[2 * k] = id_three;
 
@@ -891,6 +910,7 @@ void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
 	colors->SetNumberOfComponents(4);
     density_poly_->GetPointData()->SetScalars(colors);
 
+    // 0.1, 0.03
     float radius = 0.03 * scatter_data_->max_pos_range;
     vtkIdType ids[21];
     for (int i = 0; i < node_colors.size(); ++i) {

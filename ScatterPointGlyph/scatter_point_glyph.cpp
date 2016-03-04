@@ -151,6 +151,7 @@ void ScatterPointGlyph::InitWidget() {
 	original_point_rendering_layer_ = new PointRenderingLayer;
 	original_point_rendering_layer_->SetInteractor(main_view_->GetInteractor());
 	original_point_rendering_layer_->SetDefaultRenderer(this->main_renderer_);
+    original_point_rendering_layer_->SetColorBarRenderer(this->other_renderer_);
 	original_point_rendering_layer_->SetEnabled(true);
 
 	sys_mode_action_group_ = new QActionGroup(this);
@@ -182,8 +183,8 @@ void ScatterPointGlyph::InitWidget() {
 	connect(color_mapping_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMappingVarValueTriggered()));
 
 	// load data actions
-    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
-    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
+    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
     
 
 	// actions for tips on the cluster transition map
@@ -201,6 +202,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(ui_.actionAdd_Path_Sequence, SIGNAL(triggered()), this, SLOT(OnSavePathSequenceTriggered()));
 
 	// action for view visibility
+    connect(ui_.actionShow_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowScatterPlotTriggered()));
 	connect(ui_.actionShow_Transmap, SIGNAL(triggered()), this, SLOT(OnActionShowTransmapTriggered()));
 	connect(ui_.actionShow_Tree_Map, SIGNAL(triggered()), this, SLOT(OnActionShowTreemapTriggered()));
 	connect(ui_.actionShow_Table_Lens, SIGNAL(triggered()), this, SLOT(OnActionShowTableLensTriggerd()));
@@ -856,11 +858,11 @@ void ScatterPointGlyph::UpdateTreemap() {
 		}
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 			if (!is_selected[i]) selected_nodes.push_back(transmap_data_->cluster_nodes[i]);
-		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_axis_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_ids.size(), var_axis_order, scatter_point_dataset_->var_names, scatter_point_dataset_->var_colors);
 	}
 	else {
 		selected_nodes = transmap_data_->cluster_nodes;
-		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_axis_order, scatter_point_dataset_->var_names);
+		tree_map_view_->SetData(cluster_tree_, scatter_point_dataset_->var_num, selected_nodes, selected_nodes.size(), var_axis_order, scatter_point_dataset_->var_names, scatter_point_dataset_->var_colors);
 	}
 
 	tree_map_view_->scene()->update();
@@ -1096,6 +1098,10 @@ void ScatterPointGlyph::UpdateMenus() {
 	}
 }
 
+void ScatterPointGlyph::OnActionShowScatterPlotTriggered() {
+    original_point_rendering_layer_->SetEnabled(ui_.actionShow_Scatter_Plot->isChecked());
+}
+
 void ScatterPointGlyph::OnActionShowTransmapTriggered()
 {
 	trans_map_->SetEnabled(ui_.actionShow_Transmap->isChecked());
@@ -1121,6 +1127,9 @@ void ScatterPointGlyph::OnActionShowParallelCoordinateTriggered()
 void ScatterPointGlyph::OnActionShowDensityMapTriggered() {
     if (trans_map_ != NULL) {
         trans_map_->SetDensityMapVisibility(ui_.actionShow_Density_Map->isChecked());
+    }
+    if (tree_map_view_ != NULL) {
+        tree_map_view_->SetTreeMapUsingColor(ui_.actionShow_Density_Map->isChecked());
     }
 }
 

@@ -22,7 +22,9 @@ TreeMapView::~TreeMapView() {
 
 }
 
-void TreeMapView::SetData(TreeCommon* tree, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names) {
+void TreeMapView::SetData(TreeCommon* tree, int var_num, 
+    std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, 
+    std::vector< QString >& names, std::vector< QColor >& colors) {
 	this->tree_ = tree;
 	this->var_num_ = var_num;
 
@@ -59,7 +61,7 @@ void TreeMapView::SetData(TreeCommon* tree, int var_num, std::vector< CNode* >& 
 	var_order_ = order;
 
 	tree_item_->SetData(tree_->root());
-	this->UpdateVariableItems(selected_nodes, selected_count, names);
+	this->UpdateVariableItems(selected_nodes, selected_count, names, colors);
 
 	this->UpdateLayout();
 }
@@ -70,6 +72,10 @@ void TreeMapView::SetTreeMapVisible(bool visible) {
 		var_items_[i]->SetAbsWidthEnabled(!this->is_treemap_visible_);
 
 	this->UpdateLayout();
+}
+
+void TreeMapView::SetTreeMapUsingColor(bool enabled) {
+    this->tree_item_->SetUsingColor(enabled);
 }
 
 void TreeMapView::SetTableLensVisible(bool visible) {
@@ -109,14 +115,12 @@ void TreeMapView::UpdateLayout() {
 	this->update();
 }
 
-void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names) {
+void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names, std::vector< QColor >& colors) {
 	std::vector< std::vector< float > > var_values;
 	std::vector< std::vector< int > > node_count;
-	std::vector< std::vector< QColor > > node_color;
 	std::vector< std::vector< float > > context_data;
 	var_values.resize(var_num_);
 	node_count.resize(var_num_);
-	node_color.resize(var_num_);
 
 	context_data.resize(selected_nodes.size());
 
@@ -126,12 +130,11 @@ void TreeMapView::UpdateVariableItems(std::vector< CNode* >& selected_nodes, int
 		for (int j = 0; j < selected_nodes.size(); ++j) {
 			var_values[i].push_back(selected_nodes[j]->average_values[i]);
 			node_count[i].push_back(selected_nodes[j]->point_count);
-			node_color[i].push_back(selected_nodes[j]->color);
 			tree_->GetNodeValues(selected_nodes[j], i, context_data[j]);
 			std::sort(context_data[j].begin(), context_data[j].end());
 		}
 
-		var_items_[i]->SetData(var_name, var_values[i], node_count[i], node_color[i], selected_count, context_data);
+		var_items_[i]->SetData(var_name, colors[i], var_values[i], node_count[i], selected_count, context_data);
 		var_items_[i]->SetValueRange(tree_->data()->original_value_ranges[i][0], tree_->data()->original_value_ranges[i][1]);
 	}
 }

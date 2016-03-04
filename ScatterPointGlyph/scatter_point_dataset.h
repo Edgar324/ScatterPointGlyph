@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <QtCore/QString>
+#include <QtGui/QColor>
 
 class ScatterPointDataset
 {
@@ -22,6 +23,7 @@ public:
 	int var_num = {0};
 	std::vector< QString > var_names;
 	std::vector< float > var_weights;
+    std::vector< QColor > var_colors;
 	std::vector< std::vector< float > > original_point_values;
 
 	int point_num = {0};
