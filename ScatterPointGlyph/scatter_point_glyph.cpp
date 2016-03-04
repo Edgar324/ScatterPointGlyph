@@ -209,6 +209,7 @@ void ScatterPointGlyph::InitWidget() {
 	connect(ui_.actionShow_PCP, SIGNAL(triggered()), this, SLOT(OnActionShowParallelCoordinateTriggered()));
     connect(ui_.actionShow_Density_Map, SIGNAL(triggered()), this, SLOT(OnActionShowDensityMapTriggered()));
     connect(ui_.actionShow_Data_Table, SIGNAL(triggered()), this, SLOT(OnActionShowDataTableTriggered()));
+    connect(ui_.actionShow_Map, SIGNAL(triggered()), this, SLOT(OnActionShowMapTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -566,7 +567,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 }
 
 void ScatterPointGlyph::OnMainViewUpdated() {
-    if (scatter_point_dataset_ == NULL) return;
+    if (scatter_point_dataset_ == NULL || cluster_tree_ == NULL) return;
 
 	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		MultiLabelTree* multi_label_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
@@ -1099,7 +1100,8 @@ void ScatterPointGlyph::UpdateMenus() {
 }
 
 void ScatterPointGlyph::OnActionShowScatterPlotTriggered() {
-    original_point_rendering_layer_->SetEnabled(ui_.actionShow_Scatter_Plot->isChecked());
+    original_point_rendering_layer_->SetScatterPointEnabled(ui_.actionShow_Scatter_Plot->isChecked());
+    this->main_view_->update();
 }
 
 void ScatterPointGlyph::OnActionShowTransmapTriggered()
@@ -1135,6 +1137,13 @@ void ScatterPointGlyph::OnActionShowDensityMapTriggered() {
 
 void ScatterPointGlyph::OnActionShowDataTableTriggered() {
     data_table_panel_->setVisible(ui_.actionShow_Data_Table->isChecked());
+}
+
+void ScatterPointGlyph::OnActionShowMapTriggered() {
+    if (original_point_rendering_layer_ != NULL) {
+        original_point_rendering_layer_->SetMapEnabled(ui_.actionShow_Map->isChecked());
+        this->main_view_->update();
+    }
 }
 
 void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)

@@ -42,6 +42,9 @@ public:
 	void SetCategoryOn();
 	void SetCategoryOff();
 
+    void SetMapEnabled(bool enabled);
+    void SetScatterPointEnabled(bool enabled);
+
     void SetColorBarRenderer(vtkRenderer* renderer);
 
 	std::vector< int >& GetClusterColor() { return cluster_color_; }
@@ -63,11 +66,16 @@ private:
 	vtkPolyDataMapper* mapper_;
 	vtkPolyData* poly_data_;
 
+    vtkActor* map_actor_;
+	vtkPolyDataMapper* map_mapper_;
+	vtkPolyData* map_poly_data_;
+
     vtkScalarBarActor* bar_actor_;
     vtkLookupTable* scalar_lookup_table_;
 
 	void UpdatePointGlyph();
     void UpdateValueMapping();
+    void LoadMap(const char* file_name, float start_x, float end_x, float start_y, float end_y);
 };
 
 #endif

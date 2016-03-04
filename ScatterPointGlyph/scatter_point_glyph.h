@@ -153,6 +153,7 @@ private slots:
 	void OnActionShowTableLensTriggerd();
 	void OnActionShowParallelCoordinateTriggered();
     void OnActionShowDataTableTriggered();
+    void OnActionShowMapTriggered();
 
 	void OnGlyphSizeChanged();
 };

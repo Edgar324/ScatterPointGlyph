@@ -42,6 +42,14 @@ PointRenderingLayer::PointRenderingLayer() {
 	actor_->GetProperty()->SetPointSize(6);
 	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
 
+    map_poly_data_ = vtkPolyData::New();
+    map_mapper_ = vtkPolyDataMapper::New();
+    map_actor_ = vtkActor::New();
+    map_mapper_->SetInputData(map_poly_data_);
+	map_actor_->SetMapper(map_mapper_);
+	map_actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
+    map_actor_->SetVisibility(false);
+
     bar_actor_ = vtkScalarBarActor::New();
     bar_actor_->SetNumberOfLabels(4);
     bar_actor_->SetMaximumWidthInPixels(60);
@@ -68,6 +76,11 @@ PointRenderingLayer::~PointRenderingLayer() {
 
 void PointRenderingLayer::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
+
+    if (dataset_->type() == ScatterPointDataset::GRID_DATA) {
+        this->LoadMap("./Resources/border.txt", dataset_->original_pos_ranges[0][0], dataset_->original_pos_ranges[0][1],
+            dataset_->original_pos_ranges[1][0], dataset_->original_pos_ranges[1][1]);
+    }
 
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
@@ -110,6 +123,7 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 		this->Enabled = 1;
 
 		this->DefaultRenderer->AddActor(this->actor_);
+        this->DefaultRenderer->AddActor(this->map_actor_);
 
         if (color_bar_renderer_ != NULL) {
             this->color_bar_renderer_->AddActor(bar_actor_);
@@ -122,6 +136,7 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->DefaultRenderer->RemoveActor(this->actor_);
+        this->DefaultRenderer->RemoveActor(this->map_actor_);
         if (color_bar_renderer_ != NULL)
             this->color_bar_renderer_->RemoveActor(bar_actor_);
 
@@ -129,6 +144,17 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 	}
 
 	this->Interactor->Render();
+}
+
+void PointRenderingLayer::SetMapEnabled(bool enabled) {
+    map_actor_->SetVisibility(enabled);
+}
+
+
+void PointRenderingLayer::SetScatterPointEnabled(bool enabled)
+{
+    this->bar_actor_->SetVisibility(enabled);
+    this->actor_->SetVisibility(enabled);
 }
 
 void PointRenderingLayer::SetPointValue(std::vector< float >& values){
@@ -255,4 +281,45 @@ void PointRenderingLayer::UpdateValueMapping() {
 void PointRenderingLayer::SetColorBarRenderer(vtkRenderer* renderer)
 {
     this->color_bar_renderer_ = renderer;
+}
+
+void PointRenderingLayer::LoadMap(const char* file_name, float start_x, float end_x, float start_y, float end_y)
+{
+    map_poly_data_->Initialize();
+    vtkPoints* points = vtkPoints::New();
+    map_poly_data_->SetPoints(points);
+    vtkCellArray* poly_array = vtkCellArray::New();
+	map_poly_data_->SetLines(poly_array);
+
+    std::ifstream border_file(file_name);
+    if ( border_file.good() ){
+        while ( !border_file.eof() ){
+            int poly_size;
+            float x, y;
+            std::vector< float > temp_poly;
+            border_file >> poly_size;
+            temp_poly.resize(poly_size * 2);
+            bool is_negative = false;
+            for ( int i = 0; i < poly_size; ++i ){
+                border_file >> temp_poly[2 * i] >> temp_poly[2 * i + 1];
+                if ( temp_poly[2 * i] < 0 ) is_negative = true;
+            }
+            if ( is_negative )
+                for ( int i = 0; i < temp_poly.size() / 2; ++i ) temp_poly[2 * i] += 360;
+            bool is_used = false;
+            for ( int i = 0; i < temp_poly.size() / 2; ++i )
+                if ( (temp_poly[2 * i] - start_x) * (temp_poly[2 * i] - end_x) <= 0 && (temp_poly[2 * i +1] - start_y) * (temp_poly[2 * i + 1] - end_y) <= 0 ){
+                    is_used = true;
+                    break;
+                }
+            std::vector< vtkIdType > poly_ids;
+            if (is_used) {
+                for (int i = 0; i < temp_poly.size() / 2; ++i) {
+                    poly_ids.push_back(points->InsertNextPoint(temp_poly[i * 2], temp_poly[i * 2 + 1], 0));
+                }
+                map_poly_data_->InsertNextCell(VTK_POLY_LINE, poly_ids.size(), poly_ids.data());
+            }
+        }
+    }
+    map_actor_->Modified();
 }
