@@ -102,6 +102,12 @@ TransMap::TransMap() {
 	this->indicator_actor_->SetMapper(this->indicator_mapper_);
     this->indicator_actor_->GetProperty()->SetColor(0.7, 0.7, 0.7);
 
+    this->var_icon_actor_ = vtkActor::New();
+	this->var_icon_poly_ = vtkPolyData::New();
+	this->var_icon_mapper_ = vtkPolyDataMapper::New();
+	this->var_icon_mapper_->SetInputData(this->var_icon_poly_);
+	this->var_icon_actor_->SetMapper(this->var_icon_mapper_);
+
     indicator_text_ = vtkTextActor3D::New();
     indicator_text_->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
 	indicator_text_->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
@@ -893,8 +899,77 @@ void TransMap::UpdateTransEdgeActor() {
 	this->trans_glyph_actors->Modified();
 }
 
-void TransMap::UpdateTipActor() {
+void TransMap::UpdateIconActor() {
+    if (variable_color_text_.size() < scatter_data_->var_names.size()) {
+        for (int i = variable_color_text_.size(); i < scatter_data_->var_names.size(); ++i) {
+            vtkTextActor3D* temp_text = vtkTextActor3D::New();
+            temp_text->GetTextProperty()->SetColor(0.0, 0.0, 0.0);
+	        temp_text->GetTextProperty()->SetBackgroundColor(0.0, 0.0, 0.0);
+	        temp_text->GetTextProperty()->SetBold(true);
+	        temp_text->GetTextProperty()->SetFontFamilyToArial();
 
+            QString name = scatter_data_->var_names[i].left(10);
+	        temp_text->SetInput(name.toLocal8Bit().data());
+	        temp_text->SetPosition(-0.3, -1.6 - (i + 1) * 0.6, 0);
+	        temp_text->GetTextProperty()->SetFontSize(20);
+	        float scale = 0.2 / 20;
+	        temp_text->SetScale(scale, scale, scale);
+	        temp_text->Modified();
+
+            variable_color_text_.push_back(temp_text);
+            this->glyph_indicator_renderer_->AddActor(temp_text);
+        }
+
+        this->glyph_indicator_renderer_->ResetCamera();
+        /*double eye_pos[3];
+        eye_pos[0] = 0; 
+        eye_pos[1] = 0;
+        eye_pos[2] = 10;
+        float dis = this->glyph_indicator_renderer_->GetActiveCamera()->GetDistance();
+        this->glyph_indicator_renderer_->GetActiveCamera()->SetDistance(dis * 5);*/
+        this->glyph_indicator_renderer_->GetActiveCamera()->Zoom(1.7);
+        this->glyph_indicator_renderer_->GetActiveCamera()->Modified();
+    }
+    else {
+        int item_size = variable_color_text_.size();
+        for (int i = scatter_data_->var_names.size(); i < item_size; ++i) {
+            this->glyph_indicator_renderer_->RemoveActor(variable_color_text_[i]);
+            variable_color_text_[i]->Delete();
+        }
+        variable_color_text_.resize(scatter_data_->var_names.size());
+    }
+
+	var_icon_poly_->Initialize();
+
+    vtkPoints* points = vtkPoints::New();
+    vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
+	colors->SetNumberOfComponents(4);
+
+	var_icon_poly_->SetPoints(points);
+	var_icon_poly_->GetPointData()->SetScalars(colors);
+
+	vtkCellArray* poly_array = vtkCellArray::New();
+	var_icon_poly_->SetPolys(poly_array);
+
+    vtkIdType cell_ids[4];
+    for (int i = 0; i < scatter_data_->var_names.size(); ++i) {
+        float x1 = -1, x2 = -0.45;
+        float y1 = -1.6 - i * 0.6 - 0.3;
+        float y2 = -1.6 - i * 0.6 - 0.6;
+
+        cell_ids[0] = points->InsertNextPoint(x1, y1, 0.0);
+        cell_ids[1] = points->InsertNextPoint(x1, y2, 0.0);
+        cell_ids[2] = points->InsertNextPoint(x2, y2, 0.0);
+        cell_ids[3] = points->InsertNextPoint(x2, y1, 0.0);
+        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
+        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
+        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
+        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
+        
+        var_icon_poly_->InsertNextCell(VTK_POLYGON, 4, cell_ids);
+    }
+
+    var_icon_actor_->Modified();
 }
 
 void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
@@ -1086,8 +1161,11 @@ void TransMap::SetEnabled(int enabling) {
 
         if (this->glyph_indicator_renderer_ != NULL) {
             this->glyph_indicator_renderer_->AddActor(indicator_actor_);
-            this->glyph_indicator_renderer_->ResetCamera();
             this->glyph_indicator_renderer_->AddActor(indicator_text_);
+            this->glyph_indicator_renderer_->AddActor(var_icon_actor_);
+
+            for (int i = 0; i < variable_color_text_.size(); ++i)
+                this->glyph_indicator_renderer_->AddActor(variable_color_text_[i]);
         }
 
 		this->InvokeEvent(vtkCommand::EnableEvent, NULL);
@@ -1117,6 +1195,12 @@ void TransMap::SetEnabled(int enabling) {
         if (this->glyph_indicator_renderer_ != NULL) {
             this->glyph_indicator_renderer_->RemoveActor(indicator_actor_);
             this->glyph_indicator_renderer_->RemoveActor(indicator_text_);
+            this->glyph_indicator_renderer_->RemoveActor(var_icon_actor_);
+
+            for (int i = 0; i < variable_color_text_.size(); ++i)
+                this->glyph_indicator_renderer_->RemoveActor(variable_color_text_[i]);
+
+            this->glyph_indicator_renderer_->ResetCamera();
         }
 
 		this->Interactor->RemoveObserver(vtkCommand::LeftButtonPressEvent);
@@ -1136,7 +1220,7 @@ void TransMap::BuildRepresentation() {
 	this->UpdateNodeActors();
 	this->UpdateHightlightActor();
 	this->UpdateTransEdgeActor();
-	this->UpdateTipActor();
+	this->UpdateIconActor();
 }
 
 void TransMap::ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata) {

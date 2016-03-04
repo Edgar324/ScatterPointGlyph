@@ -14,6 +14,7 @@ public:
 
 	// Sort index_two based on index_one
 	static void Sort(std::vector<int>& index_one, std::vector<int>& index_two);
+    static void Sort(std::vector<float>& index_one, std::vector<int>& index_two);
 
     static void GridConnection(std::vector< CNode*>& nodes, int w, int h, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length);
 

@@ -21,13 +21,18 @@ public:
 	void SetHighlightEnabled(bool enabled);
 	QString GetTipString();
 
+    void SetValueIndex(std::vector< int >& index);
+    void GetValueIndex(std::vector< int >& index);
+
 signals:
 	void VarSelected(int);
+    void VarSorted(int);
 
 protected:
 	QRectF boundingRect() const;
 	void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget /* = 0 */);
 	void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 
 private:
 	int var_index_;
@@ -39,6 +44,8 @@ private:
 	int selected_count_;
 	int total_node_count_;
 
+    std::vector< int > value_index_;
+
 	std::vector< std::vector< float > > sampled_context_data_;
 	float ranges_[2];
 
@@ -49,6 +56,8 @@ private:
 	int item_margin = 3;
 	int total_width = 500;
 	int total_height = 30;
+    int absolute_width = 500;
+    int relative_width = 500;
 };
 
 #endif

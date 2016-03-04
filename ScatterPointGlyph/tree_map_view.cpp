@@ -55,6 +55,7 @@ void TreeMapView::SetData(TreeCommon* tree, int var_num,
 			scene_->addItem(var_items_[i]);
 
 			connect(var_items_[i], SIGNAL(VarSelected(int)), this, SLOT(OnVarSelected(int)));
+            connect(var_items_[i], SIGNAL(VarSorted(int)), this, SLOT(OnVarSorted(int)));
 		}
 	}
 
@@ -152,6 +153,14 @@ void TreeMapView::OnVarSelected(int var_index)
 		var_items_[i]->SetHighlightEnabled(false);
 	if (highlight_var_index_ != -1)
 		var_items_[highlight_var_index_]->SetHighlightEnabled(true);
+}
+
+void TreeMapView::OnVarSorted(int var_index) {
+    std::vector< int > sort_index;
+    var_items_[var_index]->GetValueIndex(sort_index);
+
+    for (int i = 0; i < var_items_.size(); ++i)
+        var_items_[i]->SetValueIndex(sort_index);
 }
 
 void TreeMapView::SetHighlightVarIndex(int index)

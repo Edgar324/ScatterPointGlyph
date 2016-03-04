@@ -125,12 +125,12 @@ void ScatterPointGlyph::InitWidget() {
 
     indicator_renderer_ = vtkRenderer::New();
     main_view_->GetRenderWindow()->AddRenderer(indicator_renderer_);
-	indicator_renderer_->SetViewport(0.85, 0.8, 1.0, 1.0);
+	indicator_renderer_->SetViewport(0.85, 0.0, 1.0, 1.0);
 	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
 
     other_renderer_ = vtkRenderer::New();
     main_view_->GetRenderWindow()->AddRenderer(other_renderer_);
-	other_renderer_->SetViewport(0.85, 0.0, 1.0, 0.8);
+	other_renderer_->SetViewport(1.0, 1.0, 1.0, 1.0);
 	other_renderer_->SetBackground(1.0, 1.0, 1.0);
 
 	connect(main_view_, SIGNAL(ViewUpdated()), this, SLOT(OnMainViewUpdated()));
@@ -183,8 +183,8 @@ void ScatterPointGlyph::InitWidget() {
 	connect(color_mapping_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMappingVarValueTriggered()));
 
 	// load data actions
-    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
-    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+    //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
+    connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
     
 
 	// actions for tips on the cluster transition map
@@ -210,6 +210,9 @@ void ScatterPointGlyph::InitWidget() {
     connect(ui_.actionShow_Density_Map, SIGNAL(triggered()), this, SLOT(OnActionShowDensityMapTriggered()));
     connect(ui_.actionShow_Data_Table, SIGNAL(triggered()), this, SLOT(OnActionShowDataTableTriggered()));
     connect(ui_.actionShow_Map, SIGNAL(triggered()), this, SLOT(OnActionShowMapTriggered()));
+
+    connect(ui_.actionShow_2D_Result_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult2DSPTriggered()));
+    connect(ui_.actionShow_Result_3D_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult3DSpTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -1169,4 +1172,14 @@ void ScatterPointGlyph::OnGlyphSizeChanged()
 	label_pixel_radius_ = map_control_ui_.glyph_size_spinbox->value();
 
 	this->UpdateTransmap();
+}
+
+void ScatterPointGlyph::OnActionShowResult2DSPTriggered()
+{
+
+}
+
+void ScatterPointGlyph::OnActionShowResult3DSpTriggered()
+{
+
 }

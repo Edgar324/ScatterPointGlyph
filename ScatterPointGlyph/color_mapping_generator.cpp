@@ -292,6 +292,8 @@ void ColorMappingGenerator::GetQualitativeColors(int color_num, std::vector< QCo
     colors.clear();
     for ( int i = 0; i < color_num && i < qualitative_colors_.size(); ++i )
         colors.push_back(qualitative_colors_[i]);
+    for (int i = qualitative_colors_.size(); i < color_num; ++i)
+        colors.push_back(QColor(128, 128, 128));
 }
 
 void ColorMappingGenerator::SetRmsMapping(float min_value, float max_value){

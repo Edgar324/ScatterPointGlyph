@@ -123,6 +123,11 @@ protected:
 	vtkPolyData* indicator_poly_;
     vtkTextActor3D* indicator_text_;
 
+    vtkActor* var_icon_actor_;
+    vtkPolyDataMapper* var_icon_mapper_;
+    vtkPolyData* var_icon_poly_;
+    std::vector< vtkTextActor3D* > variable_color_text_;
+
 	vtkPropPicker* node_picker;
 	vtkTooltipItem* tool_tip_item_;
 
@@ -155,7 +160,7 @@ private:
 	void GenerateTransEdgeFromHighlight();
 	void UpdateTransEdgeActor();
 	void UpdateHightlightActor();
-	void UpdateTipActor();
+	void UpdateIconActor();
 
 	void OnNodeSelected(CNode* node);
 

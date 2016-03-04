@@ -44,6 +44,20 @@ void Utility::Sort(std::vector<int>& index_one, std::vector<int>& index_two) {
 			}
 }
 
+void Utility::Sort(std::vector<float>& index_one, std::vector<int>& index_two) {
+	for (int i = 0; i < index_one.size() - 1; ++i)
+		for (int j = i + 1; j < index_one.size(); ++j)
+			if (index_one[i] > index_one[j]){
+				float temp_value = index_one[j];
+				index_one[j] = index_one[i];
+				index_one[i] = temp_value;
+
+				int temp_index = index_two[i];
+				index_two[i] = index_two[j];
+				index_two[j] = temp_index;
+			}
+}
+
 void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length) {
 	connecting_status.resize(nodes.size());
 	for (int i = 0; i < nodes.size(); ++i) {

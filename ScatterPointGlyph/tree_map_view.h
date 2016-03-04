@@ -50,6 +50,7 @@ private:
 
 	private slots:
 	void OnVarSelected(int);
+    void OnVarSorted(int);
 };
 
 #endif

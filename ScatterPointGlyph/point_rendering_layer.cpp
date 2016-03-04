@@ -57,7 +57,7 @@ PointRenderingLayer::PointRenderingLayer() {
     bar_actor_->GetLabelTextProperty()->SetBold(true);
     bar_actor_->GetLabelTextProperty()->SetShadow(false);
     bar_actor_->GetLabelTextProperty()->SetColor(0.0, 0.0, 0.0);
-    bar_actor_->SetPosition(0.45, 0.1);
+    bar_actor_->SetPosition(0.9, 0.1);
     bar_actor_->SetVisibility(false);
 
     scalar_lookup_table_ = vtkLookupTable::New();
@@ -77,10 +77,10 @@ PointRenderingLayer::~PointRenderingLayer() {
 void PointRenderingLayer::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
 
-    if (dataset_->type() == ScatterPointDataset::GRID_DATA) {
+    /*if (dataset_->type() == ScatterPointDataset::GRID_DATA) {
         this->LoadMap("./Resources/border.txt", dataset_->original_pos_ranges[0][0], dataset_->original_pos_ranges[0][1],
             dataset_->original_pos_ranges[1][0], dataset_->original_pos_ranges[1][1]);
-    }
+    }*/
 
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
@@ -124,9 +124,9 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 
 		this->DefaultRenderer->AddActor(this->actor_);
         this->DefaultRenderer->AddActor(this->map_actor_);
+        this->DefaultRenderer->AddActor(bar_actor_);
 
         if (color_bar_renderer_ != NULL) {
-            this->color_bar_renderer_->AddActor(bar_actor_);
             this->color_bar_renderer_->ResetCamera();
         }
 	}
@@ -137,8 +137,7 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 
 		this->DefaultRenderer->RemoveActor(this->actor_);
         this->DefaultRenderer->RemoveActor(this->map_actor_);
-        if (color_bar_renderer_ != NULL)
-            this->color_bar_renderer_->RemoveActor(bar_actor_);
+        this->DefaultRenderer->RemoveActor(bar_actor_);
 
 		this->InvokeEvent(vtkCommand::DisableEvent, NULL);
 	}

@@ -155,6 +155,9 @@ private slots:
     void OnActionShowDataTableTriggered();
     void OnActionShowMapTriggered();
 
+    void OnActionShowResult2DSPTriggered();
+    void OnActionShowResult3DSpTriggered();
+
 	void OnGlyphSizeChanged();
 };
 

@@ -57,6 +57,7 @@ public:
 	void ClearData();
 
 protected:
+    std::vector< int > selected_vars;
 	// The x and y coordinate share the same scale. All values are normalized to [0, 1]
 	void NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
 	void NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);

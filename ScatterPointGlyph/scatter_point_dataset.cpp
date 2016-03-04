@@ -45,7 +45,12 @@ void ScatterPointDataset::AutoDimReduction(int dim_num) {
 }
 
 void ScatterPointDataset::ManualSelectDim(std::vector< bool >& is_dim_selected) {
-	int accu_num = 0;
+    selected_vars.clear();
+    for (int i = 0; i < is_dim_selected.size(); ++i)
+        if (is_dim_selected[i]) selected_vars.push_back(i);
+        else var_weights[i] = 0.0;
+
+	/*int accu_num = 0;
 	for (int i = 0; i < is_dim_selected.size(); ++i) {
 		if (is_dim_selected[i]) {
 			for (int j = 0; j < original_point_values.size(); ++j)
@@ -57,35 +62,35 @@ void ScatterPointDataset::ManualSelectDim(std::vector< bool >& is_dim_selected) 
 
 	for (int i = 0; i < original_point_values.size(); ++i)
 		original_point_values[i].resize(accu_num);
-	var_names.resize(accu_num);
+	var_names.resize(accu_num);*/
 }
 
 void ScatterPointDataset::ExecMds() {
-	smat::Matrix<double> *X0 = new smat::Matrix<double>(original_point_values.size(), var_names.size(), 0.0);
+	smat::Matrix<double> *X0 = new smat::Matrix<double>(original_point_values.size(), selected_vars.size(), 0.0);
 
-	for (int i = 0; i < var_names.size(); ++i) {
+	for (int i = 0; i < selected_vars.size(); ++i) {
 		float min_value = 1e30;
 		float max_value = -1e30;
 		for (int j = 0; j < original_point_values.size(); ++j) {
-			if (original_point_values[j][i] > max_value) max_value = original_point_values[j][i];
-			if (original_point_values[j][i] < min_value) min_value = original_point_values[j][i];
+			if (original_point_values[j][selected_vars[i]] > max_value) max_value = original_point_values[j][selected_vars[i]];
+			if (original_point_values[j][selected_vars[i]] < min_value) min_value = original_point_values[j][selected_vars[i]];
 		}
 
 		for (int j = 0; j < original_point_values.size(); ++j) {
-			float scale_value = (original_point_values[j][i] - min_value) / (max_value - min_value);
+			float scale_value = (original_point_values[j][selected_vars[i]] - min_value) / (max_value - min_value);
 			X0->set(j, i, scale_value);
 		}
 	}
 
 	smat::Matrix<double> *D = new smat::Matrix<double>(original_point_values.size(), original_point_values.size(), 0.0);
 	float total_weight = 0;
-	for (int i = 0; i < var_weights.size(); ++i) total_weight += var_weights[i];
+	for (int i = 0; i < selected_vars.size(); ++i) total_weight += var_weights[selected_vars[i]];
 	for (int i = 0; i < original_point_values.size() - 1; ++i){
 		D->set(i, i, 0);
 		for (int j = i + 1; j < original_point_values.size(); ++j) {
 			float dis = 0;
-			for (int k = 0; k < var_names.size(); ++k)
-				dis += pow((X0->get(i, k) - X0->get(j, k)) * var_weights[k], 2);
+			for (int k = 0; k < selected_vars.size(); ++k)
+				dis += pow((X0->get(i, k) - X0->get(j, k)) * var_weights[selected_vars[k]], 2);
 			dis = sqrt(dis / total_weight);
 			D->set(i, j, dis);
 			D->set(j, i, dis);
