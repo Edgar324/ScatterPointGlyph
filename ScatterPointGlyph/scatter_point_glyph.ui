@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ScatterPointGlyph</string>
+   <string>Scatter Point Glyph</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="scatter_point_glyph.qrc">
+    <normaloff>:/ScatterPointGlyph/images/system_icon.png</normaloff>:/ScatterPointGlyph/images/system_icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menuBar">
