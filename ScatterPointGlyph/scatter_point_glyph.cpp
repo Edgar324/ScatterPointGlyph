@@ -746,9 +746,15 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
                     parallel_dataset_->subset_records[i][j]->values[k] = (parallel_dataset_->subset_records[i][j]->values[k] - value_ranges[k][0]) / (value_ranges[k][1] - value_ranges[k][0]);
                 }
             }
-            
         }
 
+        if (selection_index.size() == 0) {
+            for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
+                value_ranges[i].resize(2);
+                value_ranges[i][0] = scatter_point_dataset_->original_value_ranges[i][0];
+                value_ranges[i][1] = scatter_point_dataset_->original_value_ranges[i][1];
+            }
+        }
 		for (int i = 0; i < scatter_point_dataset_->original_value_ranges.size(); ++i) {
 			parallel_dataset_->axis_names[i] = scatter_point_dataset_->var_names[i];
 			parallel_dataset_->axis_anchors[i].push_back(QString("%0").arg(value_ranges[i][0]));

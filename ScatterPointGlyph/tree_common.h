@@ -6,8 +6,6 @@
 
 class ScatterPointDataset;
 
-//#define RADAR_GLYPH
-
 class TreeCommon : public QThread
 {
 public:
