@@ -335,7 +335,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 }
 
 void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
-    WrfDataManager* manager = WrfDataManager::GetInstance();
+    /*WrfDataManager* manager = WrfDataManager::GetInstance();
     manager->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("G:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
     manager->LoadEnsembleData(WRF_PRECIPITABLE_WATER, std::string("G:/Data/ens_l/pwat_eatm_latlon_all_20150401_20150430_liao5WubTq.nc"));
     manager->LoadEnsembleData(WRF_T2M, std::string("G:/Data/ens_l/tmp_2m_latlon_all_20150401_20150430_liaoSwbPtU.nc"));
@@ -378,7 +378,69 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
             grid_data->original_point_values[accu_index][3] = mslp_maps[0]->values[accu_index];
 
             accu_index++;
-        }
+        }*/
+
+    if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
+	scatter_point_dataset_->ClearData();
+
+    std::ifstream input_file("./TestData/plot.gsc");
+	char char_str[1000];
+	input_file.getline(char_str, 1000);
+	QString value_str = QString::fromLocal8Bit(char_str);
+	QStringList value_list = value_str.split(' ');
+
+	int record_num, var_num;
+	record_num = value_list.at(0).toInt();
+	var_num = value_list.at(1).toInt();
+
+	input_file.getline(char_str, 1000);
+	value_str = QString::fromLocal8Bit(char_str);
+	value_list = value_str.split(' ');
+	for (int i = 0; i < value_list.size(); ++i) scatter_point_dataset_->var_names.push_back(value_list.at(i));
+
+	VariableSelectionDialog var_dialog;
+	var_dialog.SetDatasetInfo(record_num, var_num, scatter_point_dataset_->var_names);
+	if (var_dialog.exec() != QDialog::Accepted) {
+		input_file.close();
+		return;
+	}
+
+	scatter_point_dataset_->original_point_pos.resize(record_num);
+	scatter_point_dataset_->original_point_values.resize(record_num);
+	for (int i = 0; i < record_num; ++i) {
+		scatter_point_dataset_->original_point_values[i].resize(var_num);
+        scatter_point_dataset_->original_point_pos[i].resize(2);
+
+		input_file.getline(char_str, 1000);
+		value_str = QString::fromLocal8Bit(char_str);
+		value_list = value_str.split(' ');
+
+		for (int j = 0; j < var_num; ++j)
+			scatter_point_dataset_->original_point_values[i][j] = value_list.at(j).toFloat();
+
+        scatter_point_dataset_->original_point_pos[i][0] = value_list.at(0).toFloat();
+        scatter_point_dataset_->original_point_pos[i][1] = value_list.at(1).toFloat();
+	}
+	input_file.close();
+
+    if (var_dialog.IsAutomaticDimReduction()) {
+		int dim_num = var_dialog.GetDimNumber();
+		if (dim_num <= 0 && dim_num > var_num) return;
+		scatter_point_dataset_->AutoDimReduction(dim_num);
+	} else {
+		std::vector< float > dim_weights;
+		std::vector< bool > is_dim_selected;
+		var_dialog.GetSelectionResult(dim_weights);
+		scatter_point_dataset_->var_weights.clear();
+		for (int i = 0; i < dim_weights.size(); ++i)
+			if (dim_weights[i] >= 0) {
+				scatter_point_dataset_->var_weights.push_back(dim_weights[i]);
+				is_dim_selected.push_back(true);
+			}
+			else
+				is_dim_selected.push_back(false);
+		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
+	}
 
     scatter_point_dataset_->DirectConstruct();
 
@@ -435,6 +497,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		}
 
 		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_);
+        hier_tree->SetTreeMode(TreeCommon::VIEWING_MODE);
 		if (hier_tree != NULL) {
 			//hier_tree->SetExpectedClusterNum(1);
 			hier_tree->start();
@@ -941,6 +1004,25 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 			UpdateParallelCoordinate();
 		}
 	}
+
+    if (sys_mode_ == NCUTS_MODE && cluster_tree_ != NULL) {
+		NCutTree* ncut_tree = dynamic_cast< NCutTree* >(cluster_tree_);
+
+		int temp_cluster_index = trans_map_->GetSelectedClusterIndex();
+		if (temp_cluster_index != -1) {
+			ncut_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id());
+			UpdateTransmap();
+			UpdateTreemap();
+			UpdateParallelCoordinate();
+		}
+	}
+
+    // update the level slider
+    int max_level = cluster_tree_->GetMaxLevel();
+	map_control_ui_.level_slider->setRange(0, max_level);
+	map_control_ui_.level_slider->setValue(current_view_level_);
+	map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
+	map_control_ui_.level_name_label->setText(QString("Level(0~%0): ").arg(max_level));
 }
 
 void ScatterPointGlyph::OnMergeClusterTriggered() {

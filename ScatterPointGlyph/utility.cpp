@@ -64,6 +64,18 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
 		connecting_status[i].resize(nodes.size());
 		connecting_status[i].assign(nodes.size(), false);
 	}
+    if (connecting_status.size() <= 2) {
+        for (int i = 0; i < connecting_status.size(); ++i)
+            for (int j = 0; j < connecting_status[i].size(); ++j)
+                connecting_status[i][j] = true;
+        if (connecting_status.size() <= 1)
+            min_edge_length = 0;
+        else
+        {
+            min_edge_length = sqrt(pow(nodes[0]->center_pos[0] - nodes[1]->center_pos[1], 2) + pow(nodes[0]->center_pos[1] - nodes[1]->center_pos[1], 2));
+        }
+        return;
+    }
 
 	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < nodes.size(); ++i) {
@@ -73,7 +85,7 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
 	polydata->SetPoints(points);
 	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
 	delaunay->SetInputData(polydata);
-	delaunay->SetTolerance(0.00001);
+	delaunay->SetTolerance(0.0000001);
 	delaunay->SetBoundingTriangulation(false);
 	delaunay->Update();
 	vtkPolyData* triangle_out = delaunay->GetOutput();
@@ -110,13 +122,34 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
 	}
 	min_edge_length = min_dis;
 
-#ifdef DEBUG_ON
-	/*for (int i = 0; i < connecting_status.size(); ++i){
-	bool is_connecting = false;
-	for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
-	assert(is_connecting);
-	}*/
-#endif // DEBUG_ON
+    int unconnected_count = 0;
+    for (int i = 0; i < connecting_status.size(); ++i){
+	    bool is_connecting = false;
+	    for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
+        if (!is_connecting) {
+            int min_index = -1; 
+            float min_dis = 1e20;
+            for (int j = 0; j < connecting_status[i].size(); ++j) {
+                if (j == i) continue;
+                float temp_dis;
+		        temp_dis = sqrt(pow(nodes[i]->center_pos[0] - nodes[j]->center_pos[0], 2)
+			        + pow(nodes[i]->center_pos[1] - nodes[j]->center_pos[1], 2));
+                if (temp_dis < min_dis) {
+                    min_dis = temp_dis;
+                    min_index = j;
+                }
+            }
+            if (min_index != -1) {
+                connecting_status[i][min_index] = true;
+                connecting_status[min_index][i] = true;
+                is_connecting = true;
+                unconnected_count++;
+            }
+        }
+	    assert(is_connecting);
+	}
+
+    std::cout << "Unconnected Count: " << unconnected_count << std::endl;
 }
 
 void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& axis_order)

@@ -98,7 +98,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2))/* / max_radius_*/;
 			//if (pos_dis > 1.0) pos_dis = 1.0 + (pos_dis - 1.0) * 5;
 
-			data_cost_[site_index][i] = data_dis_scale_ * value_dis * 10000 + (1.0 - data_dis_scale_) * pos_dis;
+			data_cost_[site_index][i] = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
 			//data_cost_[site_index][i] *= average_un[i];
 			//data_cost_[site_index][i] *= 10;
 

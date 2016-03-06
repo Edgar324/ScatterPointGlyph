@@ -82,7 +82,7 @@ void NCutTree::SplitNode(CBranch* node)
 
 			float pos_dis = sqrt(pow(node->linked_nodes[i]->center_pos[0] - node->linked_nodes[j]->center_pos[0], 2) + pow(node->linked_nodes[i]->center_pos[1] - node->linked_nodes[j]->center_pos[1], 2));
 
-			temp_dis = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * 1.0;
+			temp_dis = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
 
 			irs[temp_index] = i;
 			sr[temp_index] = temp_dis;
@@ -112,8 +112,10 @@ void NCutTree::SplitNode(CBranch* node)
 		ProgressNodeData(branches[i]);
 	}
 	node->linked_nodes.clear();
-	for (int i = 0; i < branches.size(); ++i)
-		node->linked_nodes.push_back(branches[i]);
+    for (int i = 0; i < branches.size(); ++i) {
+        node->linked_nodes.push_back(branches[i]);
+        id_node_map_.insert(std::map< int, CNode* >::value_type(branches[i]->id(), branches[i]));
+    }
 
 	mxDestroyArray(arraySegmentsNumber);
 	mxDestroyArray(arrayEigenvectors);

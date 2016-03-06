@@ -473,25 +473,36 @@ void TransMap::UpdateNodeActors() {
 			}
 			polydata->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, center_cirlce_ids.data());
 
-            // paint saliency circle
-			/*std::vector< vtkIdType > radius_circle_ids;
-            int segment_per_circle_temp = 20;
-			for (int j = 0; j <= segment_per_circle_temp; ++j) {
-				float end_arc = j * 3.14159 * 2 / segment_per_circle_temp;
-				float x = node_radius_ * cos(end_arc) * 1.03;
-				float y = node_radius_ * sin(end_arc) * 1.03;
+            // paint indicator for whether expandable
+            bool is_expandable = false;
+	        if (node->type() == CNode::BRANCH) {
+		        CBranch* branch = dynamic_cast<CBranch*>(node);
+		        for (int i = 0; i < branch->linked_nodes.size(); ++i) {
+			        if (branch->linked_nodes[i]->type() != CNode::LEAF) is_expandable = true;
+			        break;
+		        }
+	        }
+            if (is_expandable) {
+                float x1 = node_center_x - node_radius_ * 1.4;
+                float x2 = node_center_x - node_radius_ * 1.0;
+                float x3 = node_center_x - node_radius_ * 1.2;
+                float y1 = node_center_y + node_radius_ * 0.8;
+                float y2 = node_center_y + node_radius_ * 1.2;
+                float y3 = node_center_y + node_radius_ * 1.0;
+                vtkIdType line_ids[2];
 
-				radius_circle_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0001));
-                float gray_value = 250 * (1.0 - exp(-3 * (1.0 - node->saliency)));
-				colors->InsertNextTuple4(gray_value, gray_value, gray_value, 255);
-			}
+                line_ids[0] = points->InsertNextPoint(x1, y3, 0.002);
+                line_ids[1] = points->InsertNextPoint(x2, y3, 0.002);
+                colors->InsertNextTuple4(0, 0, 0, 255);
+                colors->InsertNextTuple4(0, 0, 0, 255);
+                polydata->InsertNextCell(VTK_LINE, 2, line_ids);
 
-			vtkIdType circle_ids[2];
-			for (int j = 0; j < segment_per_circle_temp; ++j) {
-				circle_ids[0] = radius_circle_ids[j];
-				circle_ids[1] = radius_circle_ids[j + 1];
-				polydata->InsertNextCell(VTK_LINE, 2, circle_ids);
-			}*/
+                line_ids[0] = points->InsertNextPoint(x3, y1, 0.002);
+                line_ids[1] = points->InsertNextPoint(x3, y2, 0.002);
+                colors->InsertNextTuple4(0, 0, 0, 255);
+                colors->InsertNextTuple4(0, 0, 0, 255);
+                polydata->InsertNextCell(VTK_LINE, 2, line_ids);
+            }
 
             // paint encoding for the point number
             float point_rate = (float)node->point_count / max_node_point_num;
@@ -704,7 +715,7 @@ void TransMap::UpdateNodeActors() {
 						float sin_value = sin(temp_arc);
 
 						// insert the average value
-						float temp_radius = node_radius_ * current_node_->average_values[var_index] * 0.8 + node_radius_ * 0.1;
+						float temp_radius = node_radius_ * current_node_->average_values[var_index] * 0.9 + node_radius_ * 0.1;
 						float x = temp_radius * cos_value;
 						float y = temp_radius * sin_value;
 						comp_ids[k] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0025);
@@ -1062,7 +1073,7 @@ void TransMap::UpdateHightlightActor() {
 			char buffer[20];
 			itoa(hightlight_node_index, buffer, 10);
 			seqence_text_actors[hightlight_node_index]->SetInput(buffer);
-			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius_, node_center_y + node_radius_ * 0.5, 0.003);
+			seqence_text_actors[hightlight_node_index]->SetPosition(node_center_x - node_radius_ * 0.9, node_center_y + node_radius_ * 0.8, 0.003);
 			seqence_text_actors[hightlight_node_index]->GetTextProperty()->SetFontSize(20);
 			float scale = node_radius_ * 0.5 / 30;
 			seqence_text_actors[hightlight_node_index]->SetScale(scale, scale, scale);
@@ -1111,37 +1122,37 @@ void TransMap::SetEnabled(int enabling) {
 
 	if (this->DefaultRenderer) this->SetCurrentRenderer(this->DefaultRenderer);
 
-	if (enabling) {
-		if (this->Enabled) return;
+    if (enabling) {
+        if (this->Enabled) return;
 
-		this->Enabled = 1;
+        this->Enabled = 1;
 
-		this->Interactor->AddObserver(vtkCommand::LeftButtonPressEvent,
-			this->EventCallbackCommand, this->Priority);
-		this->Interactor->AddObserver(vtkCommand::MouseMoveEvent,
-			this->EventCallbackCommand, this->Priority);
-		this->Interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent,
-			this->EventCallbackCommand, this->Priority);
-		this->Interactor->AddObserver(vtkCommand::RightButtonPressEvent,
-			this->EventCallbackCommand, this->Priority);
-		this->Interactor->AddObserver(vtkCommand::RightButtonReleaseEvent,
-			this->EventCallbackCommand, this->Priority);
+        this->Interactor->AddObserver(vtkCommand::LeftButtonPressEvent,
+            this->EventCallbackCommand, this->Priority);
+        this->Interactor->AddObserver(vtkCommand::MouseMoveEvent,
+            this->EventCallbackCommand, this->Priority);
+        this->Interactor->AddObserver(vtkCommand::LeftButtonReleaseEvent,
+            this->EventCallbackCommand, this->Priority);
+        this->Interactor->AddObserver(vtkCommand::RightButtonPressEvent,
+            this->EventCallbackCommand, this->Priority);
+        this->Interactor->AddObserver(vtkCommand::RightButtonReleaseEvent,
+            this->EventCallbackCommand, this->Priority);
 
-		for (int i = 0; i < node_glyph_actors.size(); ++i) {
-			this->DefaultRenderer->AddActor(node_glyph_actors[i]);
-			this->node_picker->AddPickList(node_glyph_actors[i]);
-		}
+        for (int i = 0; i < node_glyph_actors.size(); ++i) {
+            this->DefaultRenderer->AddActor(node_glyph_actors[i]);
+            this->node_picker->AddPickList(node_glyph_actors[i]);
+        }
 
-		for (int i = 0; i < node_glyph_actors.size(); ++i) {
-			this->DefaultRenderer->AddActor(node_glyph_actors[i]);
-			this->node_picker->AddPickList(node_glyph_actors[i]);
-		}
+        for (int i = 0; i < node_glyph_actors.size(); ++i) {
+            this->DefaultRenderer->AddActor(node_glyph_actors[i]);
+            this->node_picker->AddPickList(node_glyph_actors[i]);
+        }
 
-		this->DefaultRenderer->AddActor(trans_glyph_actors);
+        this->DefaultRenderer->AddActor(trans_glyph_actors);
         this->DefaultRenderer->AddActor(linked_glyph_actors);
         this->DefaultRenderer->AddActor(density_actor_);
-		this->DefaultRenderer->AddActor(this->highlight_actor);
-		this->DefaultRenderer->AddActor(this->selection_brush_actor);
+        this->DefaultRenderer->AddActor(this->highlight_actor);
+        this->DefaultRenderer->AddActor(this->selection_brush_actor);
 
         if (this->glyph_indicator_renderer_ != NULL) {
             this->glyph_indicator_renderer_->AddActor(indicator_actor_);
@@ -1150,6 +1161,10 @@ void TransMap::SetEnabled(int enabling) {
 
             for (int i = 0; i < variable_color_text_.size(); ++i)
                 this->glyph_indicator_renderer_->AddActor(variable_color_text_[i]);
+        }
+
+        for (int i = 0; i < seqence_text_actors.size(); ++i) {
+            this->DefaultRenderer->AddActor(seqence_text_actors[i]);
         }
 
 		this->InvokeEvent(vtkCommand::EnableEvent, NULL);
@@ -1185,6 +1200,10 @@ void TransMap::SetEnabled(int enabling) {
                 this->glyph_indicator_renderer_->RemoveActor(variable_color_text_[i]);
 
             this->glyph_indicator_renderer_->ResetCamera();
+        }
+
+        for (int i = 0; i < seqence_text_actors.size(); ++i) {
+            this->DefaultRenderer->RemoveActor(seqence_text_actors[i]);
         }
 
 		this->Interactor->RemoveObserver(vtkCommand::LeftButtonPressEvent);

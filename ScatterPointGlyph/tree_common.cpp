@@ -201,11 +201,13 @@ void TreeCommon::run() {
 }
 
 void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
-	nodes.clear();
-	if (tree_mode_ == VIEWING_MODE)
+    nodes.clear();
+    TraverseLevelNodes(level, root_, nodes);
+	
+	/*if (tree_mode_ == VIEWING_MODE)
 		TraverseLevelNodes(level, root_, nodes);
 	else
-		TraversAllNodes(root_, nodes);
+		TraversAllNodes(root_, nodes);*/
 }
 
 void TreeCommon::TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes) {
