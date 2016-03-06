@@ -105,8 +105,8 @@ void ScatterPointDataset::ExecMds() {
 	original_point_pos.resize(original_point_values.size());
 	for (int i = 0; i < original_point_values.size(); ++i) {
 		original_point_pos[i].resize(2);
-		original_point_pos[i][0] = X1->get(i, 0) * 1000;
-		original_point_pos[i][1] = X1->get(i, 1) * 1000;
+		original_point_pos[i][0] = X1->get(i, 0) * 10000;
+		original_point_pos[i][1] = X1->get(i, 1) * 10000;
 	}
 }
 

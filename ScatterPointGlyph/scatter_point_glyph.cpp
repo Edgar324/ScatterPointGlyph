@@ -413,10 +413,10 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
 
 		input_file.getline(char_str, 1000);
 		value_str = QString::fromLocal8Bit(char_str);
-		value_list = value_str.split(' ');
+		value_list = value_str.split(',');
 
 		for (int j = 0; j < var_num; ++j)
-			scatter_point_dataset_->original_point_values[i][j] = value_list.at(j).toFloat();
+			scatter_point_dataset_->original_point_values[i][j] = value_list.at(2 + j).toFloat();
 
         scatter_point_dataset_->original_point_pos[i][0] = value_list.at(0).toFloat();
         scatter_point_dataset_->original_point_pos[i][1] = value_list.at(1).toFloat();
@@ -609,7 +609,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 4 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	} else {
@@ -617,6 +617,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	int max_level = cluster_tree_->GetMaxLevel();
+    if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
 	map_control_ui_.level_slider->setRange(0, max_level);
 	map_control_ui_.level_slider->setValue(current_view_level_);
 	map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
@@ -640,7 +641,9 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 3 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 4 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+        int max_level = multi_label_tree->GetMaxLevel();
+        if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
