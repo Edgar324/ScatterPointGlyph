@@ -1418,7 +1418,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.00000025);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.000004);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();
@@ -1444,7 +1444,7 @@ void TransMap::OnMouseMove(int x, int y) {
 		this->DefaultRenderer->DisplayToWorld();
 		double* world_pos = this->DefaultRenderer->GetWorldPoint();
 
-		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.00000025);
+		this->selection_brush_poly->GetPoints()->InsertNextPoint(world_pos[0], world_pos[1], 0.000004);
 
 		vtkCellArray* line_array = this->selection_brush_poly->GetLines();
 		line_array->Initialize();

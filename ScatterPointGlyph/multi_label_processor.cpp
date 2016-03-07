@@ -95,12 +95,9 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 			float value_dis = 0;
 			for (int k = 0; k < var_weights_.size(); ++k)
 				value_dis += abs(point_value_[site_index][k] - average_values[i][k]) * var_weights_[k];
-			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2))/* / max_radius_*/;
-			//if (pos_dis > 1.0) pos_dis = 1.0 + (pos_dis - 1.0) * 5;
+			float pos_dis = sqrt(pow(point_pos_[site_index][0] - center_x, 2) + pow(point_pos_[site_index][1] - center_y, 2));
 
 			data_cost_[site_index][i] = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
-			//data_cost_[site_index][i] *= average_un[i];
-			//data_cost_[site_index][i] *= 10;
 
 			value_var += pow(value_dis, 2);
 		}
@@ -112,10 +109,8 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 		smooth_cost_[i][i] = 0;
 
 		for (int j = i + 1; j < label_num; ++j) {
-			smooth_cost_[i][j] = 0.1;
-			/*for (int k = 0; k < var_weights_.size(); ++k)
-				smooth_cost_[i][j] += abs(average_values[i][k] - average_values[j][k]) * var_weights_[k];
-			smooth_cost_[i][j] += 0.1;*/
+            smooth_cost_[i][j] = average_value_dis_;
+
 			smooth_cost_[j][i] = smooth_cost_[i][j];
 		}
 	}
@@ -157,12 +152,24 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 		point_dis_[i].resize(point_num_);
 		point_dis_[i].assign(point_num_, 0);
 	}
+
+    average_value_dis_ = 0.0;
+    int connected_edge_num = 0;
 	for (int i = 0; i < point_num_ - 1; ++i)
 		for (int j = i + 1; j < point_num_; ++j) {
 			point_dis_[i][j] = 0;
 			point_dis_[i][j] += sqrt(pow(point_pos_[i][0] - point_pos_[j][0], 2) + pow(point_pos_[i][1] - point_pos_[j][1], 2));
 			point_dis_[j][i] = point_dis_[i][j];
+
+            if (edges_[i][j]) {
+                float value_dis = 0;
+			    for (int k = 0; k < var_weights_.size(); ++k)
+				    value_dis += abs(point_value_[i][k] - point_value_[j][k]) * var_weights_[k];
+                average_value_dis_ += value_dis;
+                connected_edge_num++;
+            }
 		}
+    if (connected_edge_num != 0) average_value_dis_ /= connected_edge_num;
 
 	std::vector< float > node_distance;
 	node_distance.resize(point_num_);

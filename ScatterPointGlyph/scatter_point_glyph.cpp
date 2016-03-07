@@ -609,7 +609,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 4 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	} else {
@@ -641,7 +641,7 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * 4 * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
         int max_level = multi_label_tree->GetMaxLevel();
         if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
 		map_control_ui_.level_slider->setValue(current_view_level_);

@@ -30,6 +30,8 @@ private:
 	float max_radius_;
 	int sample_num_;
 
+    float average_value_dis_;
+
 	std::vector< int > result_label_;
 
 	std::vector< std::vector< int > > estimated_models_;
