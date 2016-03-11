@@ -114,9 +114,9 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
 
 			if (i >= selected_count_)
-				painter->setPen(QColor(128, 128, 128, 20));
+				painter->setPen(QColor(160, 160, 160, 20));
 			else
-				painter->setPen(QColor(128, 128, 128, 255));
+				painter->setPen(QColor(160, 160, 160, 255));
 			for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
 				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[temp_value_index].size() - 1);
 				float y1 = total_height - total_height * sampled_context_data_[temp_value_index][j];
@@ -145,9 +145,9 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
 
 			if (i >= selected_count_)
-				painter->setPen(QColor(128, 128, 128, 20));
+				painter->setPen(QColor(160, 160, 160, 20));
 			else
-				painter->setPen(QColor(128, 128, 128, 255));
+				painter->setPen(QColor(160, 160, 160, 255));
 			for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
 				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[temp_value_index].size() - 1);
 				float y1 = total_height - total_height * sampled_context_data_[temp_value_index][j];

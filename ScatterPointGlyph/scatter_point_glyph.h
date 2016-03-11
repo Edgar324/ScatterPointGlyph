@@ -96,7 +96,7 @@ private:
 	ScatterPointDataset* scatter_point_dataset_;
 
 	int current_view_level_;
-    float glyph_size_factor_ = 3;
+    float glyph_size_factor_ = 5;
 	int label_pixel_radius_ = { 50 };
 	std::vector< int > var_axis_order;
 

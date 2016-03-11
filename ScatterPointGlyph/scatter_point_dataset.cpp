@@ -98,7 +98,7 @@ void ScatterPointDataset::ExecMds() {
 	}
 
 	int dim = 2;
-	int iteration = 20;
+	int iteration = 40;
 
 	smat::Matrix<double> * X1 = MDS_UCF(D, NULL, dim, iteration); // without initialization
 

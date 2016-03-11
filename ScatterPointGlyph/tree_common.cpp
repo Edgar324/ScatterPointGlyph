@@ -645,7 +645,10 @@ void TreeCommon::ProgressNodeData(CNode* node) {
 		for (int j = 0; j < dataset_->var_num; ++j)
 			variance[j] += pow(dataset_->point_values[point_index[i]][j] - average[j], 2);
 	for (int i = 0; i < dataset_->var_num; ++i)
-		variance[i] = sqrt(variance[i] / point_index.size());
+        if (point_index.size() > 1)
+            variance[i] = sqrt(variance[i] / (point_index.size() - 1));
+        else
+		    variance[i] = sqrt(variance[i] / point_index.size());
 	node->average_values = average;
 	node->variable_variances = variance;
 	node->general_variance = 0;

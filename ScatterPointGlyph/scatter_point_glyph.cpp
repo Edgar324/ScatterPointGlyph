@@ -54,7 +54,9 @@
 #include "wrf_data_manager.h"
 #include "glyph_design_dialog.h"
 
-//#define USE_QUALITY_METRIC
+#define USE_QUALITY_METRIC
+//#define SAVE_PROJECTION
+#define USE_SAVED_PROJECTION
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -318,15 +320,36 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 		scatter_point_dataset_->var_weights.clear();
 		for (int i = 0; i < dim_weights.size(); ++i)
 			if (dim_weights[i] >= 0) {
-				scatter_point_dataset_->var_weights.push_back(dim_weights[i]);
 				is_dim_selected.push_back(true);
 			}
 			else
 				is_dim_selected.push_back(false);
+        scatter_point_dataset_->var_weights = dim_weights;
 		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
 	}
 
 	scatter_point_dataset_->ExecMds();
+
+#ifdef SAVE_PROJECTION
+    std::ofstream output("./TestData/temp.mds");
+    if (output.good()) {
+        for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
+            for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
+                output << scatter_point_dataset_->original_point_pos[i][j] << " "; 
+    }
+    output.close();
+#endif
+
+#ifdef USE_SAVED_PROJECTION
+    std::ifstream input("./TestData/temp.mds");
+    if (input.good()) {
+        for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
+            for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
+                input >> scatter_point_dataset_->original_point_pos[i][j];
+    }
+    input.close();
+#endif
+
 	scatter_point_dataset_->DirectConstruct();
 
 	this->UpdateMenus();

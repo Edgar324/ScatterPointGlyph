@@ -281,11 +281,18 @@ void ColorMappingGenerator::ConstructColorList(){
     qualitative_colors_.push_back(QColor(166,206,227));
     qualitative_colors_.push_back(QColor(31,120,180));
     qualitative_colors_.push_back(QColor(178,223,138));
+    qualitative_colors_.push_back(QColor(51,160,44));
     qualitative_colors_.push_back(QColor(251,154,153));
     qualitative_colors_.push_back(QColor(227,26,28));
     qualitative_colors_.push_back(QColor(253,191,111));
     qualitative_colors_.push_back(QColor(255,127,0));
     qualitative_colors_.push_back(QColor(202,178,214));
+    qualitative_colors_.push_back(QColor(106,61,154));
+    qualitative_colors_.push_back(QColor(255,255,153));
+    qualitative_colors_.push_back(QColor(177,89,40));
+    qualitative_colors_.push_back(QColor(141,211,199));
+    qualitative_colors_.push_back(QColor(204,235,197));
+    qualitative_colors_.push_back(QColor(253,180,98));
 }
 
 void ColorMappingGenerator::GetQualitativeColors(int color_num, std::vector< QColor >& colors){

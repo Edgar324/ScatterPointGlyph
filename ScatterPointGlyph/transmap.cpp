@@ -468,7 +468,7 @@ void TransMap::UpdateNodeActors() {
 				float x = node_radius_ * 0.05 * cos(end_arc);
 				float y = node_radius_ * 0.05 * sin(end_arc);
 
-				center_cirlce_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000001));
+				center_cirlce_ids.push_back(points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00003));
 				colors->InsertNextTuple4(0, 0, 0, 255);
 			}
 			polydata->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, center_cirlce_ids.data());
@@ -539,6 +539,9 @@ void TransMap::UpdateNodeActors() {
 
 #ifdef RADAR_GLYPH
 			// paint variance
+            std::vector< vtkIdType > value_pos_ids;
+			value_pos_ids.resize(dataset_->var_num);
+
 			std::vector< int > var_point_ids;
 			var_point_ids.resize(dataset_->var_num * 2);
 			for (int j = 0; j < dataset_->var_num; ++j) {
@@ -551,7 +554,14 @@ void TransMap::UpdateNodeActors() {
 				float y = temp_radius * sin(end_arc);
 
 				vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000002);
-				colors->InsertNextTuple4(128, 128, 128, 128);
+				colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 128);
+
+                temp_radius = node_radius_ * node->average_values[var_index] * 0.9 + node_radius_ * 0.1;
+				x = temp_radius * cos(end_arc);
+				y = temp_radius * sin(end_arc);
+
+				value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00003);
+				colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 255);
 
 				temp_radius = node_radius_ * (node->average_values[var_index] + node->variable_variances[var_index]) * 0.9 + node_radius_ * 0.1;
 				if (temp_radius > node_radius_) temp_radius = node_radius_;
@@ -559,53 +569,60 @@ void TransMap::UpdateNodeActors() {
 				y = temp_radius * sin(end_arc);
 
 				vtkIdType id_two = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000002);
-				colors->InsertNextTuple4(128, 128, 128, 128);
+				colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 128);
 
 				var_point_ids[j * 2] = id_one;
 				var_point_ids[j * 2 + 1] = id_two;
 			}
 			for (int j = 0; j < dataset_->var_num; ++j) {
 				cell_ids[0] = var_point_ids[2 * j];
-				cell_ids[1] = var_point_ids[2 * j + 1];
+				cell_ids[1] = value_pos_ids[j];
+				cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num)];
+				polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+                cell_ids[0] = value_pos_ids[(j + 1) % dataset_->var_num];
+				cell_ids[1] = value_pos_ids[j];
 				cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num)];
 				polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 
 				cell_ids[0] = var_point_ids[2 * j + 1];
-				cell_ids[1] = var_point_ids[2 * ((j + 1) % dataset_->var_num) + 1];
-				cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num)];
+				cell_ids[1] = value_pos_ids[j];
+				cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num) + 1];
+				polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+                cell_ids[0] = value_pos_ids[(j + 1) % dataset_->var_num];
+				cell_ids[1] = value_pos_ids[j];
+				cell_ids[2] = var_point_ids[2 * ((j + 1) % dataset_->var_num) + 1];
 				polydata->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 			}
 
 			// paint value
-			std::vector< vtkIdType > value_pos_ids;
-			value_pos_ids.resize(dataset_->var_num);
-			for (int j = 0; j < dataset_->var_num; ++j) {
-                int var_index = axis_order_[j];
-				float temp_radius = node_radius_ * node->average_values[var_index] * 0.9 + node_radius_ * 0.1;
-				float end_arc = j * 3.14159 * 2 / dataset_->var_num;
-				float x = temp_radius * cos(end_arc);
-				float y = temp_radius * sin(end_arc);
+			
+			//for (int j = 0; j < dataset_->var_num; ++j) {
+   //             int var_index = axis_order_[j];
+			//	float temp_radius = node_radius_ * node->average_values[var_index] * 0.9 + node_radius_ * 0.1;
+			//	float end_arc = j * 3.14159 * 2 / dataset_->var_num;
+			//	float x = temp_radius * cos(end_arc);
+			//	float y = temp_radius * sin(end_arc);
 
-				value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000002);
-				//colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
-				colors->InsertNextTuple4(node->color.red(), node->color.green(), node->color.blue(), 255);
-			}
-			for (int j = 0; j < dataset_->var_num; ++j) {
-				cell_ids[0] = value_pos_ids[j];
-				cell_ids[1] = value_pos_ids[(j + 1) % dataset_->var_num];
-				polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
-			}
+			//	value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00003);
+			//	//colors->InsertNextTuple4(dataset_->level_one_colors[3 * i], dataset_->level_one_colors[3 * i + 1], dataset_->level_one_colors[3 * i + 2], 255);
+			//	colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 255);
+			//}
+			//for (int j = 0; j < dataset_->var_num; ++j) {
+			//	cell_ids[0] = value_pos_ids[j];
+			//	cell_ids[1] = value_pos_ids[(j + 1) % dataset_->var_num];
+			//	polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
+			//}
 
 
 			// paint axis
-			vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, 0.00000015);
+			vtkIdType center_id = points->InsertNextPoint(node_center_x, node_center_y, 0.00004);
 			colors->InsertNextTuple4(200, 200, 200, 255);
 			for (int j = 0; j < dataset_->var_num; ++j) {
 				float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 				float x = node_radius_ * cos(end_arc);
 				float y = node_radius_ * sin(end_arc);
 
-				vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00000015);
+				vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00004);
 				colors->InsertNextTuple4(200, 200, 200, 255);
 
 				cell_ids[0] = center_id;
@@ -981,7 +998,7 @@ void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
     density_poly_->GetPointData()->SetScalars(colors);
 
     // 0.1, 0.03
-    float radius = 0.03 * scatter_data_->max_pos_range;
+    float radius = 0.1 * scatter_data_->max_pos_range;
     vtkIdType ids[21];
     for (int i = 0; i < node_colors.size(); ++i) {
         float x = scatter_data_->original_point_pos[i][0];

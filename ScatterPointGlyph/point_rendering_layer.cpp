@@ -39,7 +39,7 @@ PointRenderingLayer::PointRenderingLayer() {
 
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
-	actor_->GetProperty()->SetPointSize(6);
+	actor_->GetProperty()->SetPointSize(8);
 	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
 
     map_poly_data_ = vtkPolyData::New();
@@ -76,11 +76,6 @@ PointRenderingLayer::~PointRenderingLayer() {
 
 void PointRenderingLayer::SetData(ScatterPointDataset* data) {
 	dataset_ = data;
-
-    /*if (dataset_->type() == ScatterPointDataset::GRID_DATA) {
-        this->LoadMap("./Resources/border.txt", dataset_->original_pos_ranges[0][0], dataset_->original_pos_ranges[0][1],
-            dataset_->original_pos_ranges[1][0], dataset_->original_pos_ranges[1][1]);
-    }*/
 
 	vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
@@ -146,6 +141,8 @@ void PointRenderingLayer::SetEnabled(int enabling) {
 }
 
 void PointRenderingLayer::SetMapEnabled(bool enabled) {
+    this->LoadMap("./Resources/border.txt", 0, 360, -90, 90);
+
     map_actor_->SetVisibility(enabled);
 }
 
@@ -259,9 +256,9 @@ void PointRenderingLayer::UpdateValueMapping() {
     }
     scalar_lookup_table_->SetValueRange(min_value, max_value);
     scalar_lookup_table_->SetTableRange(min_value, max_value);
-    scalar_lookup_table_->SetHueRange(0.8, 0.8);
-    scalar_lookup_table_->SetSaturationRange(0.3, 0.9);
-    scalar_lookup_table_->SetValueRange(1.0, 0.6);
+    scalar_lookup_table_->SetHueRange(0.0, 0.0);
+    scalar_lookup_table_->SetSaturationRange(0.0, 0.0);
+    scalar_lookup_table_->SetValueRange(0.8, 0.2);
     scalar_lookup_table_->Build();
 
     bar_actor_->SetLookupTable(scalar_lookup_table_);
@@ -306,11 +303,12 @@ void PointRenderingLayer::LoadMap(const char* file_name, float start_x, float en
             if ( is_negative )
                 for ( int i = 0; i < temp_poly.size() / 2; ++i ) temp_poly[2 * i] += 360;
             bool is_used = false;
-            for ( int i = 0; i < temp_poly.size() / 2; ++i )
+            /*for ( int i = 0; i < temp_poly.size() / 2; ++i )
                 if ( (temp_poly[2 * i] - start_x) * (temp_poly[2 * i] - end_x) <= 0 && (temp_poly[2 * i +1] - start_y) * (temp_poly[2 * i + 1] - end_y) <= 0 ){
                     is_used = true;
                     break;
-                }
+                }*/
+            is_used = true;
             std::vector< vtkIdType > poly_ids;
             if (is_used) {
                 for (int i = 0; i < temp_poly.size() / 2; ++i) {
