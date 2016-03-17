@@ -276,6 +276,7 @@ void ParallelCoordinate::PaintCoordinate(){
 }
 
 void ParallelCoordinate::PaintLines(){
+	glShadeModel(GL_SMOOTH);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -290,7 +291,7 @@ void ParallelCoordinate::PaintLines(){
             if ( record == NULL || record->values.size() != dataset_->axis_names.size() ) continue;
             if ( dataset_->is_record_selected.size() != 0 && dataset_->record_color.size() != 0 ){
                 if ( dataset_->is_record_selected[i][j] ){
-                    glColor4f(dataset_->record_color[i][j].redF(), dataset_->record_color[i][j].greenF(), dataset_->record_color[i][j].blueF(), 1.0);
+                    glColor4f(dataset_->record_color[i][j].redF(), dataset_->record_color[i][j].greenF(), dataset_->record_color[i][j].blueF(), 0.5);
                 } else {
                     glColor4f(dataset_->record_color[i][j].redF(), dataset_->record_color[i][j].greenF(), dataset_->record_color[i][j].blueF(), 0.0);
                 }

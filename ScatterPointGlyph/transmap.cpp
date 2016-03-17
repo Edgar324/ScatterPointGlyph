@@ -59,6 +59,7 @@ TransMap::TransMap() {
 	this->scatter_data_ = NULL;
 	this->dataset_ = NULL;
     this->glyph_indicator_renderer_ = NULL;
+	this->is_densitymap_shown_ = false;
 
 	this->highlight_actor = vtkActor::New();
 	this->highlight_poly = vtkPolyData::New();
@@ -648,7 +649,11 @@ void TransMap::UpdateNodeActors() {
 				float step_arc = (end_arc - begin_arc) / (seg_per_pie - 1);
 
 				int var_index = axis_order_[j];
-                QColor pie_color = dataset_->dataset->var_colors[var_index];
+				QColor pie_color;
+				if (is_densitymap_shown_)
+					pie_color = QColor(180, 180, 180, 255);
+				else
+					pie_color = dataset_->dataset->var_colors[var_index];
 
                 bool is_var_highlighted = false;
                 for (int k = 0; k < focus_var_index_.size(); ++k)
@@ -832,10 +837,10 @@ void TransMap::UpdateTransEdgeActor() {
 		orth_vec[1] = dir_vec[0];
 
 		float begin_pos[2], end_pos[2];
-		begin_pos[0] = node_one_center_x + node_radius_ * dir_vec[0] * 1.2;
-		begin_pos[1] = node_one_center_y + node_radius_ * dir_vec[1] * 1.2;
-		end_pos[0] = node_two_center_x - node_radius_ * dir_vec[0] * 1.2;
-		end_pos[1] = node_two_center_y - node_radius_ * dir_vec[1] * 1.2;
+		begin_pos[0] = node_one_center_x + node_radius_ * dir_vec[0];
+		begin_pos[1] = node_one_center_y + node_radius_ * dir_vec[1];
+		end_pos[0] = node_two_center_x - node_radius_ * dir_vec[0];
+		end_pos[1] = node_two_center_y - node_radius_ * dir_vec[1];
 
 		float value_dis = 0.0;
         for (int j = 0; j < scatter_data_->var_num; ++j)
@@ -973,10 +978,17 @@ void TransMap::UpdateIconActor() {
         cell_ids[1] = points->InsertNextPoint(x1, y2, 0.0);
         cell_ids[2] = points->InsertNextPoint(x2, y2, 0.0);
         cell_ids[3] = points->InsertNextPoint(x2, y1, 0.0);
-        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
-        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
-        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
-        colors->InsertNextTuple4(scatter_data_->var_colors[i].red(), scatter_data_->var_colors[i].green(), scatter_data_->var_colors[i].blue(), 255);
+
+		QColor icon_color;
+		if (is_densitymap_shown_)
+			icon_color = QColor(180, 180, 180, 255);
+		else
+			icon_color = scatter_data_->var_colors[i];
+
+		colors->InsertNextTuple4(icon_color.red(), icon_color.green(), icon_color.blue(), 255);
+		colors->InsertNextTuple4(icon_color.red(), icon_color.green(), icon_color.blue(), 255);
+		colors->InsertNextTuple4(icon_color.red(), icon_color.green(), icon_color.blue(), 255);
+		colors->InsertNextTuple4(icon_color.red(), icon_color.green(), icon_color.blue(), 255);
         
         var_icon_poly_->InsertNextCell(VTK_POLYGON, 4, cell_ids);
     }
@@ -997,8 +1009,10 @@ void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
 	colors->SetNumberOfComponents(4);
     density_poly_->GetPointData()->SetScalars(colors);
 
+	
+	
     // 0.1, 0.03
-    float radius = 0.1 * scatter_data_->max_pos_range;
+    //float radius = 0.1 * scatter_data_->max_pos_range;
     vtkIdType ids[21];
     for (int i = 0; i < node_colors.size(); ++i) {
         float x = scatter_data_->original_point_pos[i][0];
@@ -1006,7 +1020,8 @@ void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
 
         ids[0] = density_points->InsertNextPoint(x, y, -0.0001);
         colors->InsertNextTuple4(node_colors[i].red(), node_colors[i].green(), node_colors[i].blue(), 80);
-        
+      
+		float radius = scatter_data_->adaptive_rate[i] * scatter_data_->max_pos_range;
         for (int j = 0; j < 20; ++j) {
             float end_arc = j * 2 * 3.14159 / 19;
             ids[j + 1] = density_points->InsertNextPoint(x + radius * cos(end_arc), y + radius * sin(end_arc), -0.0001);
@@ -1761,6 +1776,9 @@ void TransMap::SetDensityMapVisibility(bool visibility)
 {
     is_densitymap_shown_ = visibility;
     density_actor_->SetVisibility(visibility);
+
+	this->UpdateNodeActors();
+	this->UpdateIconActor();
 
     this->parent_view->update();
 }

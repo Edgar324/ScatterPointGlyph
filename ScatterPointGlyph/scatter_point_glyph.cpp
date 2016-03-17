@@ -32,6 +32,7 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTableView>
+#include <QtWidgets/QProgressBar>
 #include <QtGui/QStandardItemModel>
 
 #include "point_rendering_layer.h"
@@ -273,7 +274,10 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 
 	//std::ifstream input_file(file_path.toLocal8Bit());
 	//std::ifstream input_file("./TestData/auto-mpg.sc");
-	std::ifstream input_file("./TestData/wine.sc");
+	//std::ifstream input_file("./TestData/wine.sc");
+	//std::ifstream input_file("./TestData/iris.sc");
+	//std::ifstream input_file("./TestData/wdbc.sc");
+	std::ifstream input_file("./TestData/yeast.sc");
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -299,6 +303,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	scatter_point_dataset_->original_point_values.resize(record_num);
 	for (int i = 0; i < record_num; ++i) {
 		scatter_point_dataset_->original_point_values[i].resize(var_num);
+		scatter_point_dataset_->original_point_pos[i].resize(2);
 
 		input_file.getline(char_str, 1000);
 		value_str = QString::fromLocal8Bit(char_str);
@@ -328,7 +333,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
 	}
 
-	scatter_point_dataset_->ExecMds();
+	//scatter_point_dataset_->ExecMds();
 
 #ifdef SAVE_PROJECTION
     std::ofstream output("./TestData/temp.mds");
@@ -507,6 +512,8 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 		return;
 	}
 
+	ui_.statusBar->showMessage("Execute clustering, progressing ...");
+
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	
 	switch (sys_mode_)
@@ -575,8 +582,10 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 		return;
 	}
 
-	float dis_per_pixel = this->GetMainViewDisPerPixel();
+	ui_.statusBar->showMessage("Begin clustering, progressing ...");
 
+	float dis_per_pixel = this->GetMainViewDisPerPixel();
+	
 	switch (sys_mode_)
 	{
 	case ScatterPointGlyph::NCUTS_MODE:
@@ -627,6 +636,8 @@ void ScatterPointGlyph::AddPointData2View() {
 }
 
 void ScatterPointGlyph::OnClusterFinished() {
+	ui_.statusBar->showMessage("Cluster finished.");
+
 	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		MultiLabelTree* multi_label_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
 		if (multi_label_tree == NULL) return;
@@ -857,7 +868,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_coordinate_->SetDataset(parallel_dataset_);
 		Utility::GenerateAxisOrder(parallel_dataset_, var_axis_order);
 
-        std::vector< int > focus_index;
+        /*std::vector< int > focus_index;
         if (trans_map_ != NULL) trans_map_->GetFocusVarIndex(focus_index);
         for (int i = 0; i < focus_index.size(); ++i) {
             int temp_pos = -1;
@@ -872,7 +883,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
                 }
                 var_axis_order[i] = focus_index[i];
             }
-        }
+        }*/
 
 		parallel_coordinate_->SetAxisOrder(var_axis_order);
 		parallel_coordinate_->update();
@@ -926,11 +937,11 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 
 void ScatterPointGlyph::UpdatePointMap() {
-	std::vector< int > selection_index;
+	/*std::vector< int > selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
-	}
+	}*/
 }
 
 void ScatterPointGlyph::UpdatePathMap() {

@@ -41,6 +41,8 @@ public:
 	// the value ranges of the points before normalization
 	std::vector< std::vector< float > > original_value_ranges;
 
+	std::vector< float > adaptive_rate;
+
 	void ManualSelectDim(std::vector< bool >& is_dim_selected);
 	// TODO: Add automatic dimension reduction method
 	void AutoDimReduction(int dim_num);

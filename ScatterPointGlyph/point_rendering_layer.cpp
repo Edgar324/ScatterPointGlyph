@@ -39,7 +39,7 @@ PointRenderingLayer::PointRenderingLayer() {
 
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
-	actor_->GetProperty()->SetPointSize(8);
+	actor_->GetProperty()->SetPointSize(6);
 	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
 
     map_poly_data_ = vtkPolyData::New();
@@ -258,7 +258,7 @@ void PointRenderingLayer::UpdateValueMapping() {
     scalar_lookup_table_->SetTableRange(min_value, max_value);
     scalar_lookup_table_->SetHueRange(0.0, 0.0);
     scalar_lookup_table_->SetSaturationRange(0.0, 0.0);
-    scalar_lookup_table_->SetValueRange(0.8, 0.2);
+    scalar_lookup_table_->SetValueRange(0.7, 0.3);
     scalar_lookup_table_->Build();
 
     bar_actor_->SetLookupTable(scalar_lookup_table_);

@@ -65,9 +65,9 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 	}
 
 	measures.resize(3);
-	measures[0] = node_rate;
-	measures[1] = nnm;
-	measures[2] = sqrerr;
+	measures[0] = cluster_nodes.size();
+	//measures[1] = nnm;
+	measures[2] = sqrerr / tree->root()->point_count;
 }
 
 void QualityMetric::SaveMeasures(const char* file_path) {

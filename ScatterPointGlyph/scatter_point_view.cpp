@@ -72,7 +72,7 @@ void ScatterPointView::ShowTooltip(int point_count, QString axis_name, float ave
 	QString tip_str = "";
 	tip_str = "Cluster Information: <br>";
 	tip_str += QString("Point Count: %0<br>").arg(point_count);
-	tip_str += "Variable Values: Means(Variance)<br>";
+	tip_str += "Variable Values: Mean(SD)<br>";
 	QString temp_str = "";
 	temp_str += "<font color=red>";
 	temp_str += axis_name;
