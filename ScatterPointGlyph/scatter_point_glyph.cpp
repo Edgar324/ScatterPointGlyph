@@ -57,7 +57,7 @@
 
 #define USE_QUALITY_METRIC
 //#define SAVE_PROJECTION
-#define USE_SAVED_PROJECTION
+//#define USE_SAVED_PROJECTION
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -266,8 +266,8 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 }
 
 void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
-	//QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
-	//if (file_path.length() == 0) return;
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
+	if (file_path.length() == 0) return;
 
 	if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
 	scatter_point_dataset_->ClearData();
@@ -277,7 +277,8 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	//std::ifstream input_file("./TestData/wine.sc");
 	//std::ifstream input_file("./TestData/iris.sc");
 	//std::ifstream input_file("./TestData/wdbc.sc");
-	std::ifstream input_file("./TestData/yeast.sc");
+	//std::ifstream input_file("./TestData/yeast.sc");
+	std::ifstream input_file(file_path.toLocal8Bit().data());
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -333,7 +334,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
 	}
 
-	//scatter_point_dataset_->ExecMds();
+	scatter_point_dataset_->ExecMds();
 
 #ifdef SAVE_PROJECTION
     std::ofstream output("./TestData/temp.mds");

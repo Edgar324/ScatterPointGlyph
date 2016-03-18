@@ -925,7 +925,7 @@ void TransMap::UpdateIconActor() {
 	        temp_text->GetTextProperty()->SetBold(true);
 	        temp_text->GetTextProperty()->SetFontFamilyToArial();
 
-            QString name = scatter_data_->var_names[i].left(10);
+            QString name = scatter_data_->var_names[i].left(20);
 	        temp_text->SetInput(name.toLocal8Bit().data());
 	        temp_text->SetPosition(-0.3, -1.6 - (i + 1) * 0.6, 0);
 	        temp_text->GetTextProperty()->SetFontSize(20);
@@ -936,15 +936,18 @@ void TransMap::UpdateIconActor() {
             variable_color_text_.push_back(temp_text);
             this->glyph_indicator_renderer_->AddActor(temp_text);
         }
-
-        this->glyph_indicator_renderer_->ResetCamera();
-        /*double eye_pos[3];
+        double eye_pos[3], focal_point[3];
         eye_pos[0] = 0; 
-        eye_pos[1] = 0;
-        eye_pos[2] = 10;
-        float dis = this->glyph_indicator_renderer_->GetActiveCamera()->GetDistance();
-        this->glyph_indicator_renderer_->GetActiveCamera()->SetDistance(dis * 5);*/
-        this->glyph_indicator_renderer_->GetActiveCamera()->Zoom(1.4);
+        eye_pos[1] = (-1.6 - (variable_color_text_.size() + 1) * 0.6) / 2;
+        eye_pos[2] = 30;
+		focal_point[0] = 0;
+		focal_point[1] = (-1.6 - (variable_color_text_.size() + 1) * 0.6) / 2;
+		focal_point[2] = 0;
+        //float dis = this->glyph_indicator_renderer_->GetActiveCamera()->GetDistance();
+        //this->glyph_indicator_renderer_->GetActiveCamera()->SetDistance(dis * 5);
+		this->glyph_indicator_renderer_->GetActiveCamera()->SetPosition(eye_pos);
+		this->glyph_indicator_renderer_->GetActiveCamera()->SetFocalPoint(focal_point);
+        //this->glyph_indicator_renderer_->GetActiveCamera()->Zoom(1.4);
         this->glyph_indicator_renderer_->GetActiveCamera()->Modified();
     }
     else {

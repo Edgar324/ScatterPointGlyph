@@ -129,12 +129,18 @@ bool TourPathGenerator::GenerateSpanningTree() {
 	kruskal_minimum_spanning_tree(g, std::back_inserter(spanning_tree));
 
 	linked_edge_list.clear();
+#ifdef DEBUG_ON
 	std::cout << "Print the edges in the MST:" << std::endl;
+#endif // DEBUG_ON
+
+	
 	for (std::vector < Edge >::iterator ei = spanning_tree.begin();
 		ei != spanning_tree.end(); ++ei) {
+#ifdef DEBUG_ON
 		std::cout << source(*ei, g) << " <--> " << target(*ei, g)
 			<< " with weight of " << weight[*ei]
 			<< std::endl;
+#endif
 		linked_edge_list.push_back(source(*ei, g));
 		linked_edge_list.push_back(target(*ei, g));
 	}
@@ -256,13 +262,17 @@ bool TourPathGenerator::GenerateRoundPath() {
 		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
 	}
 	catch (const bad_graph& e) {
+#ifdef DEBUG_ON
 		std::cerr << "bad_graph: " << e.what() << endl;
+#endif
 		return false;
 	}
 
+#ifdef DEBUG_ON
 	std::cout << "Number of points: " << num_vertices(g) << endl;
 	std::cout << "Number of edges: " << num_edges(g) << endl;
 	std::cout << "Length of Tour: " << len << endl;
+#endif
 
 	tour_node_list.clear();
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
@@ -345,13 +355,17 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vec
 		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
 	}
 	catch (const bad_graph& e) {
+#ifdef DEBUG_ON
 		std::cerr << "bad_graph: " << e.what() << endl;
+#endif
 		return false;
 	}
 	
+#ifdef DEBUG_ON
 	std::cout << "Number of points: " << num_vertices(g) << endl;
 	std::cout << "Number of edges: " << num_edges(g) << endl;
 	std::cout << "Length of Tour: " << len << endl;
+#endif
 
 	std::vector< int > temp_list;
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
@@ -432,13 +446,17 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< std::vector< float > >& n
 		metric_tsp_approx(g, make_tsp_tour_len_visitor(g, back_inserter(c), len, weight_map));
 	}
 	catch (const bad_graph& e) {
+#ifdef DEBUG_ON
 		std::cerr << "bad_graph: " << e.what() << endl;
+#endif
 		return false;
 	}
 
+#ifdef DEBUG_ON
 	std::cout << "Number of points: " << num_vertices(g) << endl;
 	std::cout << "Number of edges: " << num_edges(g) << endl;
 	std::cout << "Length of Tour: " << len << endl;
+#endif
 
 	std::vector< int > temp_list;
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){

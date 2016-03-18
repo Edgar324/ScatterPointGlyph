@@ -97,6 +97,12 @@ private:
 	ScatterPointDataset* scatter_point_dataset_;
 
 	int current_view_level_;
+	// This factor is used to indicate how many pixels are used to 
+	// map the screen distance to the real distance for level cluster retrieval.
+	// This should be adjusted according to different application scenarios
+	// according to the complexity of the data.
+	// For example, if the data is rather simple, this factor should be small, great otherwise.
+	// In our experiment, we use 3 for the UCI dataset and 5 for the meteorological data.
     float glyph_size_factor_ = 3;
 	int label_pixel_radius_ = { 50 };
 	std::vector< int > var_axis_order;
