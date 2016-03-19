@@ -55,7 +55,7 @@
 #include "wrf_data_manager.h"
 #include "glyph_design_dialog.h"
 
-#define USE_QUALITY_METRIC
+//#define USE_QUALITY_METRIC
 //#define SAVE_PROJECTION
 //#define USE_SAVED_PROJECTION
 
@@ -361,6 +361,8 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	this->UpdateMenus();
 
 	this->AddPointData2View();
+
+	this->glyph_size_factor_ = 3.0;
 }
 
 void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
@@ -412,7 +414,8 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
     if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
 	scatter_point_dataset_->ClearData();
 
-    std::ifstream input_file("./TestData/plot.gsc");
+    //std::ifstream input_file("./TestData/plot.gsc");
+	std::ifstream input_file("./TestData/veri.gsc");
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -476,6 +479,8 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
 	this->UpdateMenus();
 
 	this->AddPointData2View();
+
+	this->glyph_size_factor_ = 5.0;
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
@@ -938,11 +943,11 @@ void ScatterPointGlyph::UpdateTransmap() {
 
 
 void ScatterPointGlyph::UpdatePointMap() {
-	/*std::vector< int > selection_index;
+	std::vector< int > selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
-	}*/
+	}
 }
 
 void ScatterPointGlyph::UpdatePathMap() {

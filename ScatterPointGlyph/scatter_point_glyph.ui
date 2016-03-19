@@ -116,6 +116,9 @@
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -502,6 +505,9 @@
    </property>
   </action>
   <action name="actionShow_2D_Result_Scatter_Plot">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/2dscatter.png</normaloff>:/ScatterPointGlyph/images/2dscatter.png</iconset>
@@ -511,6 +517,9 @@
    </property>
   </action>
   <action name="actionShow_Result_3D_Scatter_Plot">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/3dscatter.png</normaloff>:/ScatterPointGlyph/images/3dscatter.png</iconset>

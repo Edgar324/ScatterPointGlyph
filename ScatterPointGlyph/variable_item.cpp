@@ -192,7 +192,8 @@ void VariableItem::SetAbsWidthEnabled(bool enabled)
         this->total_width = this->absolute_width;
     }
 
-	this->update();
+	this->prepareGeometryChange();
+	this->update(QRectF(0, 0, total_width, total_height));
 }
 
 void VariableItem::SetHighlightEnabled(bool enabled)

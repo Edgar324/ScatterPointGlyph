@@ -80,6 +80,9 @@
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
             <widget class="QCheckBox" name="dim_red_checkbox">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -93,6 +96,9 @@
            </item>
            <item>
             <widget class="QSpinBox" name="auto_dim_number">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
