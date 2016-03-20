@@ -19,6 +19,7 @@ ScatterPointView::ScatterPointView()
 	vtkSmartPointer< vtkInteractorStyleImage > imageStyle =
 		vtkSmartPointer< vtkInteractorStyleImage >::New();
 	this->GetRenderWindow()->GetInteractor()->SetInteractorStyle(imageStyle);
+	this->GetRenderWindow()->PointSmoothingOff();
 
 	connect(timer_, SIGNAL(timeout()), this, SLOT(OnTimeout()));
 }

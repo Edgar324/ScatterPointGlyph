@@ -72,6 +72,7 @@ void TreeMapView::SetTreeMapVisible(bool visible) {
 	for (int i = 0; i < var_items_.size(); ++i)
 		var_items_[i]->SetAbsWidthEnabled(!this->is_treemap_visible_);
 
+
 	this->UpdateLayout();
 }
 
@@ -88,6 +89,8 @@ void TreeMapView::SetTableLensVisible(bool visible) {
 void TreeMapView::UpdateLayout() {
 	int total_height = 0;
 	
+	if (scene_ == NULL) return;
+
 	if (tree_item_ != NULL) {
 		tree_item_->setVisible(is_treemap_visible_);
 		tree_item_->setPos(0, 0);

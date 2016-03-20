@@ -103,7 +103,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	// paint the item glyph
 	int topy, center_x, center_y, temp_item_size = item_size;
 	if (max_width - temp_left < item_size)  {
-		if (node->point_count < 2) temp_item_size = 0.5 * item_size;
+		if (node->point_count < 2 || node->type() == CNode::LEAF) temp_item_size = 0.5 * item_size;
 		else temp_item_size = item_size;
 		max_width += temp_item_size;
 	}

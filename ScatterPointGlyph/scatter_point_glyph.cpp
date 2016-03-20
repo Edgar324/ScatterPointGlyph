@@ -57,7 +57,7 @@
 
 //#define USE_QUALITY_METRIC
 //#define SAVE_PROJECTION
-//#define USE_SAVED_PROJECTION
+#define USE_SAVED_PROJECTION
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -94,7 +94,7 @@ void ScatterPointGlyph::InitWidget() {
 
 	tree_map_view_ = new TreeMapView;
 	tree_map_view_->setMinimumWidth(700);
-	tree_map_panel_ = new QDockWidget(QString("Tree Map and Table Lens"), this);
+	tree_map_panel_ = new QDockWidget(QString("Tree and Table Lens"), this);
 	tree_map_panel_->setWidget(tree_map_view_);
 	this->addDockWidget(Qt::RightDockWidgetArea, tree_map_panel_);
 	tree_map_panel_->setVisible(false);
@@ -347,7 +347,9 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 #endif
 
 #ifdef USE_SAVED_PROJECTION
-    std::ifstream input("./TestData/temp.mds");
+	QString mds_path = file_path.left(file_path.length() - 2);
+	mds_path = mds_path + QString("mds");
+	std::ifstream input(mds_path.toLocal8Bit().data());
     if (input.good()) {
         for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
             for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
@@ -411,11 +413,15 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
             accu_index++;
         }*/
 
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
+	if (file_path.length() == 0) return;
+
     if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
 	scatter_point_dataset_->ClearData();
 
     //std::ifstream input_file("./TestData/plot.gsc");
-	std::ifstream input_file("./TestData/veri.gsc");
+	//std::ifstream input_file("./TestData/veri.gsc");
+	std::ifstream input_file(file_path.toLocal8Bit().data());
 	char char_str[1000];
 	input_file.getline(char_str, 1000);
 	QString value_str = QString::fromLocal8Bit(char_str);
@@ -683,7 +689,7 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
 		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
         int max_level = multi_label_tree->GetMaxLevel();
-        if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
+        if (current_view_level_ >= max_level) current_view_level_ = max_level;
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
@@ -1007,6 +1013,8 @@ void ScatterPointGlyph::GetSceneRange(float& left, float& right, float& bottom, 
 }
 
 void ScatterPointGlyph::OnGlyphSelected(int x, int y) {
+	if (scatter_point_dataset_ == NULL || cluster_tree_ == NULL) return;
+
 	this->UpdateParallelCoordinate();
     this->UpdateTableView();
 	trans_map_->SetAxisOrder(var_axis_order);
@@ -1037,11 +1045,19 @@ void ScatterPointGlyph::OnMouseDragmove(int x, int y) {
 
 void ScatterPointGlyph::OnSplitClusterTriggered() {
 	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
-		MultiLabelTree* un_tree = dynamic_cast< MultiLabelTree* >(cluster_tree_);
+		MultiLabelTree* multi_label_tree = dynamic_cast< MultiLabelTree* >(cluster_tree_);
 
 		int temp_cluster_index = trans_map_->GetSelectedClusterIndex();
 		if (temp_cluster_index != -1) {
-			un_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id());
+			multi_label_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id());
+
+			float dis_per_pixel = this->GetMainViewDisPerPixel();
+			current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+			int max_level = multi_label_tree->GetMaxLevel();
+			if (current_view_level_ >= max_level) current_view_level_ = max_level;
+			map_control_ui_.level_slider->setValue(current_view_level_);
+			map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
+
 			UpdateTransmap();
 			UpdateTreemap();
 			UpdateParallelCoordinate();

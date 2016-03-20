@@ -407,7 +407,7 @@ void TransMap::UpdateNodeActors() {
 		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
 		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
-		if (node->point_count >= dataset_->min_point_num) {
+		if (node->point_count >= dataset_->min_point_num && node->type() == CNode::BRANCH) {
 			// construct the polydata 
 			vtkPoints* points = vtkPoints::New();
 			vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
