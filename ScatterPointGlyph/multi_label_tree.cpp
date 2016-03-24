@@ -154,6 +154,8 @@ void MultiLabelTree::SplitNode(CBranch* node) {
     std::vector< int > node_cluster_index;
     bool is_splitted = false;
     float temp_radius = node->radius / factor_;
+
+	// as long as the node is not split, split again with a smaller radius for the label estimation
     while (!is_splitted) {
         processor_->SetLabelEstimationRadius(temp_radius);
 	    processor_->SetData(pos, value, dataset_->var_weights, connecting_status);

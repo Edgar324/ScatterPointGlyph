@@ -29,11 +29,15 @@ TransMapData::~TransMapData() {
 }
 
 void TransMapData::ClearData() {
+	dataset = NULL;
 	cluster_num = 0;
 	var_num = 0;
-	cluster_node_map.clear();
+	cluster_nodes.clear();
 
+	cluster_node_map.clear();
 	level_one_nodes.clear();
+	node_saliency.clear();
+	node_connecting_status.clear();
 }
 
 void TransMapData::ProcessData() {

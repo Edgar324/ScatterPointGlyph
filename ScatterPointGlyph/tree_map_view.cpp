@@ -77,7 +77,8 @@ void TreeMapView::SetTreeMapVisible(bool visible) {
 }
 
 void TreeMapView::SetTreeMapUsingColor(bool enabled) {
-    this->tree_item_->SetUsingColor(enabled);
+	if (tree_item_ != NULL)
+		this->tree_item_->SetUsingColor(enabled);
 }
 
 void TreeMapView::SetTableLensVisible(bool visible) {
@@ -195,4 +196,16 @@ void TreeMapView::mouseMoveEvent(QMouseEvent *event)
 		if (tip_index == -1) QToolTip::hideText();
 			
 	}
+}
+
+void TreeMapView::ClearView()
+{
+	if (scene_ != NULL) {
+		scene_->clear();
+		scene_->update();
+	}
+
+	tree_item_ = NULL;
+	var_items_.clear();
+	this->update();
 }

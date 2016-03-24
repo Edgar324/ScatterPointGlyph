@@ -38,6 +38,7 @@
 TransMap::TransMap() {
 	this->state = TransMap::SELECT_SINGLE_CLUSTER;
 	this->EventCallbackCommand->SetCallback(TransMap::ProcessEvents);
+	this->Enabled = 0;
 
 	float picker_tolerence = 1e-4;
 	this->node_picker = vtkPropPicker::New();
@@ -158,7 +159,6 @@ void TransMap::SetData(ScatterPointDataset* ori_data, TransMapData* data) {
 	}
 
 	this->BuildRepresentation();
-	this->SetEnabled(true);
 }
 
 void TransMap::SetNodeRadius(float r) {
@@ -166,6 +166,8 @@ void TransMap::SetNodeRadius(float r) {
 }
 
 void TransMap::ShowMinimumSpanningTree(bool enabled) {
+	if (dataset_ == NULL || scatter_data_ == NULL) return;
+
 	this->linked_edges.clear();
 	this->is_mst_fixed_ = enabled;
 	if (enabled) this->path_generator_->GenerateSpanningTree();
@@ -294,6 +296,7 @@ void TransMap::GetSelectedClusterNodes(std::vector< CNode* >& nodes) {
 }
 
 void TransMap::UpdateNodeActors() {
+	if (dataset_ == NULL || scatter_data_ == NULL) return;
 	// resize node actors
 	if (node_glyph_actors.size() < dataset_->cluster_nodes.size()) {
 		for (int i = node_glyph_actors.size(); i < dataset_->cluster_nodes.size(); ++i) {
@@ -917,6 +920,8 @@ void TransMap::UpdateTransEdgeActor() {
 }
 
 void TransMap::UpdateIconActor() {
+	if (dataset_ == NULL || scatter_data_ == NULL) return;
+
     if (variable_color_text_.size() < scatter_data_->var_names.size()) {
         for (int i = variable_color_text_.size(); i < scatter_data_->var_names.size(); ++i) {
             vtkTextActor3D* temp_text = vtkTextActor3D::New();
@@ -1000,6 +1005,8 @@ void TransMap::UpdateIconActor() {
 }
 
 void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
+	if (dataset_ == NULL || scatter_data_ == NULL) return;
+
     this->density_poly_->Initialize();
 
 	vtkPoints* density_points = vtkPoints::New();
@@ -1259,6 +1266,8 @@ void TransMap::BuildRepresentation() {
 	this->UpdateHightlightActor();
 	this->UpdateTransEdgeActor();
 	this->UpdateIconActor();
+
+	this->parent_view->update();
 }
 
 void TransMap::ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata) {
@@ -1288,6 +1297,7 @@ void TransMap::ProcessEvents(vtkObject* object, unsigned long event, void* clien
 
 void TransMap::OnLeftButtonDown() {
 	if (!this->DefaultRenderer) return;
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
 
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
@@ -1332,6 +1342,7 @@ void TransMap::OnLeftButtonDown() {
 
 void TransMap::OnRightButtonDown() {
 	if (!this->DefaultRenderer) return;
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
 
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
@@ -1381,6 +1392,7 @@ void TransMap::OnRightButtonDown() {
 
 void TransMap::OnMouseMove() {
 	if (!this->DefaultRenderer) return;
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
 
 	int x = this->Interactor->GetEventPosition()[0];
 	int y = this->Interactor->GetEventPosition()[1];
@@ -1443,6 +1455,8 @@ void TransMap::OnMouseMove() {
 }
 
 void TransMap::OnMouseMove(int x, int y) {
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
+
 	if (this->state == WidgetState::SELECT_BRUSHED_CLUSTERS) {
 		double display_pos[4];
 		display_pos[0] = x;
@@ -1499,6 +1513,8 @@ void TransMap::OnMouseMove(int x, int y) {
 }
 
 void TransMap::OnMouseReleased(bool is_left_button) {
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
+
 	if (is_left_button)
 		this->OnLeftButtonUp();
 	else
@@ -1506,6 +1522,8 @@ void TransMap::OnMouseReleased(bool is_left_button) {
 }
 
 void TransMap::OnLeftButtonUp() {
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
+
 	if (this->state == WidgetState::SELECT_BRUSHED_CLUSTERS) {
 		while (this->highlight_node_sequence.size() > 0) {
 			this->highlight_node_sequence.front()->is_highlighted = false;
@@ -1586,6 +1604,8 @@ void TransMap::OnLeftButtonUp() {
 }
 
 void TransMap::OnNodeSelected(CNode* node) {
+	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
+
 	std::list< CNode* >::iterator iter = this->highlight_node_sequence.begin();
 	while (iter != this->highlight_node_sequence.end() && (*iter)->id() != node->id()) iter++;
 	if (iter != this->highlight_node_sequence.end()) {
@@ -1784,4 +1804,61 @@ void TransMap::SetDensityMapVisibility(bool visibility)
 	this->UpdateIconActor();
 
     this->parent_view->update();
+}
+
+void TransMap::ClearView() {
+	this->scatter_data_ = NULL;
+	this->dataset_ = NULL;
+	current_node_ = NULL;
+	axis_order_.clear();
+	focus_var_index_.clear();
+	current_highlight_var_index_ = -1;
+
+	for (int i = 0; i < node_glyph_actors.size(); ++i) {
+		this->DefaultRenderer->RemoveActor(node_glyph_actors[i]);
+		this->node_picker->DeletePickList(node_glyph_actors[i]);
+		node_glyph_actors[i]->Delete();
+	}
+	node_glyph_actors.clear();
+	node_glyph_polys.clear();
+
+	linked_edges.clear();
+	linked_glyph_polys->Initialize();
+	linked_glyph_actors->Modified();
+
+	trans_edges.clear();
+	trans_glyph_polys->Initialize();
+	trans_glyph_actors->Modified();
+
+	highlight_poly->Initialize();
+	highlight_actor->Modified();
+
+	for (int i = 0; i < seqence_text_actors.size(); ++i) {
+		this->DefaultRenderer->RemoveActor(seqence_text_actors[i]);
+		seqence_text_actors[i]->Delete();
+	}
+	seqence_text_actors.clear();
+
+	selection_brush_poly->Initialize();
+	selection_brush_poly->Modified();
+
+	density_poly_->Initialize();
+	density_actor_->Modified();
+
+	std::string str = std::string("Max Point Num: ") + std::string("-1");
+	indicator_text_->SetInput(str.c_str());
+	indicator_text_->Modified();
+
+	var_icon_poly_->Initialize();
+	var_icon_actor_->Modified();
+
+	for (int i = 0; i < variable_color_text_.size(); ++i) {
+		this->glyph_indicator_renderer_->RemoveActor(variable_color_text_[i]);
+		variable_color_text_[i]->Delete();
+	}
+	variable_color_text_.clear();
+
+	this->highlight_node_sequence.clear();
+
+	this->parent_view->update();
 }

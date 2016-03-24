@@ -23,6 +23,8 @@ public:
 	void SetTableLensVisible(bool visible);
 	bool IsVisible() { return is_table_lens_visible_ || is_treemap_visible_; }
 
+	void ClearView();
+
 signals:
 	void NodeSelected(int node_id);
 	void HighlightVarChanged(int var_index);

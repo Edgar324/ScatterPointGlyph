@@ -30,7 +30,7 @@ public:
 	std::vector< int > tour_node_list;
 
 private:
-	TransMapData* trans_data_;
+	TransMapData* trans_data_ = NULL;
 	std::vector< std::vector< float > > node_dis_;
 };
 

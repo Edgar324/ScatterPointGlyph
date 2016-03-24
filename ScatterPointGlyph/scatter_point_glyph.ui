@@ -38,7 +38,18 @@
      <addaction name="actionOpen_File"/>
      <addaction name="actionVTK_Unstructured_Grid_Data"/>
     </widget>
+    <widget class="QMenu" name="menuOpen_Example">
+     <property name="title">
+      <string>Open Example</string>
+     </property>
+     <addaction name="actionIris"/>
+     <addaction name="actionWine"/>
+     <addaction name="actionAuto_MPG"/>
+     <addaction name="actionWdbc"/>
+     <addaction name="actionMeteo_Case"/>
+    </widget>
     <addaction name="menuOpen"/>
+    <addaction name="menuOpen_Example"/>
     <addaction name="action_close"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -66,6 +77,8 @@
     <addaction name="actionChameleon_Clustering"/>
     <addaction name="actionNCuts"/>
     <addaction name="actionMulti_Label"/>
+    <addaction name="separator"/>
+    <addaction name="actionClusterOptions"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
     <property name="title">
@@ -196,6 +209,9 @@
    </property>
   </action>
   <action name="actionVTK_Unstructured_Grid_Data">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/scatter-1.png</normaloff>:/ScatterPointGlyph/images/scatter-1.png</iconset>
@@ -496,6 +512,9 @@
    <property name="checked">
     <bool>true</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/scatterplot.png</normaloff>:/ScatterPointGlyph/images/scatterplot.png</iconset>
@@ -538,6 +557,54 @@
    </property>
    <property name="text">
     <string>Show Map</string>
+   </property>
+  </action>
+  <action name="actionClusterOptions">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Options</string>
+   </property>
+  </action>
+  <action name="actionIris">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Iris</string>
+   </property>
+  </action>
+  <action name="actionWine">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wine</string>
+   </property>
+  </action>
+  <action name="actionAuto_MPG">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-MPG</string>
+   </property>
+  </action>
+  <action name="actionWdbc">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wdbc</string>
+   </property>
+  </action>
+  <action name="actionMeteo_Case">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Meteo-Case</string>
    </property>
   </action>
  </widget>

@@ -289,6 +289,9 @@
     <CustomBuild Include="glyph_design_dialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="option_dialog.ui">
+      <Filter>Form Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h">
@@ -383,6 +386,9 @@
     </ClInclude>
     <ClInclude Include="color_mapping_generator.h">
       <Filter>Header Files\Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="GeneratedFiles\ui_option_dialog.h">
+      <Filter>Generated Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

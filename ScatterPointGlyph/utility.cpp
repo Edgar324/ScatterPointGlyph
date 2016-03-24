@@ -148,8 +148,9 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
         }
 	    assert(is_connecting);
 	}
-
-    std::cout << "Unconnected Count: " << unconnected_count << std::endl;
+#ifdef DEBUG_ON
+	std::cout << "Unconnected Count: " << unconnected_count << std::endl;
+#endif
 }
 
 void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& axis_order)

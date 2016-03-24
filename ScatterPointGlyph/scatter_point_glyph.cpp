@@ -33,6 +33,7 @@
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QTableView>
 #include <QtWidgets/QProgressBar>
+#include <QtWidgets/QProgressDialog>
 #include <QtGui/QStandardItemModel>
 
 #include "point_rendering_layer.h"
@@ -57,7 +58,7 @@
 
 //#define USE_QUALITY_METRIC
 //#define SAVE_PROJECTION
-#define USE_SAVED_PROJECTION
+//#define USE_SAVED_PROJECTION
 
 ScatterPointGlyph::ScatterPointGlyph(QWidget *parent)
 	: QMainWindow(parent), scatter_point_dataset_(NULL), sys_mode_(MULTI_LABEL_MODE), cluster_tree_(NULL),
@@ -157,6 +158,13 @@ void ScatterPointGlyph::InitWidget() {
     original_point_rendering_layer_->SetColorBarRenderer(this->other_renderer_);
 	original_point_rendering_layer_->SetEnabled(true);
 
+	progress_dialog_ = new QProgressDialog;
+	progress_dialog_->setWindowModality(Qt::WindowModal);
+	progress_dialog_->setLabelText("Processing");
+	progress_dialog_->setCancelButton(0);
+	progress_dialog_->setMinimumDuration(0);
+	progress_dialog_->setRange(0, 0);
+
 	sys_mode_action_group_ = new QActionGroup(this);
 	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
 	sys_mode_action_group_->addAction(ui_.actionChameleon_Clustering);
@@ -185,9 +193,20 @@ void ScatterPointGlyph::InitWidget() {
 	color_mapping_group_->setExclusive(true);
 	connect(color_mapping_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnMappingVarValueTriggered()));
 
+	example_action_group_ = new QActionGroup(this);
+	example_action_group_->addAction(ui_.actionIris);
+	example_action_group_->addAction(ui_.actionWine);
+	example_action_group_->addAction(ui_.actionAuto_MPG);
+	example_action_group_->addAction(ui_.actionWdbc);
+	example_action_group_->addAction(ui_.actionMeteo_Case);
+	example_action_group_->setExclusive(true);
+	connect(example_action_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnActionOpenExampleDataTriggered()));
+
 	// load data actions
     //connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenGridFileTriggered()));
     connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
+	connect(ui_.action_close, SIGNAL(triggered()), this, SLOT(OnActionCloseTriggered()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(OnActionExitTriggered()));
     
 
 	// actions for tips on the cluster transition map
@@ -216,6 +235,8 @@ void ScatterPointGlyph::InitWidget() {
 
     connect(ui_.actionShow_2D_Result_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult2DSPTriggered()));
     connect(ui_.actionShow_Result_3D_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult3DSpTriggered()));
+
+	connect(ui_.actionClusterOptions, SIGNAL(triggered()), this, SLOT(OnSysOptionTriggered()));
 }
 
 void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
@@ -269,6 +290,75 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
 	if (file_path.length() == 0) return;
 
+	LoadScData(file_path);
+
+	this->UpdateMenus();
+
+	this->AddPointData2View();
+
+	this->label_size_factor_ = 3.0;
+}
+
+void ScatterPointGlyph::OnActionOpenGscFileTriggered() {
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
+	if (file_path.length() == 0) return;
+
+	LoadGscData(file_path);
+
+	this->UpdateMenus();
+
+	this->AddPointData2View();
+
+	this->label_size_factor_ = 5.0;
+}
+
+void ScatterPointGlyph::OnActionOpenExampleDataTriggered() {
+	this->OnActionCloseTriggered();
+
+	QString file_path = "./TestData/";
+	if (ui_.actionIris->isChecked())
+		file_path += "iris.sc";
+	else if (ui_.actionAuto_MPG->isChecked())
+		file_path += "auto-mpg.sc";
+	else if (ui_.actionWine->isChecked())
+		file_path += "wine.sc";
+	else if (ui_.actionWdbc->isChecked())
+		file_path += "wdbc.sc";
+	else if (ui_.actionMeteo_Case->isChecked())
+		file_path += "plot.gsc";
+
+	if (!ui_.actionMeteo_Case->isChecked()) {
+		LoadScData(file_path);
+
+		QString mds_path = file_path.left(file_path.length() - 2);
+		mds_path = mds_path + QString("mds");
+		std::ifstream input(mds_path.toLocal8Bit().data());
+		if (input.good()) {
+			for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
+				for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
+					input >> scatter_point_dataset_->original_point_pos[i][j];
+		}
+		input.close();
+		
+		scatter_point_dataset_->DirectConstruct();
+
+		this->UpdateMenus();
+
+		this->AddPointData2View();
+
+		this->label_size_factor_ = 3.0;
+	} else {
+		LoadGscData(file_path);
+
+		this->UpdateMenus();
+
+		this->AddPointData2View();
+
+		this->label_size_factor_ = 5.0;
+	}
+}
+
+void ScatterPointGlyph::LoadScData(QString file_path) {
 	if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
 	scatter_point_dataset_->ClearData();
 
@@ -319,7 +409,8 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 		int dim_num = var_dialog.GetDimNumber();
 		if (dim_num <= 0 && dim_num > var_num) return;
 		scatter_point_dataset_->AutoDimReduction(dim_num);
-	} else {
+	}
+	else {
 		std::vector< float > dim_weights;
 		std::vector< bool > is_dim_selected;
 		var_dialog.GetSelectionResult(dim_weights);
@@ -330,96 +421,42 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 			}
 			else
 				is_dim_selected.push_back(false);
-        scatter_point_dataset_->var_weights = dim_weights;
+		scatter_point_dataset_->var_weights = dim_weights;
 		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
 	}
 
 	scatter_point_dataset_->ExecMds();
 
 #ifdef SAVE_PROJECTION
-    std::ofstream output("./TestData/temp.mds");
-    if (output.good()) {
-        for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
-            for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
-                output << scatter_point_dataset_->original_point_pos[i][j] << " "; 
-    }
-    output.close();
+	std::ofstream output("./TestData/temp.mds");
+	if (output.good()) {
+		for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
+			for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
+				output << scatter_point_dataset_->original_point_pos[i][j] << " ";
+	}
+	output.close();
 #endif
 
 #ifdef USE_SAVED_PROJECTION
 	QString mds_path = file_path.left(file_path.length() - 2);
 	mds_path = mds_path + QString("mds");
 	std::ifstream input(mds_path.toLocal8Bit().data());
-    if (input.good()) {
-        for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
-            for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
-                input >> scatter_point_dataset_->original_point_pos[i][j];
-    }
-    input.close();
+	if (input.good()) {
+		for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
+			for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
+				input >> scatter_point_dataset_->original_point_pos[i][j];
+	}
+	input.close();
 #endif
 
 	scatter_point_dataset_->DirectConstruct();
-
-	this->UpdateMenus();
-
-	this->AddPointData2View();
-
-	this->glyph_size_factor_ = 3.0;
 }
 
-void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
-    /*WrfDataManager* manager = WrfDataManager::GetInstance();
-    manager->LoadEnsembleData(WRF_ACCUMULATED_PRECIPITATION, std::string("G:/Data/ens_l/apcp_sfc_latlon_all_20150401_20150430_liaoLeeVC4.nc"));
-    manager->LoadEnsembleData(WRF_PRECIPITABLE_WATER, std::string("G:/Data/ens_l/pwat_eatm_latlon_all_20150401_20150430_liao5WubTq.nc"));
-    manager->LoadEnsembleData(WRF_T2M, std::string("G:/Data/ens_l/tmp_2m_latlon_all_20150401_20150430_liaoSwbPtU.nc"));
-    manager->LoadEnsembleData(WRF_MSLP, std::string("G:/Data/ens_l/pres_msl_latlon_all_20150401_20150430_liaoawNRCR.nc"));
-
-    QDateTime temp_datetime = QDateTime(QDate(2015, 4, 5), QTime(0, 0));
-
-    std::vector< WrfGridValueMap* > apcp_maps, prec_maps, t2m_maps, mslp_maps;
-    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_ACCUMULATED_PRECIPITATION, 24, apcp_maps);
-    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_PRECIPITABLE_WATER, 24, prec_maps);
-    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_T2M, 24, t2m_maps);
-    manager->GetGridValueMap(temp_datetime, WRF_NCEP_ENSEMBLES, WRF_MSLP, 24, mslp_maps);
-
-    ScatterGridDataset* grid_data = new ScatterGridDataset;
-    scatter_point_dataset_ = grid_data;
-    MapRange range = apcp_maps[0]->map_range;
-    grid_data->w = apcp_maps[0]->map_range.x_grid_number;
-    grid_data->h = apcp_maps[0]->map_range.y_grid_number;
-    grid_data->point_num = grid_data->w * grid_data->h;
-    grid_data->var_num = 4;
-    grid_data->var_names.push_back(QString("APCP"));
-    grid_data->var_names.push_back(QString("PREW"));
-    grid_data->var_names.push_back(QString("T2M"));
-    grid_data->var_names.push_back(QString("MSLP"));
-    grid_data->original_point_pos.resize(grid_data->point_num);
-    grid_data->original_point_values.resize(grid_data->point_num);
-    grid_data->var_weights.resize(4, 0.25);
-
-    int accu_index = 0;
-    for (int i = 0; i < grid_data->h; ++i)
-        for (int j = 0; j < grid_data->w; ++j) {
-            grid_data->original_point_pos[accu_index].resize(2);
-            grid_data->original_point_pos[accu_index][0] = range.start_x + j * range.x_grid_space;
-            grid_data->original_point_pos[accu_index][1] = range.start_y + i * range.y_grid_space;
-
-            grid_data->original_point_values[accu_index].resize(4);
-            grid_data->original_point_values[accu_index][0] = apcp_maps[0]->values[accu_index];
-            grid_data->original_point_values[accu_index][1] = prec_maps[0]->values[accu_index];
-            grid_data->original_point_values[accu_index][2] = t2m_maps[0]->values[accu_index];
-            grid_data->original_point_values[accu_index][3] = mslp_maps[0]->values[accu_index];
-
-            accu_index++;
-        }*/
-
-	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
-	if (file_path.length() == 0) return;
-
-    if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
+void ScatterPointGlyph::LoadGscData(QString file_path) {
+	if (scatter_point_dataset_ == NULL) scatter_point_dataset_ = new ScatterPointDataset;
 	scatter_point_dataset_->ClearData();
 
-    //std::ifstream input_file("./TestData/plot.gsc");
+	//std::ifstream input_file("./TestData/plot.gsc");
 	//std::ifstream input_file("./TestData/veri.gsc");
 	std::ifstream input_file(file_path.toLocal8Bit().data());
 	char char_str[1000];
@@ -447,7 +484,7 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
 	scatter_point_dataset_->original_point_values.resize(record_num);
 	for (int i = 0; i < record_num; ++i) {
 		scatter_point_dataset_->original_point_values[i].resize(var_num);
-        scatter_point_dataset_->original_point_pos[i].resize(2);
+		scatter_point_dataset_->original_point_pos[i].resize(2);
 
 		input_file.getline(char_str, 1000);
 		value_str = QString::fromLocal8Bit(char_str);
@@ -456,16 +493,17 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
 		for (int j = 0; j < var_num; ++j)
 			scatter_point_dataset_->original_point_values[i][j] = value_list.at(2 + j).toFloat();
 
-        scatter_point_dataset_->original_point_pos[i][0] = value_list.at(0).toFloat();
-        scatter_point_dataset_->original_point_pos[i][1] = value_list.at(1).toFloat();
+		scatter_point_dataset_->original_point_pos[i][0] = value_list.at(0).toFloat();
+		scatter_point_dataset_->original_point_pos[i][1] = value_list.at(1).toFloat();
 	}
 	input_file.close();
 
-    if (var_dialog.IsAutomaticDimReduction()) {
+	if (var_dialog.IsAutomaticDimReduction()) {
 		int dim_num = var_dialog.GetDimNumber();
 		if (dim_num <= 0 && dim_num > var_num) return;
 		scatter_point_dataset_->AutoDimReduction(dim_num);
-	} else {
+	}
+	else {
 		std::vector< float > dim_weights;
 		std::vector< bool > is_dim_selected;
 		var_dialog.GetSelectionResult(dim_weights);
@@ -480,41 +518,105 @@ void ScatterPointGlyph::OnActionOpenGridFileTriggered() {
 		scatter_point_dataset_->ManualSelectDim(is_dim_selected);
 	}
 
-    scatter_point_dataset_->DirectConstruct();
-
-	this->UpdateMenus();
-
-	this->AddPointData2View();
-
-	this->glyph_size_factor_ = 5.0;
+	scatter_point_dataset_->DirectConstruct();
 }
 
 void ScatterPointGlyph::OnActionCloseTriggered() {
+	this->ClearAllViews();
 
+	this->original_point_rendering_layer_->ClearView();
+
+	if (scatter_point_dataset_ != NULL) delete scatter_point_dataset_;
+	scatter_point_dataset_ = NULL;
+
+	if (cluster_tree_ != NULL ) delete cluster_tree_;
+	cluster_tree_ = NULL;
+
+	this->main_view_->update();
 }
 
 void ScatterPointGlyph::OnActionExitTriggered() {
-	
+	// TODO: clear all the memory
+
+	exit(0);
 }
 
 void ScatterPointGlyph::OnSysmodeChanged() {
-	SystemMode current_mode;
-	if (ui_.action_hierarchical_clustering->isChecked())
-		current_mode = HIER_MODE;
-	else if (ui_.actionChameleon_Clustering->isChecked())
-		current_mode = CHAMELEON_MODE;
-	else if (ui_.actionNCuts->isChecked())
-		current_mode = NCUTS_MODE;
-	else if (ui_.actionMulti_Label)
-		current_mode = MULTI_LABEL_MODE;
+	SystemMode current_mode = sys_mode_;
+
+	if (cluster_tree_ != NULL) {
+		QMessageBox msgbox;
+		msgbox.setText("The tree structure will be destroyed if you change the clustering mode!");
+		msgbox.setInformativeText("Do you want to continue?");
+		msgbox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+		int ret = msgbox.exec();
+		switch (ret)
+		{
+		case QMessageBox::Yes:
+			if (ui_.action_hierarchical_clustering->isChecked())
+				current_mode = HIER_MODE;
+			else if (ui_.actionChameleon_Clustering->isChecked())
+				current_mode = CHAMELEON_MODE;
+			else if (ui_.actionNCuts->isChecked())
+				current_mode = NCUTS_MODE;
+			else if (ui_.actionMulti_Label)
+				current_mode = MULTI_LABEL_MODE;
+			break;
+		default:
+			switch (current_mode)
+			{
+			case ScatterPointGlyph::HIER_MODE:
+				ui_.action_hierarchical_clustering->setChecked(true);
+				break;
+			case ScatterPointGlyph::CHAMELEON_MODE:
+				ui_.action_hierarchical_clustering->setChecked(true);
+				break;
+			case ScatterPointGlyph::NCUTS_MODE:
+				ui_.actionNCuts->setChecked(true);
+				break;
+			case ScatterPointGlyph::MULTI_LABEL_MODE:
+				ui_.actionMulti_Label->setChecked(true);
+				break;
+			default:
+				break;
+			}
+			return;			
+		}
+	} else {
+		if (ui_.action_hierarchical_clustering->isChecked())
+			current_mode = HIER_MODE;
+		else if (ui_.actionChameleon_Clustering->isChecked())
+			current_mode = CHAMELEON_MODE;
+		else if (ui_.actionNCuts->isChecked())
+			current_mode = NCUTS_MODE;
+		else if (ui_.actionMulti_Label)
+			current_mode = MULTI_LABEL_MODE;
+	}
 
 	if (current_mode != sys_mode_) {
 		if (cluster_tree_ != NULL) {
+			this->ClearAllViews();
 			delete cluster_tree_;
 			cluster_tree_ = NULL;
 		}
-
 		sys_mode_ = current_mode;
+	}
+}
+
+void ScatterPointGlyph::OnSysOptionTriggered() {
+	QDialog option_dialog;
+	Ui::OptionDialog option_ui;
+	option_ui.setupUi(&option_dialog);
+	option_ui.ml_threshold_spinbox->setValue(multi_label_threshold_);
+	option_ui.ncuts_threshold_spinbox->setValue(ncuts_threshold_);
+	option_ui.hier_number_spinbox->setValue(hier_number_threshold_);
+	option_ui.factor_spinbox->setValue(label_size_factor_);
+
+	if (option_dialog.exec() == QDialog::Accepted) {
+		multi_label_threshold_ = option_ui.ml_threshold_spinbox->value();
+		ncuts_threshold_ = option_ui.ncuts_threshold_spinbox->value();
+		hier_number_threshold_ = option_ui.hier_number_spinbox->value();
+		label_size_factor_ = option_ui.factor_spinbox->value();
 	}
 }
 
@@ -525,6 +627,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 	}
 
 	ui_.statusBar->showMessage("Execute clustering, progressing ...");
+	progress_dialog_->show();
 
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	
@@ -536,6 +639,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 			cluster_tree_ = new HierarchicalTree(scatter_point_dataset_);
 
 			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), progress_dialog_, SLOT(cancel()));
 		}
 
 		HierarchicalTree* hier_tree = dynamic_cast<HierarchicalTree*>(cluster_tree_);
@@ -557,6 +661,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 			cluster_tree_ = new NCutTree(scatter_point_dataset_);
 
 			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), progress_dialog_, SLOT(cancel()));
 		}
 
 		NCutTree* ncut_tree = dynamic_cast<NCutTree*>(cluster_tree_);
@@ -572,6 +677,7 @@ void ScatterPointGlyph::OnExecClusteringTriggered() {
 			cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
 
 			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), progress_dialog_, SLOT(cancel()));
 		}
 
 		MultiLabelTree* un_tree = dynamic_cast< MultiLabelTree* >(cluster_tree_);
@@ -595,6 +701,7 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 	}
 
 	ui_.statusBar->showMessage("Begin clustering, progressing ...");
+	progress_dialog_->show();
 
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	
@@ -606,6 +713,7 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 			cluster_tree_ = new NCutTree(scatter_point_dataset_);
 
 			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), progress_dialog_, SLOT(cancel()));
 		}
 
 		NCutTree* ncut_tree = dynamic_cast<NCutTree*>(cluster_tree_);
@@ -614,24 +722,21 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 			ncut_tree->start();
 		}
 	}
-	break;
+		break;
 	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	{
 		if (cluster_tree_ == NULL) {
 			cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
 
 			connect(cluster_tree_, SIGNAL(finished()), this, SLOT(OnClusterFinished()));
+			connect(cluster_tree_, SIGNAL(finished()), progress_dialog_, SLOT(cancel()));
 		}
 
 		MultiLabelTree* un_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
 		un_tree->SetTreeMode(TreeCommon::EXPLORATION_MODE);
-		if (un_tree != NULL) {
-			//float dis_per_pixel = this->GetMainViewDisPerPixel();
-			//un_tree->SetRadiusThreshold(200.0 * dis_per_pixel / (scatter_point_dataset_->original_pos_ranges[0][1] - scatter_point_dataset_->original_pos_ranges[0][0]));
-			un_tree->start();
-		}
+		if (un_tree != NULL) un_tree->start();
 	}
-	break;
+		break;
 	default:
 		break;
 	}
@@ -639,6 +744,7 @@ void ScatterPointGlyph::OnBeginClusteringTriggered() {
 
 void ScatterPointGlyph::AddPointData2View() {
 	original_point_rendering_layer_->SetData(scatter_point_dataset_);
+	original_point_rendering_layer_->SetEnabled(true);
 
 	main_renderer_->ResetCamera();
 
@@ -655,7 +761,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	} else {
@@ -687,7 +793,7 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		if (multi_label_tree == NULL) return;
 
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
-		current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+		current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
         int max_level = multi_label_tree->GetMaxLevel();
         if (current_view_level_ >= max_level) current_view_level_ = max_level;
 		map_control_ui_.level_slider->setValue(current_view_level_);
@@ -705,11 +811,22 @@ void ScatterPointGlyph::OnViewLevelChanged() {
 }
 
 void ScatterPointGlyph::UpdateAllViews() {
+	if (scatter_point_dataset_ == NULL || cluster_tree_ == NULL) return;
 	this->UpdateTransmap();
 	this->UpdateParallelCoordinate();
 	this->UpdateTreemap();
 	this->UpdatePointMap();
     this->UpdateTableView();
+}
+
+void ScatterPointGlyph::ClearAllViews() {
+	trans_map_->ClearView();
+	transmap_data_->ClearData();
+
+	parallel_dataset_->ClearData();
+	this->parallel_coordinate_->SetDataset(parallel_dataset_);
+
+	this->tree_map_view_->ClearView();
 }
 
 void ScatterPointGlyph::UpdateTableView() {
@@ -746,6 +863,8 @@ void ScatterPointGlyph::UpdateTableView() {
 }
 
 void ScatterPointGlyph::UpdateParallelCoordinate() {
+	if (transmap_data_ == NULL || cluster_tree_ == NULL || scatter_point_dataset_ == NULL) return;
+
 	if (transmap_data_->cluster_nodes.size() == 0) {
 		parallel_dataset_->ClearData();
 		parallel_dataset_->subset_names.push_back(QString("MDS Data"));
@@ -909,11 +1028,11 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 }
 
 void ScatterPointGlyph::UpdateTransmap() {
-	if (transmap_data_ != NULL) {
-		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
-			transmap_data_->cluster_nodes[i]->is_highlighted = false;
-		transmap_data_->cluster_nodes.clear();
-	}
+	if (transmap_data_ == NULL || cluster_tree_ == NULL || scatter_point_dataset_ == NULL) return;
+
+	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
+		transmap_data_->cluster_nodes[i]->is_highlighted = false;
+	transmap_data_->ClearData();
 
 	int cluster_num;
 	std::vector< int > cluster_index;
@@ -929,13 +1048,12 @@ void ScatterPointGlyph::UpdateTransmap() {
 	original_point_rendering_layer_->SetClusterIndex(cluster_num, cluster_index, colors);
 	original_point_rendering_layer_->SetHighlightCluster(-1);
 
-	transmap_data_->ClearData();
 	transmap_data_->cluster_num = cluster_num;
 	transmap_data_->var_num = scatter_point_dataset_->var_weights.size();
 	transmap_data_->dataset = scatter_point_dataset_;
 	transmap_data_->ProcessData();
 
-	trans_map_->SetNodeRadius(dis_per_pixel * label_pixel_radius_);
+	trans_map_->SetNodeRadius(dis_per_pixel * glyph_pixel_radius_);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
 	trans_map_->SetAxisOrder(var_axis_order);
     std::vector< QColor > point_colors;
@@ -944,11 +1062,17 @@ void ScatterPointGlyph::UpdateTransmap() {
     }
     trans_map_->UpdateDensityActor(point_colors);
 
+	if (ui_.actionShow_Transmap->isChecked()) {
+		trans_map_->SetEnabled(true);
+	}
+
 	main_view_->update();
 }
 
 
 void ScatterPointGlyph::UpdatePointMap() {
+	if (trans_map_ == NULL) return;
+
 	std::vector< int > selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
@@ -961,6 +1085,8 @@ void ScatterPointGlyph::UpdatePathMap() {
 }
 
 void ScatterPointGlyph::UpdateTreemap() {
+	if (trans_map_ == NULL || cluster_tree_ == NULL) return;
+
 	std::vector< int > selected_ids;
 	trans_map_->GetSelectedClusterIds(selected_ids);
 
@@ -1037,6 +1163,7 @@ void ScatterPointGlyph::OnMainviewLeftButtonUp() {
 }
 
 void ScatterPointGlyph::OnMainViewRightButtonDown() {
+
 }
 
 void ScatterPointGlyph::OnMouseDragmove(int x, int y) {
@@ -1049,10 +1176,14 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 
 		int temp_cluster_index = trans_map_->GetSelectedClusterIndex();
 		if (temp_cluster_index != -1) {
+			progress_dialog_->show();
+
 			multi_label_tree->SplitCluster(transmap_data_->cluster_nodes[temp_cluster_index]->id());
 
+			progress_dialog_->cancel();
+
 			float dis_per_pixel = this->GetMainViewDisPerPixel();
-			current_view_level_ = multi_label_tree->GetRadiusLevel(label_pixel_radius_ * glyph_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
+			current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 			int max_level = multi_label_tree->GetMaxLevel();
 			if (current_view_level_ >= max_level) current_view_level_ = max_level;
 			map_control_ui_.level_slider->setValue(current_view_level_);
@@ -1077,11 +1208,13 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 	}
 
     // update the level slider
-    int max_level = cluster_tree_->GetMaxLevel();
-	map_control_ui_.level_slider->setRange(0, max_level);
-	map_control_ui_.level_slider->setValue(current_view_level_);
-	map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
-	map_control_ui_.level_name_label->setText(QString("Level(0~%0): ").arg(max_level));
+	if (cluster_tree_ != NULL) {
+		int max_level = cluster_tree_->GetMaxLevel();
+		map_control_ui_.level_slider->setRange(0, max_level);
+		map_control_ui_.level_slider->setValue(current_view_level_);
+		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
+		map_control_ui_.level_name_label->setText(QString("Level(0~%0): ").arg(max_level));
+	}
 }
 
 void ScatterPointGlyph::OnMergeClusterTriggered() {
@@ -1316,7 +1449,7 @@ void ScatterPointGlyph::OnTreemapHighlightVarChagned(int var_index)
 
 void ScatterPointGlyph::OnGlyphSizeChanged()
 {
-	label_pixel_radius_ = map_control_ui_.glyph_size_spinbox->value();
+	glyph_pixel_radius_ = map_control_ui_.glyph_size_spinbox->value();
 
 	this->UpdateTransmap();
 }

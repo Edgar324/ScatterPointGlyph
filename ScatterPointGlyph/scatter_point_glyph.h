@@ -4,6 +4,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_scatter_point_glyph.h"
 #include "ui_map_controller.h"
+#include "ui_option_dialog.h"
 
 #include <string>
 #include <vector>
@@ -21,6 +22,7 @@ class QLabel;
 class QTableView;
 class QStandardItemModel;
 class QProgressBar;
+class QProgressDialog;
 class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
@@ -90,22 +92,34 @@ private:
 	QActionGroup* main_view_interaction_mode_group_;
 	QActionGroup* transmap_tip_mode_group_;
     QActionGroup* color_mapping_group_;
+	QActionGroup* example_action_group_;
 
-	SystemMode sys_mode_;
-	TreeCommon* cluster_tree_;
+	QProgressDialog* progress_dialog_;
 
+	// the only dataset served in the memory
 	ScatterPointDataset* scatter_point_dataset_;
 
+	// system status
+	SystemMode sys_mode_;
+	TreeCommon* cluster_tree_;
 	int current_view_level_;
+	std::vector< int > var_axis_order;
+
+	// thresholds for each cluster method
+	float multi_label_threshold_ = 0.2;
+	float ncuts_threshold_ = 0.2;
+	int hier_number_threshold_ = 1;
+
 	// This factor is used to indicate how many pixels are used to 
 	// map the screen distance to the real distance for level cluster retrieval.
 	// This should be adjusted according to different application scenarios
 	// according to the complexity of the data.
 	// For example, if the data is rather simple, this factor should be small, great otherwise.
 	// In our experiment, we use 3 for the UCI dataset and 5 for the meteorological data.
-    float glyph_size_factor_ = 3;
-	int label_pixel_radius_ = { 50 };
-	std::vector< int > var_axis_order;
+	int label_size_factor_ = 3;
+
+	// size of the glyph in pixel radius
+	int glyph_pixel_radius_ = { 50 };
 
 	void InitWidget();
 	void AddPointData2View();
@@ -121,16 +135,24 @@ private:
     void UpdateTableView();
 
 	void UpdateMenus();
+
+	void ClearAllViews();
 	void UpdateAllViews();
+
+	void LoadScData(QString file_path);
+	void LoadGscData(QString file_path);
 
 private slots:
 	void OnActionOpenVtkFileTriggered();
 	void OnActionOpenScatterFileTriggered();
-    void OnActionOpenGridFileTriggered();
+    void OnActionOpenGscFileTriggered();
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
+	void OnActionOpenExampleDataTriggered();
 
 	void OnSysmodeChanged();
+	void OnSysOptionTriggered();
+
 	void OnBeginClusteringTriggered();
 	void OnExecClusteringTriggered();
 	void OnClusterFinished();

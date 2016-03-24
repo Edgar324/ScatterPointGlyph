@@ -36,6 +36,7 @@ PointRenderingLayer::PointRenderingLayer() {
 	this->mapper_ = vtkPolyDataMapper::New();
 	this->actor_ = vtkActor::New();
     this->color_bar_renderer_ = NULL;
+	this->dataset_ = NULL;
 
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
@@ -209,6 +210,7 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 
 	this->current_selection_index_ = index;
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
+	if (color_array == NULL) return;
 	for (int i = 0; i < current_selection_index_.size(); ++i) {
 		for (int j = 0; j < point_index_.size(); ++j)
 			if (point_index_[j] == current_selection_index_[i]) {
@@ -224,6 +226,8 @@ void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
 }
 
 void PointRenderingLayer::SetCategoryOn() {
+	if (dataset_ == NULL) return;
+
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	for (int i = 0; i < point_index_.size(); ++i) {
 		int cindex = point_index_[i] * 3;
@@ -236,6 +240,8 @@ void PointRenderingLayer::SetCategoryOn() {
 }
 
 void PointRenderingLayer::SetCategoryOff() {
+	if (dataset_ == NULL) return;
+
 	vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
 	if (point_values_.size() != 0) {
         UpdateValueMapping();
@@ -319,4 +325,9 @@ void PointRenderingLayer::LoadMap(const char* file_name, float start_x, float en
         }
     }
     map_actor_->Modified();
+}
+
+void PointRenderingLayer::ClearView() {
+	this->poly_data_->Initialize();
+	this->actor_->Modified();
 }

@@ -55,6 +55,8 @@ public:
 	void SetAxisOrder(std::vector< int >& order);
     void SetIndicatorRenderer(vtkRenderer* renderer);
 
+	void ClearView();
+
 	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
 
 	void HighlightVar(int var_index);

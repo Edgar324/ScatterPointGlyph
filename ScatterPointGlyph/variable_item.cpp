@@ -129,11 +129,13 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			temp_width += temp_bar_width + item_margin;
 		}
 	} else {
-		int temp_width = 0, temp_bar_width = 0;
+		int temp_bar_width = 0, accu_count = 0;
 		for (int i = 0; i < var_values_.size(); ++i) {
             int temp_value_index = value_index_[i];
+			int temp_width = (float)accu_count / total_node_count_ * total_width;
 
 			temp_bar_width = (float)node_count_[temp_value_index] / total_node_count_ * total_width;
+			accu_count += node_count_[temp_value_index];
             //temp_bar_width = (float)node_count_[i] / total_node_count_ * 500;
 
 			if (i >= selected_count_) {
@@ -156,8 +158,6 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
 				painter->drawLine(x1, y1, x2, y2);
 			}
-
-			temp_width += temp_bar_width;
 		}
 	}
 

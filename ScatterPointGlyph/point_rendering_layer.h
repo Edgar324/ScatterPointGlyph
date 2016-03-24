@@ -49,6 +49,8 @@ public:
 
 	std::vector< int >& GetClusterColor() { return cluster_color_; }
 
+	void ClearView();
+
 private:
 	int cluster_count_;
 	std::vector< int > point_index_;
