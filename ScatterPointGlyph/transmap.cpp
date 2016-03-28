@@ -1862,3 +1862,45 @@ void TransMap::ClearView() {
 
 	this->parent_view->update();
 }
+
+void TransMap::ForceFocusCenter() {
+	focus_pos_[0] = 0;
+	focus_pos_[1] = 0;
+	
+	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	while (iter != highlight_node_sequence.end()) {
+		CNode* temp_node = *iter;
+		float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+
+		focus_pos_[0] += node_center_x;
+		focus_pos_[1] += node_center_y;
+
+		iter++;
+	}
+
+	if (highlight_node_sequence.size() != 0) {
+		focus_pos_[0] /= highlight_node_sequence.size();
+		focus_pos_[1] /= highlight_node_sequence.size();
+	}
+
+	this->DefaultRenderer->GetActiveCamera()->GetFocalPoint(current_pos_);
+	this->DefaultRenderer->GetActiveCamera()->GetPosition(eye_pos_);
+}
+
+void TransMap::MoveViewToFocus(float scale) {
+	double temp_focal_pos[3];
+	temp_focal_pos[0] = current_pos_[0] + scale * (focus_pos_[0] - current_pos_[0]);
+	temp_focal_pos[1] = current_pos_[1] + scale * (focus_pos_[1] - current_pos_[1]);
+	temp_focal_pos[2] = current_pos_[2];
+
+	double temp_eye_pos[3];
+	temp_eye_pos[0] = eye_pos_[0] + scale * (focus_pos_[0] - current_pos_[0]);
+	temp_eye_pos[1] = eye_pos_[1] + scale * (focus_pos_[1] - current_pos_[1]);
+	temp_eye_pos[2] = eye_pos_[2];
+
+	this->DefaultRenderer->GetActiveCamera()->SetFocalPoint(temp_focal_pos);
+	this->DefaultRenderer->GetActiveCamera()->SetPosition(temp_eye_pos);
+	this->DefaultRenderer->Modified();
+	this->parent_view->update();
+}

@@ -3,6 +3,7 @@
 
 #include <vtk3DWidget.h>
 #include <QtCore/QObject>
+#include <QtCore/QTimer>
 #include <vector>
 
 class vtkActor;
@@ -75,6 +76,9 @@ public:
 
     void SetDensityMapVisibility(bool visibility);
     void UpdateDensityActor(std::vector< QColor >& node_colors);
+
+	void ForceFocusCenter();
+	void MoveViewToFocus(float scale);
 
 protected:
 	TransMap();
@@ -157,6 +161,10 @@ private:
 
 	std::vector< int > focus_var_index_;
 	bool is_focus_var_fixed_ = false;
+
+	double focus_pos_[2];
+	double current_pos_[3];
+	double eye_pos_[3];
 
 	void UpdateNodeActors();
 	void GenerateTransEdgeFromHighlight();

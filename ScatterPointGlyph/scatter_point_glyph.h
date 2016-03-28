@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+#include <QtCore/QTimer>
 
 #include <vtkAutoInit.h>
 #define vtkRenderingCore_AUTOINIT 3(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingOpenGL)
@@ -121,6 +122,9 @@ private:
 	// size of the glyph in pixel radius
 	int glyph_pixel_radius_ = { 50 };
 
+	float time_scale_ = 0.0;
+	QTimer move_focus_timer_;
+
 	void InitWidget();
 	void AddPointData2View();
 
@@ -138,6 +142,8 @@ private:
 
 	void ClearAllViews();
 	void UpdateAllViews();
+
+	void MoveMainViewToFocus();
 
 	void LoadScData(QString file_path);
 	void LoadGscData(QString file_path);
@@ -189,6 +195,7 @@ private slots:
     void OnActionShowResult3DSpTriggered();
 
 	void OnGlyphSizeChanged();
+	void OnFocusTimerRunOut();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

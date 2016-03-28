@@ -35,6 +35,7 @@
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QProgressDialog>
 #include <QtGui/QStandardItemModel>
+#include <QtCore/QTimer>
 
 #include "point_rendering_layer.h"
 #include "scatter_point_dataset.h"
@@ -164,6 +165,9 @@ void ScatterPointGlyph::InitWidget() {
 	progress_dialog_->setCancelButton(0);
 	progress_dialog_->setMinimumDuration(0);
 	progress_dialog_->setRange(0, 0);
+
+	move_focus_timer_.setSingleShot(true);
+	connect(&move_focus_timer_, SIGNAL(timeout()), this, SLOT(OnFocusTimerRunOut()));
 
 	sys_mode_action_group_ = new QActionGroup(this);
 	sys_mode_action_group_->addAction(ui_.action_hierarchical_clustering);
@@ -1246,7 +1250,25 @@ void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 
 	this->UpdateParallelCoordinate();
 
+	this->MoveMainViewToFocus();
+
 	this->main_view_->update();
+}
+
+void ScatterPointGlyph::MoveMainViewToFocus() {
+	time_scale_ = 0.0;
+
+	this->trans_map_->ForceFocusCenter();
+	move_focus_timer_.start(100);
+}
+
+void ScatterPointGlyph::OnFocusTimerRunOut() {
+	if (time_scale_ < 1.0) {
+		time_scale_ += 0.2;
+
+		this->trans_map_->MoveViewToFocus(time_scale_);
+		move_focus_timer_.start(100);
+	}
 }
 
 void ScatterPointGlyph::OnMainViewInteractionModeChanged() {
