@@ -16,7 +16,7 @@ public:
 	TreeMapView();
 	~TreeMapView();
 
-	void SetData(TreeCommon* tree, int var_num, std::vector< CNode* >& selected_nodes, int selected_count, std::vector< int >& order, std::vector< QString >& names, std::vector< QColor >& colors);
+	void SetData(TreeCommon* tree, int var_num, std::vector<CNode*>& selected_nodes, int selected_count, std::vector<int>& order, std::vector<QString>& names, std::vector<QColor>& colors);
 	void SetHighlightVarIndex(int index);
 	void SetTreeMapVisible(bool visible);
     void SetTreeMapUsingColor(bool enabled);
@@ -35,7 +35,7 @@ protected:
 private:
 	TreeCommon* tree_;
 	int var_num_;
-	std::vector< int > var_order_;
+	std::vector<int> var_order_;
 
 	bool is_treemap_visible_;
 	bool is_table_lens_visible_;
@@ -44,9 +44,9 @@ private:
 	QGraphicsScene* scene_;
 
 	TreeMapItem* tree_item_;
-	std::vector< VariableItem* > var_items_;
+	std::vector<VariableItem*> var_items_;
 
-	void UpdateVariableItems(std::vector< CNode* >& selected_nodes, int selected_count, std::vector< QString >& names, std::vector< QColor >& colors);
+	void UpdateVariableItems(std::vector<CNode*>& selected_nodes, int selected_count, std::vector<QString>& names, std::vector<QColor>& colors);
 
 	void UpdateLayout();
 

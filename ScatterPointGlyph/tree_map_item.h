@@ -30,8 +30,8 @@ protected:
 private:
 	CNode* root_ = NULL;
 
-	std::map< int, QRectF > item_pos_map_;
-	std::map< int, CNode* > item_map_;
+	std::map<int, QRectF> item_pos_map_;
+	std::map<int, CNode*> item_map_;
 
     bool is_color_used_ = false;
 

@@ -77,7 +77,7 @@ void ParallelDataset::UpdateGaussian() {
 
 		for (int j = 0; j < axis_names.size(); ++j) {
 			float average = 0;
-			std::vector< float > sub_value;
+			std::vector<float> sub_value;
 			sub_value.resize(this->subset_records[i].size(), 1000);
 			int accu_count = 0;
 			for (int k = 0; k < this->subset_records[i].size(); ++k) {
@@ -143,7 +143,7 @@ void ParallelCoordinate::SetDataset(ParallelDataset* dataset_t){
     this->updateGL();
 }
 
-void ParallelCoordinate::SetAxisOrder(std::vector< int >& axis_order) {
+void ParallelCoordinate::SetAxisOrder(std::vector<int>& axis_order) {
 	this->axis_order_ = axis_order;
 
 	this->updateGL();

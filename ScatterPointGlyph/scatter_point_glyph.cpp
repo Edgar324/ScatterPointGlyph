@@ -57,7 +57,7 @@
 #include "wrf_data_manager.h"
 #include "glyph_design_dialog.h"
 
-//#define USE_QUALITY_METRIC
+#define USE_QUALITY_METRIC
 //#define SAVE_PROJECTION
 //#define USE_SAVED_PROJECTION
 
@@ -273,8 +273,8 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 		float y = scatter_point_data->GetPoint(i)[1];
 		if (x > bounds[0] + (bounds[1] - bounds[0]) * x_scale1 && x < bounds[0] + (bounds[1] - bounds[0]) * x_scale2
 			&& y > bounds[2] + (bounds[3] - bounds[2]) * y_scale1 && y < bounds[2] + (bounds[3] - bounds[2]) * y_scale2) {
-			std::vector< float > pos;
-			std::vector< float > value;
+			std::vector<float> pos;
+			std::vector<float> value;
 			pos.push_back(x);
 			pos.push_back(y);
 			value.push_back(speed_array->GetValue(i));
@@ -329,7 +329,8 @@ void ScatterPointGlyph::OnActionOpenExampleDataTriggered() {
 	else if (ui_.actionWdbc->isChecked())
 		file_path += "wdbc.sc";
 	else if (ui_.actionMeteo_Case->isChecked())
-		file_path += "plot.gsc";
+        //file_path += "plot.gsc";
+		file_path += "agent_step100_status.gsc";
 
 	if (!ui_.actionMeteo_Case->isChecked()) {
 		LoadScData(file_path);
@@ -415,8 +416,8 @@ void ScatterPointGlyph::LoadScData(QString file_path) {
 		scatter_point_dataset_->AutoDimReduction(dim_num);
 	}
 	else {
-		std::vector< float > dim_weights;
-		std::vector< bool > is_dim_selected;
+		std::vector<float> dim_weights;
+		std::vector<bool> is_dim_selected;
 		var_dialog.GetSelectionResult(dim_weights);
 		scatter_point_dataset_->var_weights.clear();
 		for (int i = 0; i < dim_weights.size(); ++i)
@@ -508,8 +509,8 @@ void ScatterPointGlyph::LoadGscData(QString file_path) {
 		scatter_point_dataset_->AutoDimReduction(dim_num);
 	}
 	else {
-		std::vector< float > dim_weights;
-		std::vector< bool > is_dim_selected;
+		std::vector<float> dim_weights;
+		std::vector<bool> is_dim_selected;
 		var_dialog.GetSelectionResult(dim_weights);
 		scatter_point_dataset_->var_weights.clear();
 		for (int i = 0; i < dim_weights.size(); ++i)
@@ -786,6 +787,7 @@ void ScatterPointGlyph::OnClusterFinished() {
 	delete metric;
 #endif
 
+    current_view_level_ = 0;
 	this->UpdateAllViews();
 }
 
@@ -799,7 +801,7 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
 		current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
         int max_level = multi_label_tree->GetMaxLevel();
-        if (current_view_level_ >= max_level) current_view_level_ = max_level;
+        if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
@@ -834,13 +836,13 @@ void ScatterPointGlyph::ClearAllViews() {
 }
 
 void ScatterPointGlyph::UpdateTableView() {
-    std::vector< int > selection_index;
+    std::vector<int> selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 
-    std::vector< int > cluster_index;
+    std::vector<int> cluster_index;
 	cluster_index.resize(scatter_point_dataset_->point_num, -1);
     for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) {
-		std::vector< int > temp_vec;
+		std::vector<int> temp_vec;
 		cluster_tree_->Traverse(transmap_data_->cluster_nodes[i], temp_vec);
 		for (int j = 0; j < temp_vec.size(); ++j) cluster_index[temp_vec[j]] = i;
 	}
@@ -873,7 +875,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->ClearData();
 		parallel_dataset_->subset_names.push_back(QString("MDS Data"));
 		parallel_dataset_->subset_records.resize(1);
-        std::vector< std::vector< float > > value_ranges;
+        std::vector<std::vector<float>> value_ranges;
         value_ranges.resize(scatter_point_dataset_->var_num);
         for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
             value_ranges[i].resize(2);
@@ -918,7 +920,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		QString str = QString("%0 points.").arg(scatter_point_dataset_->original_point_pos.size());
 		ui_.statusBar->showMessage(str);
 	} else {
-		std::vector< int > selection_index;
+		std::vector<int> selection_index;
 		trans_map_->GetSelectedClusterIndex(selection_index);
 		/*if (selection_index.size() == 0) {
 			for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) selection_index.push_back(i);
@@ -928,7 +930,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->is_updating = true;
 		parallel_dataset_->ClearData();
 
-		std::vector< int > cluster_color = original_point_rendering_layer_->GetClusterColor();
+		std::vector<int> cluster_color = original_point_rendering_layer_->GetClusterColor();
 		parallel_dataset_->subset_names.resize(selection_index.size());
 		parallel_dataset_->subset_colors.resize(selection_index.size());
 		parallel_dataset_->subset_records.resize(selection_index.size());
@@ -936,16 +938,16 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_dataset_->axis_anchors.resize(scatter_point_dataset_->original_value_ranges.size());
 
 		int cluster_num;
-		std::vector< int > cluster_index;
+		std::vector<int> cluster_index;
 		cluster_index.resize(scatter_point_dataset_->point_num, -1);
 		for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i) {
-			std::vector< int > temp_vec;
+			std::vector<int> temp_vec;
 			cluster_tree_->Traverse(transmap_data_->cluster_nodes[i], temp_vec);
 			for (int j = 0; j < temp_vec.size(); ++j) cluster_index[temp_vec[j]] = i;
 		}
 		//cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
 
-        std::vector< std::vector< float > > value_ranges;
+        std::vector<std::vector<float>> value_ranges;
         value_ranges.resize(scatter_point_dataset_->var_num);
         for (int i = 0; i < scatter_point_dataset_->var_num; ++i) {
             value_ranges[i].resize(2);
@@ -1003,7 +1005,7 @@ void ScatterPointGlyph::UpdateParallelCoordinate() {
 		parallel_coordinate_->SetDataset(parallel_dataset_);
 		Utility::GenerateAxisOrder(parallel_dataset_, var_axis_order);
 
-        /*std::vector< int > focus_index;
+        /*std::vector<int> focus_index;
         if (trans_map_ != NULL) trans_map_->GetFocusVarIndex(focus_index);
         for (int i = 0; i < focus_index.size(); ++i) {
             int temp_pos = -1;
@@ -1039,13 +1041,13 @@ void ScatterPointGlyph::UpdateTransmap() {
 	transmap_data_->ClearData();
 
 	int cluster_num;
-	std::vector< int > cluster_index;
+	std::vector<int> cluster_index;
 	float dis_per_pixel = this->GetMainViewDisPerPixel();
 	// dis_per_pixel * 100.0
 	cluster_tree_->GetClusterResult(current_view_level_, transmap_data_->cluster_nodes);
 	cluster_tree_->GetClusterResult(current_view_level_, cluster_num, cluster_index);
 	
-	std::vector< QColor > colors;
+	std::vector<QColor > colors;
 	for (int i = 0; i < transmap_data_->cluster_nodes.size(); ++i)
 		colors.push_back(transmap_data_->cluster_nodes[i]->color);
 
@@ -1060,7 +1062,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 	trans_map_->SetNodeRadius(dis_per_pixel * glyph_pixel_radius_);
 	trans_map_->SetData(scatter_point_dataset_, transmap_data_);
 	trans_map_->SetAxisOrder(var_axis_order);
-    std::vector< QColor > point_colors;
+    std::vector<QColor > point_colors;
     for (int i = 0; i < cluster_index.size(); ++i) {
         point_colors.push_back(colors[cluster_index[i]]);
     }
@@ -1077,7 +1079,7 @@ void ScatterPointGlyph::UpdateTransmap() {
 void ScatterPointGlyph::UpdatePointMap() {
 	if (trans_map_ == NULL) return;
 
-	std::vector< int > selection_index;
+	std::vector<int> selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
@@ -1091,18 +1093,18 @@ void ScatterPointGlyph::UpdatePathMap() {
 void ScatterPointGlyph::UpdateTreemap() {
 	if (trans_map_ == NULL || cluster_tree_ == NULL) return;
 
-	std::vector< int > selected_ids;
+	std::vector<int> selected_ids;
 	trans_map_->GetSelectedClusterIds(selected_ids);
 
 	//UncertaintyTree* un_tree = dynamic_cast<UncertaintyTree*>(cluster_tree_);
 	cluster_tree_->SortTree(selected_ids);
 
-	std::vector< int > selection_index;
+	std::vector<int> selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
-	std::vector< bool > is_selected;
+	std::vector<bool> is_selected;
 	is_selected.resize(transmap_data_->cluster_nodes.size(), false);
 
-	std::vector< CNode* > selected_nodes;
+	std::vector<CNode*> selected_nodes;
 	if (selected_ids.size() != 0) {
 		for (int i = 0; i < selection_index.size(); ++i) {
 			selected_nodes.push_back(transmap_data_->cluster_nodes[selection_index[i]]);
@@ -1225,10 +1227,10 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 	if (sys_mode_ == MULTI_LABEL_MODE && cluster_tree_ != NULL) {
 		MultiLabelTree* un_tree = dynamic_cast<MultiLabelTree*>(cluster_tree_);
 
-		std::vector< int > merged_clusters;
+		std::vector<int> merged_clusters;
 		trans_map_->GetSelectedClusterIndex(merged_clusters);
 
-		std::vector< int > cluster_ids;
+		std::vector<int> cluster_ids;
 		for (int i = 0; i < merged_clusters.size(); ++i)
 			cluster_ids.push_back(transmap_data_->cluster_nodes[merged_clusters[i]]->id());
 		un_tree->MergeClusters(cluster_ids);
@@ -1242,7 +1244,7 @@ void ScatterPointGlyph::OnMergeClusterTriggered() {
 void ScatterPointGlyph::OnTreemapNodeSelected(int node_id) {
 	trans_map_->OnNodeSelected(node_id);
 
-	std::vector< int > selection_index;
+	std::vector<int> selection_index;
 	trans_map_->GetSelectedClusterIndex(selection_index);
 	if (original_point_rendering_layer_ != NULL && trans_map_ != NULL) {
 		original_point_rendering_layer_->SetHighlightClusters(selection_index);
@@ -1288,12 +1290,12 @@ void ScatterPointGlyph::OnMainViewInteractionModeChanged() {
 }
 
 void ScatterPointGlyph::OnSavePathSequenceTriggered() {
-	std::list< CNode* > node_seq = trans_map_->GetNodeSequence();
+	std::list<CNode*> node_seq = trans_map_->GetNodeSequence();
 
 	PathRecord* record = new PathRecord;
 	record->item_values.resize(node_seq.size());
 	record->item_color.resize(node_seq.size());
-	std::list< CNode* >::iterator node_iter = node_seq.begin();
+	std::list<CNode*>::iterator node_iter = node_seq.begin();
 
 	int count = 0;
 	while (node_iter != node_seq.end()) {
@@ -1358,14 +1360,14 @@ void ScatterPointGlyph::OnMappingVarValueTriggered() {
 				break;
 			}
 
-		std::vector< float > values;
+		std::vector<float> values;
         for (int i = 0; i < scatter_point_dataset_->original_point_values.size(); ++i) 
             values.push_back(scatter_point_dataset_->original_point_values[i][var_index - 1]);
         original_point_rendering_layer_->SetPointValue(values);
         main_view_->update();
 	} else {
 		trans_map_->ShowVarTrend(-1);
-        std::vector< float > values;
+        std::vector<float> values;
         original_point_rendering_layer_->SetPointValue(values);
         main_view_->update();
 	}

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <map>
+using namespace std;
 #include <QtCore/QString>
 #include <QtGui/QColor>
 
@@ -21,29 +22,30 @@ public:
 
 	// original data, var_names, var_weights, original_point_values should be set manually
 	int var_num = {0};
-	std::vector< QString > var_names;
-	std::vector< float > var_weights;
-    std::vector< QColor > var_colors;
-	std::vector< std::vector< float > > original_point_values;
+	vector<QString> var_names;
+	vector<float> var_weights;
+    vector<QColor> var_colors;
 
-	int point_num = {0};
-	// normalized point positions
-	std::vector< std::vector< float > > point_pos;
-	// normalized point variable values
-	std::vector< std::vector< float > > point_values;
+    int point_num = {0};
+
+	vector<vector<float>> original_point_values;
+    // the value ranges of the points before normalization
+	vector<vector<float>> original_value_ranges;
 
 	// mds result
-	std::vector< std::vector< float > > original_point_pos;
+	vector<vector<float>> original_point_pos;
 	// the position ranges of the points before normalization
-	std::vector< std::vector< float > > original_pos_ranges;
+	vector<vector<float>> original_pos_ranges;
     float max_pos_range;
 
-	// the value ranges of the points before normalization
-	std::vector< std::vector< float > > original_value_ranges;
+    // normalized point positions
+	vector<vector<float>> normalized_point_pos;
+	// normalized point variable values
+	vector<vector<float>> normalized_point_values;
 
-	std::vector< float > adaptive_rate;
+	vector<float> adaptive_rate;
 
-	void ManualSelectDim(std::vector< bool >& is_dim_selected);
+	void ManualSelectDim(vector<bool>& is_dim_selected);
 	// TODO: Add automatic dimension reduction method
 	void AutoDimReduction(int dim_num);
 
@@ -59,10 +61,10 @@ public:
 	void ClearData();
 
 protected:
-    std::vector< int > selected_vars;
+    vector<int> selected_vars;
 	// The x and y coordinate share the same scale. All values are normalized to [0, 1]
-	void NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
-	void NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges);
+	void NormalizePosition(vector<vector<float>>& vec, vector<vector<float>>& ranges);
+	void NormalizeValues(vector<vector<float>>& vec, vector<vector<float>>& ranges);
 };
 
 #endif

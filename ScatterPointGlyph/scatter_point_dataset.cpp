@@ -14,8 +14,8 @@ ScatterPointDataset::~ScatterPointDataset() {
 void ScatterPointDataset::ClearData() {
 	var_num = 0;
 	point_num = 0;
-	point_pos.clear();
-	point_values.clear();
+	normalized_point_pos.clear();
+	normalized_point_values.clear();
 
 	original_point_pos.clear();
 	original_pos_ranges.clear();
@@ -34,21 +34,21 @@ void ScatterPointDataset::DirectConstruct() {
     // assign variable colors
     ColorMappingGenerator::GetInstance()->GetQualitativeColors(var_num, var_colors);
 
-	point_pos = original_point_pos;
-	point_values = original_point_values;
+	normalized_point_pos = original_point_pos;
+	normalized_point_values = original_point_values;
 
-	NormalizePosition(this->point_pos, this->original_pos_ranges);
-	NormalizeValues(this->point_values, this->original_value_ranges);
+	NormalizePosition(this->normalized_point_pos, this->original_pos_ranges);
+	NormalizeValues(this->normalized_point_values, this->original_value_ranges);
 
 	// construct adaptive rate
-	std::vector< std::vector< float > > point_dis;
-	point_dis.resize(this->point_pos.size());
+	/*vector<vector<float>> point_dis;
+	point_dis.resize(this->normalized_point_pos.size());
 	for (int i = 0; i < point_num; ++i)
-		point_dis[i].resize(point_pos.size());
-	for (int i = 0; i < this->point_pos.size() - 1; ++i) {
+		point_dis[i].resize(normalized_point_pos.size());
+	for (int i = 0; i < this->normalized_point_pos.size() - 1; ++i) {
 		point_dis[i][i] = 0;
-		for (int j = i + 1; j < this->point_pos.size(); ++j) {
-			float dis = sqrt(pow(point_pos[i][0] - point_pos[j][0], 2) + pow(point_pos[i][1] - point_pos[j][1], 2));
+		for (int j = i + 1; j < this->normalized_point_pos.size(); ++j) {
+			float dis = sqrt(pow(normalized_point_pos[i][0] - normalized_point_pos[j][0], 2) + pow(normalized_point_pos[i][1] - normalized_point_pos[j][1], 2));
 			point_dis[i][j] = dis;
 			point_dis[j][i] = dis;
 		}
@@ -64,14 +64,14 @@ void ScatterPointDataset::DirectConstruct() {
 		ave_dis /= (kNum - 1);
 		if (ave_dis > 0.1) ave_dis = 0.1;
 		adaptive_rate[i] = ave_dis;
-	}
+	}*/
 }
 
 void ScatterPointDataset::AutoDimReduction(int dim_num) {
 
 }
 
-void ScatterPointDataset::ManualSelectDim(std::vector< bool >& is_dim_selected) {
+void ScatterPointDataset::ManualSelectDim(vector<bool>& is_dim_selected) {
     selected_vars.clear();
     for (int i = 0; i < is_dim_selected.size(); ++i)
         if (is_dim_selected[i]) selected_vars.push_back(i);
@@ -142,7 +142,7 @@ void ScatterPointDataset::ExecMds() {
 	}
 }
 
-void ScatterPointDataset::NormalizeValues(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges){
+void ScatterPointDataset::NormalizeValues(vector<vector<float>>& vec, vector<vector<float>>& ranges){
 	ranges.resize(vec[0].size());
 
 	for (int i = 0; i < vec[0].size(); ++i){
@@ -168,7 +168,7 @@ void ScatterPointDataset::NormalizeValues(std::vector< std::vector< float > >& v
 	}
 }
 
-void ScatterPointDataset::NormalizePosition(std::vector< std::vector< float > >& vec, std::vector< std::vector< float > >& ranges) {
+void ScatterPointDataset::NormalizePosition(vector<vector<float>>& vec, vector<vector<float>>& ranges) {
 	ranges.resize(vec[0].size());
 
 	max_pos_range = -1e10;

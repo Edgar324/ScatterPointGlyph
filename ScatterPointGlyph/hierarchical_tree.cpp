@@ -3,7 +3,7 @@
 #include "scatter_point_dataset.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
-	: TreeCommon(data), expected_cluster_num_(1), type_(CENTER_DISTANCE) {
+	: TreeCommon(data), expected_cluster_num_(4096), type_(CENTER_DISTANCE) {
 }
 
 HierarchicalTree::~HierarchicalTree() {
@@ -19,7 +19,7 @@ void HierarchicalTree::SetDistanceType(DistanceType type) {
 }
 
 void HierarchicalTree::GenerateClusters() {
-    std::vector< CNode* > leaf_nodes = root_->linked_nodes;
+    std::vector<CNode*> leaf_nodes = root_->linked_nodes;
     root_->linked_nodes.clear();
     for (int i = 0; i < leaf_nodes.size(); ++i) {
         CBranch* branch = new CBranch;
@@ -28,9 +28,11 @@ void HierarchicalTree::GenerateClusters() {
         root_->linked_nodes.push_back(branch);
     }
 
-    std::vector< std::vector< bool > > connecting_status = this->node_connecting_status_;
+    std::vector<std::vector<bool>> connecting_status = this->node_connecting_status_;
 
 	while (root_->linked_nodes.size() > expected_cluster_num_) {
+        cout << "Cluster Number: " << root_->linked_nodes.size() << endl;
+
 		int min_node_index[2];
 		float min_node_dis = 1e20;
 		min_node_index[0] = -1;

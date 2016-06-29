@@ -132,7 +132,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 		i -> is_marked = 0;
 		i -> is_in_changed_list = 0;
 		i -> TS = TIME;
-		if (i->tr_cap > 0)
+		if (i->tr_cap> 0)
 		{
 			/* i is connected to the source */
 			i -> is_sink = 0;
@@ -140,7 +140,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 			set_active(i);
 			i -> DIST = 1;
 		}
-		else if (i->tr_cap < 0)
+		else if (i->tr_cap <0)
 		{
 			/* i is connected to the sink */
 			i -> is_sink = 1;
@@ -184,7 +184,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 			continue;
 		}
 
-		if (i->tr_cap > 0)
+		if (i->tr_cap> 0)
 		{
 			if (!i->parent || i->is_sink)
 			{
@@ -195,7 +195,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 					if (!j->is_marked)
 					{
 						if (j->parent == a->sister) set_orphan_rear(j);
-						if (j->parent && j->is_sink && a->r_cap > 0) set_active(j);
+						if (j->parent && j->is_sink && a->r_cap> 0) set_active(j);
 					}
 				}
 				add_to_changed_list(i);
@@ -212,7 +212,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 					if (!j->is_marked)
 					{
 						if (j->parent == a->sister) set_orphan_rear(j);
-						if (j->parent && !j->is_sink && a->sister->r_cap > 0) set_active(j);
+						if (j->parent && !j->is_sink && a->sister->r_cap> 0) set_active(j);
 					}
 				}
 				add_to_changed_list(i);
@@ -255,17 +255,17 @@ template <typename captype, typename tcaptype, typename flowtype>
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
-		if (bottleneck > a->sister->r_cap) bottleneck = a -> sister -> r_cap;
+		if (bottleneck> a->sister->r_cap) bottleneck = a -> sister -> r_cap;
 	}
-	if (bottleneck > i->tr_cap) bottleneck = i -> tr_cap;
+	if (bottleneck> i->tr_cap) bottleneck = i -> tr_cap;
 	/* 1b - the sink tree */
 	for (i=middle_arc->head; ; i=a->head)
 	{
 		a = i -> parent;
 		if (a == TERMINAL) break;
-		if (bottleneck > a->r_cap) bottleneck = a -> r_cap;
+		if (bottleneck> a->r_cap) bottleneck = a -> r_cap;
 	}
-	if (bottleneck > - i->tr_cap) bottleneck = - i -> tr_cap;
+	if (bottleneck> - i->tr_cap) bottleneck = - i -> tr_cap;
 
 
 	/* 2. Augmenting */
@@ -521,7 +521,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 				}
 				else if (j->is_sink) break;
 				else if (j->TS <= i->TS &&
-				         j->DIST > i->DIST)
+				         j->DIST> i->DIST)
 				{
 					/* heuristic - trying to make the distance from j to the source shorter */
 					j -> parent = a -> sister;
@@ -548,7 +548,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 				}
 				else if (!j->is_sink) { a = a -> sister; break; }
 				else if (j->TS <= i->TS &&
-				         j->DIST > i->DIST)
+				         j->DIST> i->DIST)
 				{
 					/* heuristic - trying to make the distance from j to the sink shorter */
 					j -> parent = a -> sister;
@@ -643,13 +643,13 @@ template <typename captype, typename tcaptype, typename flowtype>
 		else if (i->parent == ORPHAN) {}
 		else if (i->parent == TERMINAL)
 		{
-			if (!i->is_sink) assert(i->tr_cap > 0);
-			else             assert(i->tr_cap < 0);
+			if (!i->is_sink) assert(i->tr_cap> 0);
+			else             assert(i->tr_cap <0);
 		}
 		else
 		{
-			if (!i->is_sink) assert (i->parent->sister->r_cap > 0);
-			else             assert (i->parent->r_cap > 0);
+			if (!i->is_sink) assert (i->parent->sister->r_cap> 0);
+			else             assert (i->parent->r_cap> 0);
 		}
 		// test whether passive nodes in search trees have neighbors in
 		// a different tree through non-saturated edges
@@ -657,10 +657,10 @@ template <typename captype, typename tcaptype, typename flowtype>
 		{
 			if (!i->is_sink)
 			{
-				assert(i->tr_cap >= 0);
+				assert(i->tr_cap>= 0);
 				for (a=i->first; a; a=a->next)
 				{
-					if (a->r_cap > 0) assert(a->head->parent && !a->head->is_sink);
+					if (a->r_cap> 0) assert(a->head->parent && !a->head->is_sink);
 				}
 			}
 			else
@@ -668,7 +668,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 				assert(i->tr_cap <= 0);
 				for (a=i->first; a; a=a->next)
 				{
-					if (a->sister->r_cap > 0) assert(a->head->parent && a->head->is_sink);
+					if (a->sister->r_cap> 0) assert(a->head->parent && a->head->is_sink);
 				}
 			}
 		}
@@ -676,7 +676,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 		if (i->parent && i->parent!=ORPHAN && i->parent!=TERMINAL)
 		{
 			assert(i->TS <= i->parent->head->TS);
-			if (i->TS == i->parent->head->TS) assert(i->DIST > i->parent->head->DIST);
+			if (i->TS == i->parent->head->TS) assert(i->DIST> i->parent->head->DIST);
 		}
 	}
 }
@@ -689,13 +689,13 @@ template <typename captype, typename tcaptype, typename flowtype>
 
 	reset();
 
-	if (node_max < nodes + g0->node_num)
+	if (node_max <nodes + g0->node_num)
 	{
 		free(nodes);
 		nodes = node_last = (node*) malloc(g0->node_num*sizeof(node));
 		node_max = nodes + g0->node_num;
 	}
-	if (arc_max < arcs + (g0->arc_last - g0->arcs))
+	if (arc_max <arcs + (g0->arc_last - g0->arcs))
 	{
 		free(arcs);
 		arcs = arc_last = (arc*) malloc((g0->arc_last - g0->arcs)*sizeof(arc));

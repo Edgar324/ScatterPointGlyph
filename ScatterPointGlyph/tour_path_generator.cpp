@@ -92,13 +92,13 @@ void TourPathGenerator::SetData(TransMapData* data) {
 bool TourPathGenerator::GenerateSpanningTree() {
 	if (trans_data_ == NULL) return false;
 
-	typedef adjacency_list < vecS, vecS, undirectedS, no_property, property < edge_weight_t, double > > Graph;
+	typedef adjacency_list < vecS, vecS, undirectedS, no_property, property < edge_weight_t, double>> Graph;
 	typedef property_map< Graph, edge_weight_t >::type WeightMap;
 	typedef graph_traits< Graph >::edge_descriptor Edge;
 
 	int ncount = trans_data_->level_one_nodes.size();
-	std::vector< std::pair< int, int > > node_edges;
-	std::vector< float > weights;
+	std::vector<std::pair< int, int>> node_edges;
+	std::vector<float> weights;
 	for (int i = 0; i < ncount - 1; ++i)
 		for (int j = i + 1; j < ncount; ++j)
 			if (trans_data_->node_connecting_status[i][j]) {
@@ -153,8 +153,8 @@ bool TourPathGenerator::GenerateSpanningTree() {
 bool TourPathGenerator::GenerateVarTrend(int var_index) {
 	if (trans_data_ == NULL) return false;
 
-	std::vector< int > node_index;
-	std::vector< float > var_values;
+	std::vector<int> node_index;
+	std::vector<float> var_values;
 	node_index.resize(trans_data_->level_one_nodes.size());
 	var_values.resize(trans_data_->level_one_nodes.size());
 	for (int i = 0; i < node_index.size(); ++i) {
@@ -182,19 +182,19 @@ bool TourPathGenerator::GenerateVarTrend(int var_index) {
 	return true;
 }
 
-bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list) {
+bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector<int>& tour_list) {
 	if (trans_data_ == NULL) return false;
 
 	tour_list.clear();
 
-	std::vector< bool > is_node_used;
+	std::vector<bool> is_node_used;
 	is_node_used.resize(trans_data_->level_one_nodes.size(), false);
 
-	std::vector< float > min_dis;
+	std::vector<float> min_dis;
 	min_dis.resize(trans_data_->level_one_nodes.size(), 99999);
 	min_dis[begin] = 0;
 
-	std::vector< int > pre_node;
+	std::vector<int> pre_node;
 	pre_node.resize(trans_data_->level_one_nodes.size(), -1);
 
 
@@ -238,11 +238,11 @@ bool TourPathGenerator::GenerateMinimumPath(int begin, int end, std::vector< int
 bool TourPathGenerator::GenerateRoundPath() {
 	if (trans_data_ == NULL) return false;
 
-	typedef std::vector< simple_point< double > > PositionVec;
+	typedef std::vector<simple_point< double>> PositionVec;
 	typedef adjacency_matrix < undirectedS, no_property, property < edge_weight_t, double> > Graph;
 	typedef graph_traits< Graph >::vertex_descriptor Vertex;
 
-	typedef std::vector< Vertex > Container;
+	typedef std::vector<Vertex > Container;
 	typedef property_map< Graph, edge_weight_t >::type WeightMap;
 	typedef property_map< Graph, vertex_index_t >::type VertexMap;
 
@@ -289,16 +289,16 @@ bool TourPathGenerator::GenerateRoundPath() {
 	return true;
 }
 
-bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vector< int >& tour_list) {
+bool TourPathGenerator::GenerateRoundPath(std::vector<CNode*>& nodes, std::vector<int>& tour_list) {
 	if (nodes.size() < 3) {
 		for (int i = 0; i < nodes.size(); ++i) tour_list.push_back(i);
 		return true;
 	}
-	typedef std::vector< simple_point< double > > PositionVec;
+	typedef std::vector<simple_point< double>> PositionVec;
 	typedef adjacency_matrix < undirectedS, no_property, property < edge_weight_t, double> > Graph;
 	typedef graph_traits< Graph >::vertex_descriptor Vertex;
 
-	typedef std::vector< Vertex > Container;
+	typedef std::vector<Vertex > Container;
 	typedef property_map< Graph, edge_weight_t >::type WeightMap;
 	typedef property_map< Graph, vertex_index_t >::type VertexMap;
 
@@ -374,7 +374,7 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vec
 	std::cout << "Length of Tour: " << len << endl;
 #endif
 
-	std::vector< int > temp_list;
+	std::vector<int> temp_list;
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
 		temp_list.push_back(*itr);
 	}
@@ -397,12 +397,12 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< CNode* >& nodes, std::vec
 	return true;
 }
 
-bool TourPathGenerator::GenerateRoundPath(std::vector< std::vector< float > >& node_dis, std::vector< int >& tour_list) {
-	typedef std::vector< simple_point< double > > PositionVec;
+bool TourPathGenerator::GenerateRoundPath(std::vector<std::vector<float>>& node_dis, std::vector<int>& tour_list) {
+	typedef std::vector<simple_point< double>> PositionVec;
 	typedef adjacency_matrix < undirectedS, no_property, property < edge_weight_t, double> > Graph;
 	typedef graph_traits< Graph >::vertex_descriptor Vertex;
 
-	typedef std::vector< Vertex > Container;
+	typedef std::vector<Vertex > Container;
 	typedef property_map< Graph, edge_weight_t >::type WeightMap;
 	typedef property_map< Graph, vertex_index_t >::type VertexMap;
 
@@ -465,7 +465,7 @@ bool TourPathGenerator::GenerateRoundPath(std::vector< std::vector< float > >& n
 	std::cout << "Length of Tour: " << len << endl;
 #endif
 
-	std::vector< int > temp_list;
+	std::vector<int> temp_list;
 	for (vector<Vertex>::iterator itr = c.begin(); itr != c.end(); ++itr){
 		temp_list.push_back(*itr);
 	}

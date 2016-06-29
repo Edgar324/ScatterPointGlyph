@@ -11,7 +11,7 @@ VariableSelectionDialog::~VariableSelectionDialog() {
 
 }
 
-void VariableSelectionDialog::SetDatasetInfo(int pnum, int vnum, std::vector< QString >& var_names) {
+void VariableSelectionDialog::SetDatasetInfo(int pnum, int vnum, std::vector<QString >& var_names) {
 	ui_.point_num_label->setText(QString("%0").arg(pnum));
 	ui_.variable_number_label->setText(QString("%0").arg(vnum));
 
@@ -34,7 +34,7 @@ void VariableSelectionDialog::SetDatasetInfo(int pnum, int vnum, std::vector< QS
 	ui_.variable_selection_widget->setLayout(grid_layout);
 }
 
-void VariableSelectionDialog::GetSelectionResult(std::vector< float >& weights) {
+void VariableSelectionDialog::GetSelectionResult(std::vector<float>& weights) {
 	weights.resize(var_weight_spin_boxes_.size());
 	for (int i = 0; i < var_check_boxes_.size(); ++i)
 		if (var_check_boxes_[i]->isChecked())

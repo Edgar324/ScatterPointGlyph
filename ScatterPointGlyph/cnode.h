@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+using namespace std;
 #include <QtGui/QColor>
 
 class CBranch;
@@ -24,9 +25,9 @@ public:
 	CBranch* parent = NULL;
 
 	int point_count;
-	std::vector< float > center_pos;
-	std::vector< float > average_values;
-	std::vector< float > variable_variances;
+	std::vector<float> center_pos;
+	std::vector<float> average_values;
+	std::vector<float> variable_variances;
 	float general_variance;
 
     float saliency;
@@ -62,7 +63,7 @@ public:
 
 	virtual CNode::NodeType type() { return CNode::LEAF; }
 
-	std::vector< int > linked_points;
+	std::vector<int> linked_points;
 };
 
 class CBranch : public CNode
@@ -73,10 +74,10 @@ public:
 
 	virtual CNode::NodeType type() { return CNode::BRANCH; }
 
-	std::vector< CNode* > linked_nodes;
+	std::vector<CNode*> linked_nodes;
 	// The placement positions for the linked_nodes
 	// This can be generated either by manually or by TSP algorithm
-	std::vector< int > sorting_index;
+	std::vector<int> sorting_index;
 };
 
 #endif

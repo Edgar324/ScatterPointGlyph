@@ -10,14 +10,14 @@ public:
 	PathRecord() {}
 	~PathRecord() {}
 
-	std::vector< QColor > item_color;
-	std::vector< std::vector< float > > item_values;
+	std::vector<QColor> item_color;
+	std::vector<std::vector<float>> item_values;
 
-	std::vector< std::vector< float > > change_values;
+	std::vector<std::vector<float>> change_values;
 
-	std::vector< float > var_normalizing_values;
-	std::vector< float > var_min_values;
-	std::vector< std::string > var_names;
+	std::vector<float> var_normalizing_values;
+	std::vector<float> var_min_values;
+	std::vector<std::string> var_names;
 };
 
 class PathDataset
@@ -26,7 +26,7 @@ public:
 	PathDataset() {}
 	~PathDataset() {}
 
-	std::vector< PathRecord* > path_records;
+	std::vector<PathRecord*> path_records;
 };
 
 #endif

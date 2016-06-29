@@ -104,7 +104,7 @@ private:
 	SystemMode sys_mode_;
 	TreeCommon* cluster_tree_;
 	int current_view_level_;
-	std::vector< int > var_axis_order;
+	std::vector<int> var_axis_order;
 
 	// thresholds for each cluster method
 	float multi_label_threshold_ = 0.2;

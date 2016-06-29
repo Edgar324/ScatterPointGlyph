@@ -230,7 +230,7 @@ void TransMap::SetInteractionState(WidgetState s){
 	this->parent_view->update();
 }
 
-void TransMap::SetAxisOrder(std::vector< int >& order) {
+void TransMap::SetAxisOrder(std::vector<int>& order) {
 	axis_order_ = order;
 	this->UpdateNodeActors();
 }
@@ -240,19 +240,19 @@ void TransMap::SetIndicatorRenderer(vtkRenderer* renderer) {
 }
 
 void TransMap::OnNodeSelected(int node_id) {
-	std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+	std::map< int, CNode*>::iterator iter = dataset_->cluster_node_map.begin();
     while (iter != dataset_->cluster_node_map.end() && iter->second->id() != node_id) iter++; 
 	if (iter != dataset_->cluster_node_map.end()) OnNodeSelected(iter->second);
 }
 
-void TransMap::GetFocusVarIndex(std::vector< int >& focus_index) {
+void TransMap::GetFocusVarIndex(std::vector<int>& focus_index) {
     focus_index = this->focus_var_index_;
 }
 
 int TransMap::GetSelectedClusterIndex() {
 	if (highlight_node_sequence.size() != 0) {
-		std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
-		std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+		std::list<CNode*>::iterator node_iter = highlight_node_sequence.begin();
+		std::map< int, CNode*>::iterator iter = dataset_->cluster_node_map.begin();
 		while (iter != dataset_->cluster_node_map.end() && iter->second != *node_iter) iter++;
 		if (iter != dataset_->cluster_node_map.end()) {
 			return iter->first;
@@ -261,12 +261,12 @@ int TransMap::GetSelectedClusterIndex() {
 	return -1;
 }
 
-void TransMap::GetSelectedClusterIndex(std::vector< int >& index) {
+void TransMap::GetSelectedClusterIndex(std::vector<int>& index) {
 	index.clear();
 
-	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	std::list<CNode*>::iterator node_iter = highlight_node_sequence.begin();
 	while (node_iter != highlight_node_sequence.end()) {
-		std::map< int, CNode* >::iterator iter = dataset_->cluster_node_map.begin();
+		std::map< int, CNode*>::iterator iter = dataset_->cluster_node_map.begin();
 		while (iter != dataset_->cluster_node_map.end() && iter->second != *node_iter) iter++;
 		if (iter != dataset_->cluster_node_map.end()) {
 			index.push_back(iter->first);
@@ -275,20 +275,20 @@ void TransMap::GetSelectedClusterIndex(std::vector< int >& index) {
 	}
 }
 
-void TransMap::GetSelectedClusterIds(std::vector< int >& ids) {
+void TransMap::GetSelectedClusterIds(std::vector<int>& ids) {
 	ids.clear();
 
-	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	std::list<CNode*>::iterator node_iter = highlight_node_sequence.begin();
 	while (node_iter != highlight_node_sequence.end()) {
 		ids.push_back((*node_iter)->id());
 		node_iter++;
 	}
 }
 
-void TransMap::GetSelectedClusterNodes(std::vector< CNode* >& nodes) {
+void TransMap::GetSelectedClusterNodes(std::vector<CNode*>& nodes) {
 	nodes.clear();
 
-	std::list< CNode* >::iterator node_iter = highlight_node_sequence.begin();
+	std::list<CNode*>::iterator node_iter = highlight_node_sequence.begin();
 	while (node_iter != highlight_node_sequence.end()) {
 		nodes.push_back(*node_iter);
 		node_iter++;
@@ -366,7 +366,7 @@ void TransMap::UpdateNodeActors() {
     int seg_per_circle = 50;
     int seg_num = seg_per_circle - 1;
     float gray_value = 128;
-    std::vector< vtkIdType > inner_ids, outer_ids;
+    std::vector<vtkIdType > inner_ids, outer_ids;
     for (int j = 0; j <= seg_num; ++j) {
         float end_arc = -1 * j * 3.14159 * 2 / seg_per_circle + 3.14159 * 0.5;
         float x = 1.0 * cos(end_arc) * 1.05;
@@ -433,7 +433,7 @@ void TransMap::UpdateNodeActors() {
 
             int seg_per_circle = 50;
 			// insert background
-			std::vector< vtkIdType > background_ids;
+			std::vector<vtkIdType > background_ids;
 			for (int j = 0; j <= seg_per_circle; ++j) {
 				float end_arc = j * 3.14159 * 2 / seg_per_circle;
 				float x = node_radius_ * cos(end_arc);
@@ -450,7 +450,7 @@ void TransMap::UpdateNodeActors() {
 			polydata->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, background_ids.data());
 
             // insert background contour
-            std::vector< vtkIdType > background_contour_ids;
+            std::vector<vtkIdType > background_contour_ids;
 			for (int j = 0; j <= seg_per_circle; ++j) {
 				float end_arc = j * 3.14159 * 2 / seg_per_circle;
 				float x = node_radius_ * cos(end_arc);
@@ -466,7 +466,7 @@ void TransMap::UpdateNodeActors() {
                 polydata->InsertNextCell(VTK_LINE, 2, cell_ids);
             }
 
-			std::vector< vtkIdType > center_cirlce_ids;
+			std::vector<vtkIdType > center_cirlce_ids;
 			for (int j = 0; j <= seg_per_circle; ++j) {
 				float end_arc = j * 3.14159 * 2 / seg_per_circle;
 				float x = node_radius_ * 0.05 * cos(end_arc);
@@ -512,7 +512,7 @@ void TransMap::UpdateNodeActors() {
             float point_rate = (float)node->point_count / max_node_point_num;
             int seg_num = (seg_per_circle - 1) * point_rate;
             float gray_value = 250 * (1.0 - exp(-3 * (1.0 - node->saliency)));
-            std::vector< vtkIdType > inner_ids, outer_ids;
+            std::vector<vtkIdType > inner_ids, outer_ids;
             for (int j = 0; j <= seg_num; ++j) {
                 float end_arc = -1 * j * 3.14159 * 2 / seg_per_circle + 3.14159 * 0.5;
                 float x = node_radius_ * cos(end_arc) * 1.05;
@@ -543,10 +543,10 @@ void TransMap::UpdateNodeActors() {
 
 #ifdef RADAR_GLYPH
 			// paint variance
-            std::vector< vtkIdType > value_pos_ids;
+            std::vector<vtkIdType > value_pos_ids;
 			value_pos_ids.resize(dataset_->var_num);
 
-			std::vector< int > var_point_ids;
+			std::vector<int> var_point_ids;
 			var_point_ids.resize(dataset_->var_num * 2);
 			for (int j = 0; j < dataset_->var_num; ++j) {
                 int var_index = axis_order_[j];
@@ -635,9 +635,9 @@ void TransMap::UpdateNodeActors() {
 			}
 #else
 			// paint variance
-			std::vector< vtkIdType > var_point_ids1;
-			std::vector< vtkIdType > var_point_ids2;
-			std::vector< vtkIdType > gray_region_ids;
+			std::vector<vtkIdType > var_point_ids1;
+			std::vector<vtkIdType > var_point_ids2;
+			std::vector<vtkIdType > gray_region_ids;
 			int seg_per_pie = 30;
 			var_point_ids1.resize(2 * seg_per_pie);
 			var_point_ids2.resize(2 * seg_per_pie);
@@ -731,7 +731,7 @@ void TransMap::UpdateNodeActors() {
 				}*/
 
 				if (var_index == current_highlight_var_index_ && current_node_ != NULL) {
-					std::vector< int > comp_ids;
+					std::vector<int> comp_ids;
 					comp_ids.resize(seg_per_pie);
 
 					float temp_arc = begin_arc;
@@ -1004,8 +1004,10 @@ void TransMap::UpdateIconActor() {
     var_icon_actor_->Modified();
 }
 
-void TransMap::UpdateDensityActor(std::vector< QColor >& node_colors) {
+void TransMap::UpdateDensityActor(std::vector<QColor >& node_colors) {
 	if (dataset_ == NULL || scatter_data_ == NULL) return;
+
+    return;
 
     this->density_poly_->Initialize();
 
@@ -1088,7 +1090,7 @@ void TransMap::UpdateHightlightActor() {
 	float y = 0;
 	vtkIdType cell_ids[5];
 
-	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	std::list<CNode*>::iterator iter = highlight_node_sequence.begin();
 	int hightlight_node_index = 0;
 	while (iter != highlight_node_sequence.end()) {
 		CNode* temp_node = *iter;
@@ -1425,7 +1427,7 @@ void TransMap::OnMouseMove() {
 		this->parent_view->update();
 
 		if (current_highlight_var_index_ != -1) {
-			std::vector< float > ranges = dataset_->dataset->original_value_ranges[current_highlight_var_index_];
+			std::vector<float> ranges = dataset_->dataset->original_value_ranges[current_highlight_var_index_];
 			float average_value = current_node_->average_values[current_highlight_var_index_]
 				* (ranges[1] - ranges[0]) + ranges[0];
 			float variance_value = current_node_->variable_variances[current_highlight_var_index_] * (ranges[1] - ranges[0]);
@@ -1552,8 +1554,8 @@ void TransMap::OnLeftButtonUp() {
 			this->highlight_node_sequence.pop_front();
 		}
 
-		std::vector< int > min_dis_index_seq;
-		std::vector< int > node_index;
+		std::vector<int> min_dis_index_seq;
+		std::vector<int> node_index;
 
 		for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
 			CNode* node = dataset_->cluster_nodes[i];
@@ -1606,7 +1608,7 @@ void TransMap::OnLeftButtonUp() {
 void TransMap::OnNodeSelected(CNode* node) {
 	if (dataset_ == NULL || scatter_data_ == NULL || dataset_->cluster_num == 0) return;
 
-	std::list< CNode* >::iterator iter = this->highlight_node_sequence.begin();
+	std::list<CNode*>::iterator iter = this->highlight_node_sequence.begin();
 	while (iter != this->highlight_node_sequence.end() && (*iter)->id() != node->id()) iter++;
 	if (iter != this->highlight_node_sequence.end()) {
 		(*iter)->is_highlighted = false;
@@ -1662,7 +1664,7 @@ void TransMap::OnNodeSelected(CNode* node) {
 			int index_one = this->GetLevelOneNodeIndex(first_node);
 			int index_two = this->GetLevelOneNodeIndex(second_node);
 
-			std::vector< int > tour_list;
+			std::vector<int> tour_list;
 			this->path_generator_->GenerateMinimumPath(index_one, index_two, tour_list);
 
 			for (int i = 0; i < tour_list.size(); ++i) {
@@ -1685,7 +1687,7 @@ void TransMap::GenerateTransEdgeFromHighlight() {
 	this->trans_edges.clear();
 	if (this->highlight_node_sequence.size() <= 1) return;
 
-	std::list< CNode* >::iterator iter = this->highlight_node_sequence.begin();
+	std::list<CNode*>::iterator iter = this->highlight_node_sequence.begin();
 	int pre_index = GetClusterNodeIndex(*iter);
 	iter++;
 	while (iter != this->highlight_node_sequence.end()) {
@@ -1780,7 +1782,7 @@ bool TransMap::IsInsideSelection(float x, float y) {
 		return false;
 }
 
-void TransMap::Sort(std::vector< int >& index_one, std::vector< int >& index_two) {
+void TransMap::Sort(std::vector<int>& index_one, std::vector<int>& index_two) {
 	if (index_one.size() == 0) return;
 	for (int i = 0; i < index_one.size() - 1; ++i)
 		for (int j = i + 1; j < index_one.size(); ++j)
@@ -1867,7 +1869,7 @@ void TransMap::ForceFocusCenter() {
 	focus_pos_[0] = 0;
 	focus_pos_[1] = 0;
 	
-	std::list< CNode* >::iterator iter = highlight_node_sequence.begin();
+	std::list<CNode*>::iterator iter = highlight_node_sequence.begin();
 	while (iter != highlight_node_sequence.end()) {
 		CNode* temp_node = *iter;
 		float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];

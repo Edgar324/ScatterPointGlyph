@@ -154,7 +154,7 @@ void PointRenderingLayer::SetScatterPointEnabled(bool enabled)
     this->actor_->SetVisibility(enabled);
 }
 
-void PointRenderingLayer::SetPointValue(std::vector< float >& values){
+void PointRenderingLayer::SetPointValue(std::vector<float>& values){
 	point_values_ = values;
     if (values.size() == 0) {
         this->SetCategoryOff();
@@ -164,7 +164,7 @@ void PointRenderingLayer::SetPointValue(std::vector< float >& values){
 	    this->UpdateValueMapping();
 }
 
-void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector< int >& point_index, std::vector< QColor >& colors) {
+void PointRenderingLayer::SetClusterIndex(int cluster_count, std::vector<int>& point_index, std::vector<QColor >& colors) {
 	this->cluster_count_ = cluster_count;
 	this->point_index_ = point_index;
 
@@ -202,7 +202,7 @@ void PointRenderingLayer::SetHighlightCluster(int index) {
 	color_array->Modified();
 }
 
-void PointRenderingLayer::SetHighlightClusters(std::vector< int >& index) {
+void PointRenderingLayer::SetHighlightClusters(std::vector<int>& index) {
     bar_actor_->SetVisibility(false);
 
 	if (is_category_on_) SetCategoryOn();
@@ -298,7 +298,7 @@ void PointRenderingLayer::LoadMap(const char* file_name, float start_x, float en
         while ( !border_file.eof() ){
             int poly_size;
             float x, y;
-            std::vector< float > temp_poly;
+            std::vector<float> temp_poly;
             border_file >> poly_size;
             temp_poly.resize(poly_size * 2);
             bool is_negative = false;
@@ -315,7 +315,7 @@ void PointRenderingLayer::LoadMap(const char* file_name, float start_x, float en
                     break;
                 }*/
             is_used = true;
-            std::vector< vtkIdType > poly_ids;
+            std::vector<vtkIdType > poly_ids;
             if (is_used) {
                 for (int i = 0; i < temp_poly.size() / 2; ++i) {
                     poly_ids.push_back(points->InsertNextPoint(temp_poly[i * 2], temp_poly[i * 2 + 1], 0));

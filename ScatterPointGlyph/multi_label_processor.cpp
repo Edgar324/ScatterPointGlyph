@@ -13,7 +13,7 @@ MultiLabelProcessor::~MultiLabelProcessor() {
 
 }
 
-void MultiLabelProcessor::SetData(std::vector< std::vector< float > >& pos, std::vector< std::vector< float > >& value, std::vector < float >& weights, std::vector< std::vector< bool > >& edges) {
+void MultiLabelProcessor::SetData(std::vector<std::vector<float>>& pos, std::vector<std::vector<float>>& value, std::vector < float>& weights, std::vector<std::vector<bool>>& edges) {
 	this->point_num_ = pos.size();
 	this->point_pos_ = pos;
 	this->point_value_ = value;
@@ -21,16 +21,6 @@ void MultiLabelProcessor::SetData(std::vector< std::vector< float > >& pos, std:
 	this->edges_ = edges;
 
 	this->sample_num_ = point_num_;
-
-	this->edge_weights_.resize(edges.size());
-	for (int i = 0; i < edges.size(); ++i) {
-		this->edge_weights_[i].resize(edges[i].size());
-		this->edge_weights_[i].assign(edges_[i].size(), 0);
-	}
-}
-
-void MultiLabelProcessor::SetEdgeWeights(std::vector< std::vector< float > >& weights) {
-	this->edge_weights_ = weights;
 }
 
 void MultiLabelProcessor::SetLabelEstimationRadius(float radius) {
@@ -41,7 +31,7 @@ void MultiLabelProcessor::SetSampleNumber(int num) {
 	this->sample_num_ = num;
 }
 
-std::vector< int >& MultiLabelProcessor::GetResultLabel() {
+std::vector<int>& MultiLabelProcessor::GetResultLabel() {
 	return result_label_;
 }
 
@@ -68,7 +58,7 @@ void MultiLabelProcessor::UpdateEnergyCost() {
 		data_cost_[i].assign(label_num, -1);
 	}
 
-	std::vector< std::vector< float > > average_values;
+	std::vector<std::vector<float>> average_values;
 	average_values.resize(label_num);
 
 	for (int i = 0; i < label_num; ++i) {
@@ -131,10 +121,10 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 	// TODO: update the sample strategy
 	// while (sample_num_ > point_num_ / 2) sample_num_ /= 2;
 
-	std::vector< int > sample_center_index;
+	std::vector<int> sample_center_index;
 	if (sample_num_ != point_num_) {
 		srand((unsigned int)time(0));
-		std::vector< bool > is_selected;
+		std::vector<bool> is_selected;
 		is_selected.resize(point_num_, false);
 		for (int i = 0; i < sample_num_; ++i) {
 			int temp_index;
@@ -174,9 +164,9 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 		}
     if (connected_edge_num != 0) average_value_dis_ /= connected_edge_num;
 
-	std::vector< float > node_distance;
+	std::vector<float> node_distance;
 	node_distance.resize(point_num_);
-	std::vector< bool > is_reached;
+	std::vector<bool> is_reached;
 	is_reached.resize(point_num_);
 
 	for (int i = 0; i < sample_num_; ++i) {
@@ -209,7 +199,7 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 				}
 		}
 
-		std::vector< int > model;
+		std::vector<int> model;
 		for (int j = 0; j < is_reached.size(); ++j)
 			if (is_reached[j]) model.push_back(j);
 		this->estimated_models_.push_back(model);
@@ -251,7 +241,7 @@ void MultiLabelProcessor::GenerateCluster() {
 				gc->setSmoothCost(i, j, (int)(smooth_cost_[i][j] * 1000));
 			}
 
-		std::vector< int > temp_label_cost;
+		std::vector<int> temp_label_cost;
 		temp_label_cost.resize(label_num);
 		for (int i = 0; i < label_num; ++i) temp_label_cost[i] = (int)(label_cost_[i] * 1000);
 		gc->setLabelCost(temp_label_cost.data());

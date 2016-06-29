@@ -22,7 +22,7 @@ private:
 	PathDataset* dataset_;
 	
 	QGraphicsScene* scene_;
-	std::vector< PathExploreItem* > item_vec_;
+	std::vector<PathExploreItem*> item_vec_;
 
 	QGraphicsTextItem* title_item_;
 

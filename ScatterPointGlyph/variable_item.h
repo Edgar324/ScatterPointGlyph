@@ -15,14 +15,14 @@ public:
 	VariableItem(int var_index);
 	~VariableItem();
 
-	void SetData(QString var_name, QColor var_color, std::vector< float >& var_values, std::vector< int >& node_count, int selected_count, std::vector< std::vector< float > >& context);
+	void SetData(QString var_name, QColor var_color, std::vector<float>& var_values, std::vector<int>& node_count, int selected_count, std::vector<std::vector<float>>& context);
 	void SetValueRange(float min_value, float max_value);
 	void SetAbsWidthEnabled(bool enabled);
 	void SetHighlightEnabled(bool enabled);
 	QString GetTipString();
 
-    void SetValueIndex(std::vector< int >& index);
-    void GetValueIndex(std::vector< int >& index);
+    void SetValueIndex(std::vector<int>& index);
+    void GetValueIndex(std::vector<int>& index);
 
 signals:
 	void VarSelected(int);
@@ -37,16 +37,16 @@ protected:
 private:
 	int var_index_;
 
-	std::vector< float > var_values_;
-	std::vector< int > node_count_;
+	std::vector<float> var_values_;
+	std::vector<int> node_count_;
 	QColor var_color_;
 	QString var_name_;
 	int selected_count_;
 	int total_node_count_;
 
-    std::vector< int > value_index_;
+    std::vector<int> value_index_;
 
-	std::vector< std::vector< float > > sampled_context_data_;
+	std::vector<std::vector<float>> sampled_context_data_;
 	float ranges_[2];
 
 	bool is_abs_width_on_;

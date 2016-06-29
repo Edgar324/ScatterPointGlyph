@@ -23,82 +23,32 @@ void TreeCommon::SetTreeMode(TreeMode mode) {
 	tree_mode_ = mode;
 }
 
-void TreeCommon::ConstructOnOctree(float thre) {
+void TreeCommon::ConstructOnSlic(float thre) {
 
-}
-
-void TreeCommon::ConstructOnKmeans(int basic_cnum) {
-
-}
-
-void TreeCommon::ConstructOnRandomSample(int sample_num) {
-	srand((unsigned int)time(0));
-	std::vector< bool > is_used;
-	is_used.resize(dataset_->point_pos.size(), false);
-
-	root_->linked_nodes.clear();
-
-	float temp_min = 1e10;
-	for (int i = 0; i < dataset_->point_pos.size(); ++i)
-		if (!is_used[i]) {
-			is_used[i] = true;
-			CLeaf* temp_leaf = new CLeaf();
-			std::vector< int > neighbour_list;
-			neighbour_list.push_back(i);
-			for (int j = i + 1; j < dataset_->point_pos.size(); ++j){
-				float dis = sqrt(pow(dataset_->point_pos[j][0] - dataset_->point_pos[i][0], 2) + pow(dataset_->point_pos[j][1] - dataset_->point_pos[i][1], 2));
-				if (dis < 1e-5) {
-					neighbour_list.push_back(j);
-					is_used[j] = true;
-				}
-				if (dis < temp_min) temp_min = dis;
-			}
-			temp_leaf->linked_points = neighbour_list;
-
-			temp_leaf->center_pos.resize(2);
-			temp_leaf->center_pos[0] = 0;
-			temp_leaf->center_pos[1] = 0;
-			temp_leaf->average_values.resize(dataset_->var_weights.size());
-			for (int j = 0; j < dataset_->var_weights.size(); ++j)
-				temp_leaf->average_values[j] = 0;
-			for (int j = 0; j < neighbour_list.size(); ++j) {
-				temp_leaf->center_pos[0] += dataset_->point_pos[neighbour_list[j]][0];
-				temp_leaf->center_pos[1] += dataset_->point_pos[neighbour_list[j]][1];
-				for (int k = 0; k < dataset_->var_weights.size(); ++k)
-					temp_leaf->average_values[k] += dataset_->point_values[neighbour_list[j]][k];
-			}
-			temp_leaf->center_pos[0] /= neighbour_list.size();
-			temp_leaf->center_pos[1] /= neighbour_list.size();
-			for (int j = 0; j < dataset_->var_weights.size(); ++j)
-				temp_leaf->average_values[j] /= neighbour_list.size();
-
-			root_->linked_nodes.push_back(temp_leaf);
-			temp_leaf->set_level(0);
-		}
 }
 
 void TreeCommon::ConstructDirectly() {
 	float min_dis_threshold = 1e-5;
-	std::vector< bool > is_used;
-	is_used.resize(dataset_->point_pos.size(), false);
+	std::vector<bool> is_used;
+	is_used.resize(dataset_->normalized_point_pos.size(), false);
 
 	root_->linked_nodes.clear();
 
 	float temp_min = 1e10;
-	for (int i = 0; i < dataset_->point_pos.size(); ++i) 
+	for (int i = 0; i < dataset_->normalized_point_pos.size(); ++i) 
 		if (!is_used[i]) {
 			is_used[i] = true;
 			CLeaf* temp_leaf = new CLeaf();
-			std::vector< int > neighbour_list;
+			std::vector<int> neighbour_list;
 			neighbour_list.push_back(i);
-			for (int j = i + 1; j < dataset_->point_pos.size(); ++j){
-				float dis = sqrt(pow(dataset_->point_pos[j][0] - dataset_->point_pos[i][0], 2) + pow(dataset_->point_pos[j][1] - dataset_->point_pos[i][1], 2));
+			/*for (int j = i + 1; j < dataset_->normalized_point_pos.size(); ++j){
+				float dis = sqrt(pow(dataset_->normalized_point_pos[j][0] - dataset_->normalized_point_pos[i][0], 2) + pow(dataset_->normalized_point_pos[j][1] - dataset_->normalized_point_pos[i][1], 2));
 				if (dis < 1e-10) {
 					neighbour_list.push_back(j);
 					is_used[j] = true;
 				}
 				if (dis < temp_min) temp_min = dis;
-			}
+			}*/
 			temp_leaf->linked_points = neighbour_list;
 
 			temp_leaf->center_pos.resize(2);
@@ -108,10 +58,10 @@ void TreeCommon::ConstructDirectly() {
 			for (int j = 0; j < dataset_->var_weights.size(); ++j)
 				temp_leaf->average_values[j] = 0;
 			for (int j = 0; j < neighbour_list.size(); ++j) {
-				temp_leaf->center_pos[0] += dataset_->point_pos[neighbour_list[j]][0];
-				temp_leaf->center_pos[1] += dataset_->point_pos[neighbour_list[j]][1];
+				temp_leaf->center_pos[0] += dataset_->normalized_point_pos[neighbour_list[j]][0];
+				temp_leaf->center_pos[1] += dataset_->normalized_point_pos[neighbour_list[j]][1];
 				for (int k = 0; k < dataset_->var_weights.size(); ++k)
-					temp_leaf->average_values[k] += dataset_->point_values[neighbour_list[j]][k];
+					temp_leaf->average_values[k] += dataset_->normalized_point_values[neighbour_list[j]][k];
 			}
 			temp_leaf->center_pos[0] /= neighbour_list.size();
 			temp_leaf->center_pos[1] /= neighbour_list.size();
@@ -124,33 +74,33 @@ void TreeCommon::ConstructDirectly() {
 			temp_leaf->set_level(1);
 		}
 
-	min_edge_length_ = 1e10;
-	for (int i = 0; i < root_->linked_nodes.size() - 1; ++i)
+	min_edge_length_ = -1e10;
+	/*for (int i = 0; i < root_->linked_nodes.size() - 1; ++i)
 		for (int j = i + 1; j < root_->linked_nodes.size(); ++j) {
 			float temp_dis;
 			temp_dis = sqrt(pow(root_->linked_nodes[i]->center_pos[0] - root_->linked_nodes[j]->center_pos[0], 2)
 				+ pow(root_->linked_nodes[i]->center_pos[1] - root_->linked_nodes[j]->center_pos[1], 2));
 			if (temp_dis < min_edge_length_) min_edge_length_ = temp_dis;
-		}
+		}*/
 
 	this->ProgressNodeAndParentData(root_);
 }
 
-void TreeCommon::GetClusterResult(int level, std::vector< CNode* >& level_nodes) {
+void TreeCommon::GetClusterResult(int level, std::vector<CNode*>& level_nodes) {
 	this->Traverse(level, level_nodes);
 }
 
-void TreeCommon::GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index) {
+void TreeCommon::GetClusterResult(int level, int& cluster_num, std::vector<int>& cluster_index) {
 	cluster_index.resize(dataset_->point_num);
 	for (int i = 0; i < dataset_->point_num; ++i) cluster_index[i] = -1;
 
-	std::vector< CNode* > level_node;
+	std::vector<CNode*> level_node;
 	this->Traverse(level, level_node);
 
 	cluster_num = level_node.size();
 
 	for (int i = 0; i < level_node.size(); ++i) {
-		std::vector< int > point_vec;
+		std::vector<int> point_vec;
 		this->Traverse(level_node[i], point_vec);
 		for (int j = 0; j < point_vec.size(); ++j) cluster_index[point_vec[j]] = i;
 	}
@@ -169,13 +119,15 @@ void TreeCommon::run() {
 
 	this->ConstructDirectly();
 
-    id_node_map_.insert(std::map< int, CNode* >::value_type(root_->id(), root_));
+    id_node_map_.insert(std::map< int, CNode*>::value_type(root_->id(), root_));
 	for (int i = 0; i < root_->linked_nodes.size(); ++i) {
-		id_node_map_.insert(std::map< int, CNode* >::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
+		id_node_map_.insert(std::map< int, CNode*>::value_type(root_->linked_nodes[i]->id(), root_->linked_nodes[i]));
 	}
 
+    cout << "Begin triangulation!" << endl;
+    
     if (dataset_->type() == ScatterPointDataset::POINT_DATA) {
-        Utility::VtkTriangulation(root_->linked_nodes, node_connecting_status_, min_edge_length_);
+        //Utility::VtkTriangulation(root_->linked_nodes, node_connecting_status_, min_edge_length_);
     }
     else {
         ScatterGridDataset* grid_data = dynamic_cast<ScatterGridDataset*>(dataset_);
@@ -186,10 +138,14 @@ void TreeCommon::run() {
             grid_id_seq_map_.insert(std::map<int, int>::value_type(root_->linked_nodes[i]->id(), i));
     }
 
+    cout << "Triangulation Finished!" << endl;
+
 	if (tree_mode_ == EXPLORATION_MODE)
 		this->BeginClustering();
 	else
 		this->GenerateClusters();
+
+    cout << "Clustering Finished!" << endl;
 
 	this->ResetSortingIndex(root_);
 
@@ -198,9 +154,11 @@ void TreeCommon::run() {
 	this->AssignLeafLevel(root_, max_level_);
 
 	this->AssignColor(root_, 0, 1.0);
+
+    cout << "Attribute assignment finished!" << endl;
 }
 
-void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
+void TreeCommon::Traverse(int level, std::vector<CNode*>& nodes) {
     nodes.clear();
     TraverseLevelNodes(level, root_, nodes);
 	
@@ -210,7 +168,7 @@ void TreeCommon::Traverse(int level, std::vector< CNode* >& nodes) {
 		TraversAllNodes(root_, nodes);*/
 }
 
-void TreeCommon::TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes) {
+void TreeCommon::TraversAllNodes(CNode* root_node, std::vector<CNode*>& nodes) {
 	if (root_node != NULL && root_node->type() == CNode::BRANCH) {
 		CBranch* branch = dynamic_cast<CBranch*>(root_node);
 		branch->is_expanded = true;
@@ -232,7 +190,7 @@ void TreeCommon::TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes)
 	}
 }
 
-void TreeCommon::TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes) {
+void TreeCommon::TraverseLevelNodes(int level, CNode* root_node, std::vector<CNode*>& nodes) {
 	root_node->is_expanded = true;
 
 	if (root_node->level() == level) {
@@ -264,8 +222,8 @@ void TreeCommon::TraverseLevelNodes(int level, CNode* root_node, std::vector< CN
 	}
 }
 
-void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
-	std::queue< CNode* > node_queue;
+void TreeCommon::Traverse(CNode* node, std::vector<int>& linked_points) {
+	std::queue<CNode*> node_queue;
 	node_queue.push(node);
 
 	while (node_queue.size() != 0) {
@@ -290,7 +248,7 @@ void TreeCommon::Traverse(CNode* node, std::vector< int >& linked_points) {
 }
 
 void TreeCommon::AssignLeafLevel(CNode* node, int level) {
-	std::queue< CNode* > node_queue;
+	std::queue<CNode*> node_queue;
 	node_queue.push(node);
 
 	while (node_queue.size() != 0) {
@@ -322,7 +280,7 @@ void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor
 	}
 
 	float step = (hend - hstart) / count;
-	std::vector< float > temp_start, temp_end;
+	std::vector<float> temp_start, temp_end;
 	temp_start.resize(count);
 	temp_end.resize(count);
 
@@ -365,7 +323,7 @@ void TreeCommon::AssignColor(CNode* node, float hstart, float hend, float factor
 }
 
 void TreeCommon::ResetSortingIndex(CNode* node) {
-	std::queue< CNode* > node_queue;
+	std::queue<CNode*> node_queue;
 	node_queue.push(node);
 
 	while (node_queue.size() != 0) {
@@ -400,12 +358,12 @@ void TreeCommon::ResetLevel(CNode* node, int level) {
 	}
 }
 
-void TreeCommon::SortTree(std::vector< int >& node_ids) {
+void TreeCommon::SortTree(std::vector<int>& node_ids) {
 	int node_count = 0;
 	this->SortNode(root_, node_ids, node_count);
 }
 
-int TreeCommon::SortNode(CNode* node, std::vector< int >& node_ids, int& node_count) {
+int TreeCommon::SortNode(CNode* node, std::vector<int>& node_ids, int& node_count) {
 	if (node_count > node_ids.size()) return 9999;
 
 	// find all the nodes in the linked_nodes that exist in the node_index
@@ -414,9 +372,9 @@ int TreeCommon::SortNode(CNode* node, std::vector< int >& node_ids, int& node_co
 		for (int i = 0; i < node_ids.size(); ++i)
 			if (node_ids[i] == node->id()) return i;
 
-		std::vector< bool > is_node_exist;
-		std::vector< int > new_sequence;
-		std::vector< int > node_min_index;
+		std::vector<bool> is_node_exist;
+		std::vector<int> new_sequence;
+		std::vector<int> node_min_index;
 		node_min_index.resize(branch->linked_nodes.size(), 9999);
 		is_node_exist.resize(branch->linked_nodes.size(), false);
 
@@ -446,7 +404,7 @@ int TreeCommon::SortNode(CNode* node, std::vector< int >& node_ids, int& node_co
 }
 
 void TreeCommon::SplitCluster(int cluster_index) {
-	std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index);
+	std::map< int, CNode*>::iterator node_iter = id_node_map_.find(cluster_index);
 	if (node_iter == id_node_map_.end()) {
 		std::cout << "Cluster not found!" << std::endl;
 		return;
@@ -498,10 +456,10 @@ void TreeCommon::SplitCluster(int cluster_index) {
 	}*/
 }
 
-void TreeCommon::MergeClusters(std::vector< int >& cluster_index) {
-	std::vector< CNode* > cluster_nodes;
+void TreeCommon::MergeClusters(std::vector<int>& cluster_index) {
+	std::vector<CNode*> cluster_nodes;
 	for (int i = 0; i < cluster_index.size(); ++i) {
-		std::map< int, CNode* >::iterator node_iter = id_node_map_.find(cluster_index[i]);
+		std::map< int, CNode*>::iterator node_iter = id_node_map_.find(cluster_index[i]);
 		if (node_iter == id_node_map_.end()) {
 			std::cout << "Cluster not found!" << std::endl;
 			return;
@@ -533,7 +491,7 @@ void TreeCommon::MergeClusters(std::vector< int >& cluster_index) {
 			new_branch->radius = min_level_node->radius;
 			new_branch->parent = parent_node;
 			parent_node->linked_nodes.push_back(new_branch);
-			id_node_map_.insert(std::map< int, CNode* >::value_type(new_branch->id(), new_branch));
+			id_node_map_.insert(std::map< int, CNode*>::value_type(new_branch->id(), new_branch));
 
 			this->FindCommonParent(root_, cluster_index);
 
@@ -580,7 +538,7 @@ void TreeCommon::RemoveChildNode(CNode* node, bool is_empty_deleted) {
 }
 
 void TreeCommon::UpdateChildLevel(CBranch* node) {
-	std::queue< CNode* > node_queue;
+	std::queue<CNode*> node_queue;
 	for (int i = 0; i < node->linked_nodes.size(); ++i)
 		node_queue.push(node->linked_nodes[i]);
 
@@ -599,7 +557,7 @@ void TreeCommon::UpdateChildLevel(CBranch* node) {
 	AssignColor(node, node->hstart, node->hend);
 }
 
-int TreeCommon::FindCommonParent(CNode* node, std::vector< int >& node_ids) {
+int TreeCommon::FindCommonParent(CNode* node, std::vector<int>& node_ids) {
 	int value = 0;
 	for (int i = 0; i < node_ids.size(); ++i)
 		if (node->id() == node_ids[i]) {
@@ -622,19 +580,19 @@ void TreeCommon::ProgressNodeData(CNode* node) {
 	if (node == NULL) return;
 
 	// update the statistics
-	std::vector< int > point_index;
+	std::vector<int> point_index;
 	this->Traverse(node, point_index);
 
-	std::vector< float > average, variance, center_pos;
+	std::vector<float> average, variance, center_pos;
 	average.resize(dataset_->var_num, 0);
 	variance.resize(dataset_->var_num, 0);
 	center_pos.resize(2, 0);
 	for (int i = 0; i < point_index.size(); ++i) {
-		center_pos[0] += dataset_->point_pos[point_index[i]][0];
-		center_pos[1] += dataset_->point_pos[point_index[i]][1];
+		center_pos[0] += dataset_->normalized_point_pos[point_index[i]][0];
+		center_pos[1] += dataset_->normalized_point_pos[point_index[i]][1];
 
 		for (int j = 0; j < dataset_->var_num; ++j)
-			average[j] += dataset_->point_values[point_index[i]][j];
+			average[j] += dataset_->normalized_point_values[point_index[i]][j];
 	}
 	for (int i = 0; i < dataset_->var_num; ++i)
 		average[i] /= point_index.size();
@@ -643,7 +601,7 @@ void TreeCommon::ProgressNodeData(CNode* node) {
 
 	for (int i = 0; i < point_index.size(); ++i)
 		for (int j = 0; j < dataset_->var_num; ++j)
-			variance[j] += pow(dataset_->point_values[point_index[i]][j] - average[j], 2);
+			variance[j] += pow(dataset_->normalized_point_values[point_index[i]][j] - average[j], 2);
 	for (int i = 0; i < dataset_->var_num; ++i)
         if (point_index.size() > 1)
             variance[i] = sqrt(variance[i] / (point_index.size() - 1));
@@ -664,16 +622,16 @@ void TreeCommon::ProgressNodeAndParentData(CNode* node) {
 	ProgressNodeAndParentData(node->parent);
 }
 
-void TreeCommon::GetNodeValues(CNode* node, int var_index, std::vector< float >& values)
+void TreeCommon::GetNodeValues(CNode* node, int var_index, std::vector<float>& values)
 {
-	std::vector< int > point_index;
+	std::vector<int> point_index;
 	this->Traverse(node, point_index);
 	values.resize(point_index.size());
 	for (int i = 0; i < point_index.size(); ++i)
-		values[i] = dataset_->point_values[point_index[i]][var_index];
+		values[i] = dataset_->normalized_point_values[point_index[i]][var_index];
 }
 
-void TreeCommon::GetConnectionStatus(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& edge_length)
+void TreeCommon::GetConnectionStatus(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, float& edge_length)
 {
     if (dataset_->type() == ScatterPointDataset::POINT_DATA) {
         Utility::VtkTriangulation(nodes, connecting_status, edge_length);

@@ -19,9 +19,9 @@ VariableItem::~VariableItem() {
 
 }
 
-void VariableItem::SetData(QString var_name, QColor var_color, std::vector< float >& var_values, 
-	std::vector< int >& node_count, int selected_count, 
-	std::vector< std::vector< float > >& context) {
+void VariableItem::SetData(QString var_name, QColor var_color, std::vector<float>& var_values, 
+	std::vector<int>& node_count, int selected_count, 
+	std::vector<std::vector<float>>& context) {
 
 	var_name_ = var_name;
 	var_values_ = var_values;
@@ -174,7 +174,7 @@ void VariableItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 }
 
 void VariableItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) {
-    std::vector< float > temp_values = var_values_;
+    std::vector<float> temp_values = var_values_;
     for (int i = 0; i < value_index_.size(); ++i) value_index_[i] = i;
 
     Utility::Sort(temp_values, value_index_);
@@ -211,13 +211,13 @@ QString VariableItem::GetTipString()
 	return tip_str;
 }
 
-void VariableItem::SetValueIndex(std::vector< int >& index)
+void VariableItem::SetValueIndex(std::vector<int>& index)
 {
     this->value_index_ = index;
     this->update();
 }
 
-void VariableItem::GetValueIndex(std::vector< int >& index)
+void VariableItem::GetValueIndex(std::vector<int>& index)
 {
     index = this->value_index_;
 }

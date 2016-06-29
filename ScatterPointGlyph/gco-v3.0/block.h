@@ -115,7 +115,7 @@ public:
 	{
 		Type *t;
 
-		if (!last || last->current + num > last->last)
+		if (!last || last->current + num> last->last)
 		{
 			if (last && last->next) last = last -> next;
 			else
@@ -142,7 +142,7 @@ public:
 		for (scan_current_block=first; scan_current_block; scan_current_block = scan_current_block->next)
 		{
 			scan_current_data = & ( scan_current_block -> data[0] );
-			if (scan_current_data < scan_current_block -> current) return scan_current_data ++;
+			if (scan_current_data <scan_current_block -> current) return scan_current_data ++;
 		}
 		return NULL;
 	}
@@ -152,7 +152,7 @@ public:
 	   call returned not NULL. */
 	Type *ScanNext()
 	{
-		while (scan_current_data >= scan_current_block -> current)
+		while (scan_current_data>= scan_current_block -> current)
 		{
 			scan_current_block = scan_current_block -> next;
 			if (!scan_current_block) return NULL;

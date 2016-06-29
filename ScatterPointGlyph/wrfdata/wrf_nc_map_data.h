@@ -17,8 +17,8 @@ public:
     // @param time int time since 1980-1-1 0-0-0
     virtual bool CheckExisting(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num = 0) = 0;
     virtual bool CheckExisting(WrfModelType model) = 0;
-    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< WrfGridValueMap* >& maps) = 0;
-    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< float* >& data) = 0;
+    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<WrfGridValueMap*>& maps) = 0;
+    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<float*>& data) = 0;
     virtual NcMapDataType DataType() = 0;
 
 protected:

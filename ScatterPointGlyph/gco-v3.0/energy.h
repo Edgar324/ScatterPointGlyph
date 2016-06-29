@@ -225,8 +225,8 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 	   C 0
 	*/
 
-	assert(B + C >= 0); /* check regularity */
-	if (B < 0)
+	assert(B + C>= 0); /* check regularity */
+	if (B <0)
 	{
 		/* Write it as
 		   B B  +  -B 0  +  0   0
@@ -236,7 +236,7 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 		this->add_tweights(y, 0, -B); /* second term */
 		this->add_edge(x, y, 0, B+C); /* third term */
 	}
-	else if (C < 0)
+	else if (C <0)
 	{
 		/* Write it as
 		   -C -C  +  C 0  +  0 B+C
@@ -246,7 +246,7 @@ inline void Energy<captype,tcaptype,flowtype>::add_term2(Var x, Var y,
 		this->add_tweights(y, 0, C); /* second term */
 		this->add_edge(x, y, B+C, 0); /* third term */
 	}
-	else /* B >= 0, C >= 0 */
+	else /* B>= 0, C>= 0 */
 	{
 		this->add_edge(x, y, B, C);
 	}
@@ -263,7 +263,7 @@ inline void Energy<captype,tcaptype,flowtype>::add_term3(Var x, Var y, Var z,
 	register Value delta;
 	register Var u;
 
-	if (pi >= 0)
+	if (pi>= 0)
 	{
 		Econst += E111 - (E011 + E101 + E110);
 
@@ -272,18 +272,18 @@ inline void Energy<captype,tcaptype,flowtype>::add_term3(Var x, Var y, Var z,
 		add_tweights(z, E011, E010);
 
 		delta = (E010 + E001) - (E000 + E011); /* -pi(E[x=0]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(y, z, delta, 0);
 
 		delta = (E100 + E001) - (E000 + E101); /* -pi(E[y=0]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(z, x, delta, 0);
 
 		delta = (E100 + E010) - (E000 + E110); /* -pi(E[z=0]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(x, y, delta, 0);
 
-		if (pi > 0)
+		if (pi> 0)
 		{
 			u = add_variable();
 			add_edge(x, u, pi, 0);
@@ -301,15 +301,15 @@ inline void Energy<captype,tcaptype,flowtype>::add_term3(Var x, Var y, Var z,
 		add_tweights(z, E101, E100);
 
 		delta = (E110 + E101) - (E100 + E111); /* -pi(E[x=1]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(z, y, delta, 0);
 
 		delta = (E110 + E011) - (E010 + E111); /* -pi(E[y=1]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(x, z, delta, 0);
 
 		delta = (E101 + E011) - (E001 + E111); /* -pi(E[z=1]) */
-		assert(delta >= 0); /* check regularity */
+		assert(delta>= 0); /* check regularity */
 		add_edge(y, x, delta, 0);
 
 		u = add_variable();

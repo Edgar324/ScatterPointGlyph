@@ -20,9 +20,10 @@ protected:
 	virtual void GenerateClusters();
 	virtual void BeginClustering();
 	virtual void SplitNode(CBranch* node);
+    void SplitPoints(vector<vector<float>>& pos, vector<vector<float>>& value, float radius, vector<int>& clusters);
 
 	// Generate new graph based on the cluster results based on each variable
-	void GenerateSegmentUncertainty(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, std::vector< std::vector< float > >& edge_weight);
+	void GenerateSegmentUncertainty(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, std::vector<std::vector<float>>& edge_weight);
 
 	MultiLabelProcessor* processor_;
 

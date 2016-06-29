@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>
@@ -125,7 +125,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>
       </RuntimeLibrary>
@@ -250,6 +250,7 @@
     <ClCompile Include="scatter_point_dataset.cpp" />
     <ClCompile Include="scatter_point_glyph.cpp" />
     <ClCompile Include="scatter_point_view.cpp" />
+    <ClCompile Include="slic\slic_vf.cpp" />
     <ClCompile Include="tour_path_generator.cpp" />
     <ClCompile Include="transmap.cpp" />
     <ClCompile Include="transmap_data.cpp" />
@@ -334,6 +335,7 @@
     </CustomBuild>
     <ClInclude Include="quality_metric.h" />
     <ClInclude Include="scatter_grid_dataset.h" />
+    <ClInclude Include="slic\slic_vf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="wrfdata\wrf_data_common.h" />
     <ClInclude Include="wrfdata\wrf_data_manager.h" />

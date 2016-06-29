@@ -29,7 +29,7 @@ void TreeMapItem::SetData(CNode* data) {
 void TreeMapItem::UpdateSize(CNode* node, int& bottom, int& item_width) {
 	if (node == NULL) return;
 
-	this->item_map_.insert(std::map< int, CNode* >::value_type(node->id(), node));
+	this->item_map_.insert(std::map< int, CNode*>::value_type(node->id(), node));
 
 	int temp_left = item_width;
 	// paint the child nodes
@@ -78,7 +78,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 
 	int temp_left = max_width;
 	// paint the child nodes
-	std::vector< int > linked_pos;
+	std::vector<int> linked_pos;
 	if (node->type() == CNode::BRANCH && node->is_expanded) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
@@ -184,7 +184,7 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 	if (id_index == -1) return;
 
 	if (event->button() == Qt::LeftButton) {
-		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
+		std::map< int, CNode*>::iterator iter = item_map_.find(id_index);
 		if (iter->second->is_expanded) return;
 		if (iter != item_map_.end()) {
 			iter->second->is_highlighted = !iter->second->is_highlighted;
@@ -193,7 +193,7 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 			return;
 		}
 	} else if (event->button() == Qt::RightButton) {
-		std::map< int, CNode* >::iterator iter = item_map_.find(id_index);
+		std::map< int, CNode*>::iterator iter = item_map_.find(id_index);
 		if (iter != item_map_.end() && iter->second->type() == CNode::BRANCH) {
 			bool is_all_leaf = true;
 			CBranch* branch = dynamic_cast<CBranch*>(iter->second);

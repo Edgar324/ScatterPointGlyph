@@ -44,7 +44,7 @@ void TransMapData::ProcessData() {
 	this->cluster_node_map.clear();
 
 	for (int i = 0; i < cluster_nodes.size(); ++i)
-		this->cluster_node_map.insert(std::map< int, CNode* >::value_type(i, cluster_nodes[i]));
+		this->cluster_node_map.insert(std::map< int, CNode*>::value_type(i, cluster_nodes[i]));
 
 	for (int i = 0; i < cluster_nodes.size(); ++i)
 		if (cluster_nodes[i]->point_count >= min_point_num) {

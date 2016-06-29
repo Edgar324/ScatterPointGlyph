@@ -27,7 +27,7 @@ ListType LinkedBlockList::next()
 
 	m_cursor_ind++;
 
-	if ( m_cursor == m_head && m_cursor_ind >= m_head_block_size )
+	if ( m_cursor == m_head && m_cursor_ind>= m_head_block_size )
 	{
 		m_cursor     = m_cursor ->m_next;
 		m_cursor_ind = 0;

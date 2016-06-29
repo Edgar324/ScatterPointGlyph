@@ -18,13 +18,13 @@ public:
 	// data that must be initialized
 	ScatterPointDataset* dataset;
 	int cluster_num, var_num;
-	std::vector< CNode* > cluster_nodes;
+	std::vector<CNode*> cluster_nodes;
 
 	// data that can be completed in ProcessData
-	std::vector< CNode* > level_one_nodes;
-    std::vector< float > node_saliency;
-	std::vector< std::vector< bool > > node_connecting_status;
-	std::map< int, CNode* > cluster_node_map;
+	std::vector<CNode*> level_one_nodes;
+    std::vector<float> node_saliency;
+	std::vector<std::vector<bool>> node_connecting_status;
+	std::map<int, CNode*> cluster_node_map;
 
 	// construct the first level nodes and sub-level nodes
 	void ClearData();

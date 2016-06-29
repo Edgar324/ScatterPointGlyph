@@ -24,28 +24,24 @@ public:
 
 	// Functions for generating the leaf nodes
 	void ConstructDirectly();
-	void ConstructOnKmeans(int basic_cnum);
-	// TODO: Add other construction methods
-	void ConstructOnOctree(float thre);
-	void ConstructOnRandomSample(int sample_num);
 
-	void GetClusterResult(int level, int& cluster_num, std::vector< int >& cluster_index);
-	void GetClusterResult(int level, std::vector< CNode* >& level_nodes);
+	void GetClusterResult(int level, int& cluster_num, std::vector<int>& cluster_index);
+	void GetClusterResult(int level, std::vector<CNode*>& level_nodes);
 	int GetMaxLevel() { return this->max_level_; }
 
 	// Sort the tree nodes according to the node_ids
-	void SortTree(std::vector< int >& node_ids);
+	void SortTree(std::vector<int>& node_ids);
 
 	// Tree node operations
 	void SplitCluster(int cluster_index);
-	void MergeClusters(std::vector< int >& cluster_index);
+	void MergeClusters(std::vector<int>& cluster_index);
 
-	void GetNodeValues(CNode* node, int var_index, std::vector< float >& values);
+	void GetNodeValues(CNode* node, int var_index, std::vector<float>& values);
 
-	void Traverse(CNode* node, std::vector< int >& linked_points);
-	void Traverse(int level, std::vector< CNode* >& nodes);
-	void TraversAllNodes(CNode* root_node, std::vector< CNode* >& nodes);
-	void TraverseLevelNodes(int level, CNode* root_node, std::vector< CNode* >& nodes);
+	void Traverse(CNode* node, std::vector<int>& linked_points);
+	void Traverse(int level, std::vector<CNode*>& nodes);
+	void TraversAllNodes(CNode* root_node, std::vector<CNode*>& nodes);
+	void TraverseLevelNodes(int level, CNode* root_node, std::vector<CNode*>& nodes);
 
 protected:
 	ScatterPointDataset* dataset_;
@@ -55,19 +51,19 @@ protected:
 	float data_dis_scale_;
 	TreeMode tree_mode_;
 
-	std::map< int, CNode* > id_node_map_;
+	std::map< int, CNode*> id_node_map_;
 	CNode* common_parent_node_;
 
     std::map< int, int > grid_id_seq_map_;
 
-    std::vector< std::vector< bool > > node_connecting_status_;
+    std::vector<std::vector<bool>> node_connecting_status_;
 
 	void run();
 	virtual void GenerateClusters() = 0;
 	virtual void BeginClustering() = 0;
 	virtual void SplitNode(CBranch* node) = 0;
 
-    void GetConnectionStatus(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length);
+    void GetConnectionStatus(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, float& min_edge_length);
 
 	// Update the level of the node and its children
 	void ResetLevel(CNode* node, int level);
@@ -82,7 +78,7 @@ protected:
 
 	// Assign sequence index for each branch node
 	void ResetSortingIndex(CNode* node);
-	int SortNode(CNode* node, std::vector< int >& node_ids, int& node_count);
+	int SortNode(CNode* node, std::vector<int>& node_ids, int& node_count);
 
 	// Tree node operations
 	// Update node parameters
@@ -91,7 +87,10 @@ protected:
 
 	void RemoveChildNode(CNode* node, bool is_empty_deleted = false);
 	void UpdateChildLevel(CBranch* node);
-	int FindCommonParent(CNode* node, std::vector< int >& node_ids);
+	int FindCommonParent(CNode* node, std::vector<int>& node_ids);
+
+    // TODO: Add other construction methods
+	void ConstructOnSlic(float thre);
 };
 
 #endif

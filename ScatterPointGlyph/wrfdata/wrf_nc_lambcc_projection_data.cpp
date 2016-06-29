@@ -66,11 +66,11 @@ void WrfNcLambCcProjectionData::LoadData(const char* file_name){
 
     // load analysis time
     nc_inq_varid(ncid, "time", &var_id);
-    std::vector< double > temp_time;
+    std::vector<double> temp_time;
     temp_time.resize(time_len_);
     nc_get_var_double(ncid, var_id, temp_time.data());
-    for ( int i = 0; i < temp_time.size(); ++i ) {
-        time_map_.insert(std::map< int, int >::value_type((int)temp_time[i], i));
+    for ( int i = 0; i <temp_time.size(); ++i ) {
+        time_map_.insert(std::map<int, int>::value_type((int)temp_time[i], i));
     }
 
     nc_inq_varid(ncid, "lat", &var_id);
@@ -96,7 +96,7 @@ void WrfNcLambCcProjectionData::LoadData(const char* file_name){
     nc_get_att(ncid, var_id, "false_northing", &false_northing_);
     nc_get_att(ncid, var_id, "false_easting", &false_easting_);
 
-    std::vector< double > time_bnds;
+    std::vector<double> time_bnds;
     time_bnds.resize(time_len_ * nbnds_len_);
     nc_inq_varid(ncid, "time_bnds", &var_id);
     nc_get_var_double(ncid, var_id, time_bnds.data());
@@ -107,19 +107,19 @@ void WrfNcLambCcProjectionData::LoadData(const char* file_name){
     size_t data_length = y_len_ * x_len_ * time_len_;    
     data_values_ = new float[data_length];
     if ( data_values_ == NULL ) {
-        std::cout << "Out of memory!" << std::endl;
+        std::cout <<"Out of memory!" <<std::endl;
         return;
     }
 
     short* temp_data_values = new short[data_length];
     if ( temp_data_values == NULL ){
-        std::cout << "Out of memory!" << std::endl;
+        std::cout <<"Out of memory!" <<std::endl;
         delete []data_values_;
         data_values_ = NULL;
         return;
     }
     nc_get_var_short(ncid, var_id, temp_data_values);
-    for ( int i = 0; i < data_length; ++i ){
+    for ( int i = 0; i <data_length; ++i ){
         data_values_[i] = temp_data_values[i] * scale_factor + add_offset;
     }
     delete []temp_data_values;
@@ -160,11 +160,11 @@ void WrfNcLambCcProjectionData::LoadConvertedData(const char* file_name){
 
     // load analysis time
     nc_inq_varid(ncid, "time", &var_id);
-    std::vector< int > temp_time;
+    std::vector<int> temp_time;
     temp_time.resize(time_len_);
     nc_get_var_int(ncid, var_id, temp_time.data());
-    for ( int i = 0; i < temp_time.size(); ++i ) {
-        time_map_.insert(std::map< int, int >::value_type(temp_time[i], i));
+    for ( int i = 0; i <temp_time.size(); ++i ) {
+        time_map_.insert(std::map<int, int>::value_type(temp_time[i], i));
     }
 
     nc_inq_varid(ncid, "lat", &var_id);
@@ -190,7 +190,7 @@ void WrfNcLambCcProjectionData::LoadConvertedData(const char* file_name){
     nc_get_att(ncid, var_id, "false_northing", &false_northing_);
     nc_get_att(ncid, var_id, "false_easting", &false_easting_);
 
-    std::vector< double > time_bnds;
+    std::vector<double> time_bnds;
     time_bnds.resize(time_len_ * nbnds_len_);
     nc_inq_varid(ncid, "time_bnds", &var_id);
     nc_get_var_double(ncid, var_id, time_bnds.data());
@@ -199,7 +199,7 @@ void WrfNcLambCcProjectionData::LoadConvertedData(const char* file_name){
     size_t data_length = y_len_ * x_len_ * time_len_;
     data_values_ = new float[data_length];
     if ( data_values_ == NULL ) {
-        std::cout << "Out of memory!" << std::endl;
+        std::cout <<"Out of memory!" <<std::endl;
         return;
     }
     nc_get_var_float(ncid, var_id, data_values_);
@@ -235,11 +235,11 @@ void WrfNcLambCcProjectionData::LoadTotalData(const char* file_name){
 
     // load analysis time
     nc_inq_varid(ncid, "time", &var_id);
-    std::vector< int > temp_time;
+    std::vector<int> temp_time;
     temp_time.resize(time_len_);
     nc_get_var_int(ncid, var_id, temp_time.data());
-    for ( int i = 0; i < temp_time.size(); ++i ) {
-        time_map_.insert(std::map< int, int >::value_type(temp_time[i] - 15769752, i));
+    for ( int i = 0; i <temp_time.size(); ++i ) {
+        time_map_.insert(std::map<int, int>::value_type(temp_time[i] - 15769752, i));
     }
 
     nc_inq_varid(ncid, "lon", &var_id);
@@ -317,8 +317,8 @@ void WrfNcLambCcProjectionData::SaveData(const char* file_name){
 
     nc_enddef(ncid);
 
-    std::vector< int > temp_time;
-    std::map< int, int >::iterator iter = time_map_.begin();
+    std::vector<int> temp_time;
+    std::map<int, int>::iterator iter = time_map_.begin();
     while ( iter != time_map_.end() ){
         temp_time.push_back(iter->first);
         iter++;
@@ -374,11 +374,11 @@ WrfLambCcValueMap* WrfNcLambCcProjectionData::GetMap(int time, WrfModelType mode
     return map_;
 }
 
-void WrfNcLambCcProjectionData::GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< WrfGridValueMap* >& maps){
+void WrfNcLambCcProjectionData::GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<WrfGridValueMap*>& maps){
 
 }
 
-void WrfNcLambCcProjectionData::GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< float* >& data){
+void WrfNcLambCcProjectionData::GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<float*>& data){
 
 }
 
@@ -387,11 +387,11 @@ WrfNcLambCcProjectionData* WrfNcLambCcProjectionData::Convert2Range(float start_
 
     int left = -1, bottom = -1, right = -1, top = -1;
     float min_dis = 1e10;
-    std::vector< bool > x_exist, y_exist;
+    std::vector<bool> x_exist, y_exist;
     x_exist.resize(this->x_len_, false);
     y_exist.resize(this->y_len_, false);
-    for ( int i = 0; i < y_len_; ++i ){
-        for ( int j = 0; j < x_len_; ++j ){
+    for ( int i = 0; i <y_len_; ++i ){
+        for ( int j = 0; j <x_len_; ++j ){
             float temp_lon = this->lon_[i * x_len_ + j];
             float temp_lat = this->lat_[i * x_len_ + j];
             if ( (temp_lat - start_lat) * (temp_lat - end_lat) <= 0 && (temp_lon - start_lon) * (temp_lon - end_lon) <= 0 ){
@@ -399,13 +399,13 @@ WrfNcLambCcProjectionData* WrfNcLambCcProjectionData::Convert2Range(float start_
             }
         }
     }
-    for ( int i = 0; i < x_len_; ++i ){
+    for ( int i = 0; i <x_len_; ++i ){
         if ( left == -1 && x_exist[i] ){
             left = i;
         }
         if ( x_exist[i] ) right = i;
     }
-    for ( int i = 0; i < y_len_; ++i ){
+    for ( int i = 0; i <y_len_; ++i ){
         if ( bottom == -1 & y_exist[i] ){
             bottom = i;
         }
@@ -420,13 +420,13 @@ WrfNcLambCcProjectionData* WrfNcLambCcProjectionData::Convert2Range(float start_
     lambcc_data->model_ = this->model_;
     lambcc_data->element_ = this->element_;
     lambcc_data->x_dist_.resize(right - left + 1);
-    for ( int i = 0; i < lambcc_data->x_len_; ++i ) lambcc_data->x_dist_[i] = this->x_dist_[left + i];
+    for ( int i = 0; i <lambcc_data->x_len_; ++i ) lambcc_data->x_dist_[i] = this->x_dist_[left + i];
     lambcc_data->y_dist_.resize(top - bottom + 1);
-    for ( int i = 0; i < lambcc_data->y_len_; ++i ) lambcc_data->y_dist_[i] = this->y_dist_[bottom + i];
+    for ( int i = 0; i <lambcc_data->y_len_; ++i ) lambcc_data->y_dist_[i] = this->y_dist_[bottom + i];
     lambcc_data->lon_.resize(lambcc_data->x_len_ * lambcc_data->y_len_);
     lambcc_data->lat_.resize(lambcc_data->x_len_ * lambcc_data->y_len_);
-    for ( int i = 0; i < lambcc_data->y_len_; ++i )
-        for ( int j = 0; j < lambcc_data->x_len_; ++j ){
+    for ( int i = 0; i <lambcc_data->y_len_; ++i )
+        for ( int j = 0; j <lambcc_data->x_len_; ++j ){
             lambcc_data->lon_[i * lambcc_data->x_len_ + j] = this->lon_[(i + bottom) * this->x_len_ + j + left];
             lambcc_data->lat_[i * lambcc_data->x_len_ + j] = this->lat_[(i + bottom) * this->x_len_ + j + left];
         }
@@ -439,9 +439,9 @@ WrfNcLambCcProjectionData* WrfNcLambCcProjectionData::Convert2Range(float start_
     lambcc_data->time_map_ = this->time_map_;
     lambcc_data->map_range_ = this->map_range_;
     lambcc_data->data_values_ = new float[lambcc_data->time_len_ * lambcc_data->x_len_ * lambcc_data->y_len_];
-    for ( int t = 0; t < time_len_; ++t )
-        for ( int y = 0; y < lambcc_data->y_len_; ++y )
-            for ( int x = 0; x < lambcc_data->x_len_; ++x ){
+    for ( int t = 0; t <time_len_; ++t )
+        for ( int y = 0; y <lambcc_data->y_len_; ++y )
+            for ( int x = 0; x <lambcc_data->x_len_; ++x ){
                 int pre_index = t * y_len_ * x_len_ + (y + bottom ) * x_len_ + x + left;
                 int current_index = t * lambcc_data->y_len_ * lambcc_data->x_len_ + y * lambcc_data->x_len_ + x;
                 lambcc_data->data_values_[current_index] = this->data_values_[pre_index];

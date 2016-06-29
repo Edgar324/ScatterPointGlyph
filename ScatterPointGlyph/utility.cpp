@@ -58,7 +58,7 @@ void Utility::Sort(std::vector<float>& index_one, std::vector<int>& index_two) {
 			}
 }
 
-void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length) {
+void Utility::VtkTriangulation(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, float& min_edge_length) {
 	connecting_status.resize(nodes.size());
 	for (int i = 0; i < nodes.size(); ++i) {
 		connecting_status[i].resize(nodes.size());
@@ -153,11 +153,106 @@ void Utility::VtkTriangulation(std::vector< CNode* >& nodes, std::vector< std::v
 #endif
 }
 
-void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& axis_order)
+void Utility::VtkTriangulation(vector<vector<float>>& pos, vector<vector<bool>>& connecting_status, float& min_edge_length) {
+	connecting_status.resize(pos.size());
+	for (int i = 0; i < pos.size(); ++i) {
+		connecting_status[i].resize(pos.size());
+		connecting_status[i].assign(pos.size(), false);
+	}
+    if (connecting_status.size() <= 2) {
+        for (int i = 0; i < connecting_status.size(); ++i)
+            for (int j = 0; j < connecting_status[i].size(); ++j)
+                connecting_status[i][j] = true;
+        if (connecting_status.size() <= 1)
+            min_edge_length = 0;
+        else
+        {
+            min_edge_length = sqrt(pow(pos[0][0] - pos[1][0], 2) + pow(pos[0][1] - pos[1][1], 2));
+        }
+        return;
+    }
+
+	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
+	for (int i = 0; i < pos.size(); ++i) {
+		points->InsertNextPoint(pos[i][0], pos[i][1], 0);
+	}
+	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(points);
+	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
+	delaunay->SetInputData(polydata);
+	delaunay->SetTolerance(0.0000001);
+	delaunay->SetBoundingTriangulation(false);
+	delaunay->Update();
+	vtkPolyData* triangle_out = delaunay->GetOutput();
+
+	min_edge_length = 0.0;
+	int edge_count = 0;
+
+	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
+	float min_dis = 1e10;
+	for (int i = 0; i < triangle_out->GetNumberOfPolys(); ++i){
+		vtkCell* cell = triangle_out->GetCell(i);
+		int id1 = cell->GetPointId(0);
+		int id2 = cell->GetPointId(1);
+		int id3 = cell->GetPointId(2);
+		connecting_status[id1][id2] = true;
+		connecting_status[id2][id1] = true;
+		connecting_status[id2][id3] = true;
+		connecting_status[id3][id2] = true;
+		connecting_status[id1][id3] = true;
+		connecting_status[id3][id1] = true;
+
+		float temp_dis;
+		temp_dis = sqrt(pow(pos[id1][0] - pos[id2][0], 2)
+			+ pow(pos[id1][1] - pos[id2][1], 2));
+		if (temp_dis < min_dis) min_dis = temp_dis;
+
+		temp_dis = sqrt(pow(pos[id1][0] - pos[id3][0], 2)
+			+ pow(pos[id1][1] - pos[id3][1], 2));
+		if (temp_dis < min_dis) min_dis = temp_dis;
+
+		temp_dis = sqrt(pow(pos[id3][0] - pos[id2][0], 2)
+			+ pow(pos[id3][1] - pos[id2][1], 2));
+		if (temp_dis < min_dis) min_dis = temp_dis;
+	}
+	min_edge_length = min_dis;
+
+    int unconnected_count = 0;
+    for (int i = 0; i < connecting_status.size(); ++i){
+	    bool is_connecting = false;
+	    for (int j = 0; j < connecting_status[i].size(); ++j) is_connecting = is_connecting || connecting_status[i][j];
+        if (!is_connecting) {
+            int min_index = -1; 
+            float min_dis = 1e20;
+            for (int j = 0; j < connecting_status[i].size(); ++j) {
+                if (j == i) continue;
+                float temp_dis;
+		        temp_dis = sqrt(pow(pos[i][0] - pos[j][0], 2)
+			        + pow(pos[i][1] - pos[j][1], 2));
+                if (temp_dis < min_dis) {
+                    min_dis = temp_dis;
+                    min_index = j;
+                }
+            }
+            if (min_index != -1) {
+                connecting_status[i][min_index] = true;
+                connecting_status[min_index][i] = true;
+                is_connecting = true;
+                unconnected_count++;
+            }
+        }
+	    assert(is_connecting);
+	}
+#ifdef DEBUG_ON
+	std::cout << "Unconnected Count: " << unconnected_count << std::endl;
+#endif
+}
+
+void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector<int>& axis_order)
 {
 	axis_order.resize(dataset->axis_names.size());
 	for (int i = 0; i < dataset->axis_names.size(); ++i) axis_order[i] = i;
-	std::vector< std::vector< float > > corr_values;
+	std::vector<std::vector<float>> corr_values;
 	corr_values.resize(dataset->axis_names.size());
 	for (int i = 0; i < dataset->axis_names.size(); ++i) {
 		corr_values[i].resize(dataset->axis_names.size(), 0);
@@ -175,8 +270,8 @@ void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& ax
 		TourPathGenerator::GenerateRoundPath(corr_values, axis_order);
 	}
 	else {
-		std::vector< float > center_values;
-		std::vector< float > std_dev_values;
+		std::vector<float> center_values;
+		std::vector<float> std_dev_values;
 		center_values.resize(dataset->axis_names.size(), 0);
 		std_dev_values.resize(dataset->axis_names.size(), 0);
 		for (int i = 0; i < dataset->axis_names.size(); ++i) {
@@ -203,7 +298,7 @@ void Utility::GenerateAxisOrder(ParallelDataset* dataset, std::vector< int >& ax
 	}
 }
 
-void Utility::GridConnection(std::vector< CNode*>& nodes, int w, int h, std::vector< std::vector< bool > >& connecting_status, float& min_edge_length)
+void Utility::GridConnection(std::vector<CNode*>& nodes, int w, int h, std::vector<std::vector<bool>>& connecting_status, float& min_edge_length)
 {
     connecting_status.resize(nodes.size());
 	for (int i = 0; i < nodes.size(); ++i) {

@@ -272,7 +272,7 @@ private:
 		int			is_marked : 1;	// set by mark_node()
 		int			is_in_changed_list : 1; // set by maxflow if 
 
-		tcaptype	tr_cap;		// if tr_cap > 0 then tr_cap is residual capacity of the arc SOURCE->node
+		tcaptype	tr_cap;		// if tr_cap> 0 then tr_cap is residual capacity of the arc SOURCE->node
 								// otherwise         -tr_cap is residual capacity of the arc node->SINK 
 
 	};
@@ -359,9 +359,9 @@ private:
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline typename Graph<captype,tcaptype,flowtype>::node_id Graph<captype,tcaptype,flowtype>::add_node(int num)
 {
-	assert(num > 0);
+	assert(num> 0);
 
-	if (node_last + num > node_max) reallocate_nodes(num);
+	if (node_last + num> node_max) reallocate_nodes(num);
 
 	if (num == 1)
 	{
@@ -387,23 +387,23 @@ template <typename captype, typename tcaptype, typename flowtype>
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline void Graph<captype,tcaptype,flowtype>::add_tweights(node_id i, tcaptype cap_source, tcaptype cap_sink)
 {
-	assert(i >= 0 && i < node_num);
+	assert(i>= 0 && i <node_num);
 
 	tcaptype delta = nodes[i].tr_cap;
-	if (delta > 0) cap_source += delta;
+	if (delta> 0) cap_source += delta;
 	else           cap_sink   -= delta;
-	flow += (cap_source < cap_sink) ? cap_source : cap_sink;
+	flow += (cap_source <cap_sink) ? cap_source : cap_sink;
 	nodes[i].tr_cap = cap_source - cap_sink;
 }
 
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline void Graph<captype,tcaptype,flowtype>::add_edge(node_id _i, node_id _j, captype cap, captype rev_cap)
 {
-	assert(_i >= 0 && _i < node_num);
-	assert(_j >= 0 && _j < node_num);
+	assert(_i>= 0 && _i <node_num);
+	assert(_j>= 0 && _j <node_num);
 	assert(_i != _j);
-	assert(cap >= 0);
-	assert(rev_cap >= 0);
+	assert(cap>= 0);
+	assert(rev_cap>= 0);
 
 	if (arc_last == arc_max) reallocate_arcs();
 
@@ -440,7 +440,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline void Graph<captype,tcaptype,flowtype>::get_arc_ends(arc* a, node_id& i, node_id& j)
 {
-	assert(a >= arcs && a < arc_last);
+	assert(a>= arcs && a <arc_last);
 	i = (node_id) (a->sister->head - nodes);
 	j = (node_id) (a->head - nodes);
 }
@@ -455,7 +455,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline captype Graph<captype,tcaptype,flowtype>::get_rcap(arc* a)
 {
-	assert(a >= arcs && a < arc_last);
+	assert(a>= arcs && a <arc_last);
 	return a->r_cap;
 }
 
@@ -469,7 +469,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 template <typename captype, typename tcaptype, typename flowtype> 
 	inline void Graph<captype,tcaptype,flowtype>::set_rcap(arc* a, captype rcap)
 {
-	assert(a >= arcs && a < arc_last);
+	assert(a>= arcs && a <arc_last);
 	a->r_cap = rcap;
 }
 

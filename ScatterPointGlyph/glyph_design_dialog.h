@@ -31,22 +31,22 @@ public:
     GlyphDesignDialog();
     ~GlyphDesignDialog();
 
-    void SetVariables(std::vector< QString >& names);
-    void GetSelectedVariables(std::vector< int >& index);
+    void SetVariables(std::vector<QString>& names);
+    void GetSelectedVariables(std::vector<int>& index);
 
 private:
     Ui::GlyphDesignDialog ui_;
     QVTKWidget* vtkwidget_;
     vtkRenderer* main_renderer_;
 
-    std::vector< QCheckBox* > variable_checkbox_;
-    std::vector< float > mean_values_;
-    std::vector< float > msd_values_;
+    std::vector<QCheckBox*> variable_checkbox_;
+    std::vector<float> mean_values_;
+    std::vector<float> msd_values_;
 
     vtkActor* glyph_actor_;
     vtkPolyData* glyph_poly_;
     vtkPolyDataMapper* glyph_mapper_;
-    std::vector< vtkTextActor3D* > text_actors_;
+    std::vector<vtkTextActor3D*> text_actors_;
 
     void UpdateGlyph();
 

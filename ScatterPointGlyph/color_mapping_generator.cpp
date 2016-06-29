@@ -53,7 +53,7 @@ QColor ColorMappingGenerator::GetColor(ColorMappingType color_type, float curren
     }
 }
 
-void ColorMappingGenerator::GetColorIndex(ColorMappingType color_type, std::vector< ColorIndex >& index, bool& is_linear){
+void ColorMappingGenerator::GetColorIndex(ColorMappingType color_type, std::vector<ColorIndex >& index, bool& is_linear){
     index = color_index_vec_[color_type];
     is_linear = is_linear_[color_type];
 }
@@ -65,7 +65,7 @@ void ColorMappingGenerator::ConstructColorList(){
     gray_mapping[0].color = QColor(0, 0, 0);
     gray_mapping[1].value_index = 1.0;
     gray_mapping[1].color = QColor(255, 255, 255);
-    std::vector< ColorIndex > gray_index_vec;
+    std::vector<ColorIndex > gray_index_vec;
     gray_index_vec.push_back(gray_mapping[0]);
     gray_index_vec.push_back(gray_mapping[1]);
     color_index_vec_.push_back(gray_index_vec);
@@ -77,7 +77,7 @@ void ColorMappingGenerator::ConstructColorList(){
     uncertainty_mapping[0].color = QColor(255,255,255);
     uncertainty_mapping[1].value_index = 1.0;
     uncertainty_mapping[1].color = QColor(0,0,0);
-    std::vector< ColorIndex > uncertainty_index_vec;
+    std::vector<ColorIndex > uncertainty_index_vec;
     for ( int i = 0; i < 2; ++i ) uncertainty_index_vec.push_back(uncertainty_mapping[i]);
     color_index_vec_.push_back(uncertainty_index_vec);
     is_linear_.push_back(true);
@@ -113,7 +113,7 @@ void ColorMappingGenerator::ConstructColorList(){
     rain_mapping[5].color = QColor(220, 15, 240);
     rain_mapping[6].value_index = 100;
     rain_mapping[6].color = QColor(220, 15, 240);
-    std::vector< ColorIndex > rain_index_vec;
+    std::vector<ColorIndex > rain_index_vec;
     for ( int i = 0; i < 7; ++i ) rain_index_vec.push_back(rain_mapping[i]);
     color_index_vec_.push_back(rain_index_vec);
     is_linear_.push_back(false);
@@ -139,7 +139,7 @@ void ColorMappingGenerator::ConstructColorList(){
     tmp_mapping[8].color = QColor(227,74,51);
     tmp_mapping[9].value_index = 50 + 273.15;
     tmp_mapping[9].color = QColor(179,0,0);
-    std::vector< ColorIndex > tmp_index_vec;
+    std::vector<ColorIndex > tmp_index_vec;
     for ( int i = 0; i < 10; ++i ) tmp_index_vec.push_back(tmp_mapping[i]);
     color_index_vec_.push_back(tmp_index_vec);
     is_linear_.push_back(false);
@@ -190,7 +190,7 @@ void ColorMappingGenerator::ConstructColorList(){
     rms_mapping[5].value_index = 10;
     rms_mapping[5].color = QColor(33,113,181);
 
-    std::vector< ColorIndex > rms_index_vec;
+    std::vector<ColorIndex > rms_index_vec;
     for ( int i = 0; i < 6; ++i ) rms_index_vec.push_back(rms_mapping[i]);
     color_index_vec_.push_back(rms_index_vec);
     is_linear_.push_back(true);
@@ -222,7 +222,7 @@ void ColorMappingGenerator::ConstructColorList(){
     prob_mapping[10].color = QColor(250,82,87);
     prob_mapping[11].value_index = 1.000;
     prob_mapping[11].color = QColor(255,0,0);
-    std::vector< ColorIndex > prob_index_vec;
+    std::vector<ColorIndex > prob_index_vec;
     for ( int i = 0; i < 12; ++i ) prob_index_vec.push_back(prob_mapping[i]);
     color_index_vec_.push_back(prob_index_vec);
     is_linear_.push_back(false);
@@ -248,7 +248,7 @@ void ColorMappingGenerator::ConstructColorList(){
 	msl_pres_mapping[8].color = QColor(227,74,51);
 	msl_pres_mapping[9].value_index = 3600 + 100000;
 	msl_pres_mapping[9].color = QColor(179,0,0);
-	std::vector< ColorIndex > msl_pres_index_vec;
+	std::vector<ColorIndex > msl_pres_index_vec;
 	for ( int i = 0; i < 10; ++i ) msl_pres_index_vec.push_back(msl_pres_mapping[i]);
 	color_index_vec_.push_back(msl_pres_index_vec);
 	is_linear_.push_back(false);
@@ -268,7 +268,7 @@ void ColorMappingGenerator::ConstructColorList(){
     similarity_mapping[5].value_index = 1.0;
     similarity_mapping[5].color = QColor(33,113,181);
 
-    std::vector< ColorIndex > similarity_index_vec;
+    std::vector<ColorIndex > similarity_index_vec;
     for ( int i = 0; i < 6; ++i ) similarity_index_vec.push_back(similarity_mapping[i]);
     color_index_vec_.push_back(similarity_index_vec);
     is_linear_.push_back(true);
@@ -295,7 +295,7 @@ void ColorMappingGenerator::ConstructColorList(){
     qualitative_colors_.push_back(QColor(253,180,98));
 }
 
-void ColorMappingGenerator::GetQualitativeColors(int color_num, std::vector< QColor >& colors){
+void ColorMappingGenerator::GetQualitativeColors(int color_num, std::vector<QColor >& colors){
     colors.clear();
     for ( int i = 0; i < color_num && i < qualitative_colors_.size(); ++i )
         colors.push_back(qualitative_colors_[i]);

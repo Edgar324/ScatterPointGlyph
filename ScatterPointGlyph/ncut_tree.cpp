@@ -22,7 +22,7 @@ void NCutTree::SetUncertaintyThreshold(float un_threshold)
 
 void NCutTree::GenerateClusters()
 {
-	std::queue< CNode* > node_queue;
+	std::queue<CNode*> node_queue;
 	node_queue.push(root_);
 	while (node_queue.size() > 0) {
 		CNode* temp_node = node_queue.front();
@@ -54,7 +54,7 @@ void NCutTree::SplitNode(CBranch* node)
 {
 	int seg_num = 2;
 
-	std::vector< std::vector< bool > > connect_status;
+	std::vector<std::vector<bool>> connect_status;
 	Utility::VtkTriangulation(node->linked_nodes, connect_status, this->min_edge_length_);
 
 	mwSize node_num = node->linked_nodes.size();
@@ -101,7 +101,7 @@ void NCutTree::SplitNode(CBranch* node)
 	mxArray *arrayEigenvalues = NULL;
 	bool b = mlfNcutW(3, &arrayDiscrete, &arrayEigenvectors, &arrayEigenvalues, weight_array, arraySegmentsNumber);
 	double* arrayPointer = mxGetPr(arrayDiscrete);
-	std::vector< CBranch* > branches;
+	std::vector<CBranch* > branches;
 	branches.resize(seg_num);
 	for (int i = 0; i < seg_num; ++i) {
 		branches[i] = new CBranch;
@@ -114,7 +114,7 @@ void NCutTree::SplitNode(CBranch* node)
 	node->linked_nodes.clear();
     for (int i = 0; i < branches.size(); ++i) {
         node->linked_nodes.push_back(branches[i]);
-        id_node_map_.insert(std::map< int, CNode* >::value_type(branches[i]->id(), branches[i]));
+        id_node_map_.insert(std::map< int, CNode*>::value_type(branches[i]->id(), branches[i]));
     }
 
 	mxDestroyArray(arraySegmentsNumber);

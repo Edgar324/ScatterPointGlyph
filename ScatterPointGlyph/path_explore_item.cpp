@@ -146,8 +146,8 @@ void PathExploreItem::PaintClusterItem(QPainter* painter, int radius, int center
 	axis_pen.setWidth(2.0);
 	painter->setPen(axis_pen);
 
-	std::vector< float > x_vec;
-	std::vector< float > y_vec;
+	std::vector<float> x_vec;
+	std::vector<float> y_vec;
 
 	for (int i = 0; i < path_record_->item_values[item_index].size(); ++i) {
 		float end_arc = i * 3.14159 * 2 / path_record_->item_values[item_index].size();

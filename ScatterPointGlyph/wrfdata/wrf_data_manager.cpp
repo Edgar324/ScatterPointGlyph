@@ -102,7 +102,7 @@ void WrfDataManager::LoadChinaReanalysisData(WrfElementType element, std::string
     this->map_data_vec_.push_back(data);
 
     bool is_exist = false;
-    for ( int i = 0; i < observation_elements_.size(); ++i )
+    for ( int i = 0; i <observation_elements_.size(); ++i )
         if ( data->element_ == observation_elements_[i] ){
             is_exist = true;
             break;
@@ -110,23 +110,23 @@ void WrfDataManager::LoadChinaReanalysisData(WrfElementType element, std::string
     if ( !is_exist ) observation_elements_.push_back(data->element_);
 }
 
-void WrfDataManager::GetEnsembleElements(std::vector< WrfElementType >& elements){
+void WrfDataManager::GetEnsembleElements(std::vector<WrfElementType>& elements){
     elements = ensemble_elements_;
 }
 
-void WrfDataManager::GetEnsembleMeanElements(std::vector< WrfElementType >& elements){
+void WrfDataManager::GetEnsembleMeanElements(std::vector<WrfElementType>& elements){
     elements = ensemble_mean_elements_;
 }
 
-void WrfDataManager::GetObservationElements(std::vector< WrfElementType >& elements){
+void WrfDataManager::GetObservationElements(std::vector<WrfElementType>& elements){
     elements = observation_elements_;
 }
 
-bool WrfDataManager::GetGridValueMap(QDateTime& datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector< WrfGridValueMap* >& maps){
+bool WrfDataManager::GetGridValueMap(QDateTime& datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector<WrfGridValueMap*>& maps){
     bool is_exist = false;
 
     qint64 time = datetime.msecsTo(QDateTime(QDate(1800, 1, 1), QTime(0, 0, 0))) / 3600000 * -1;
-    for ( int i = 0; i < map_data_vec_.size(); ++i )
+    for ( int i = 0; i <map_data_vec_.size(); ++i )
         if ( map_data_vec_[i]->CheckExisting((int)time, model_type, element_type, fhour) ){
             map_data_vec_[i]->GetMaps(time, model_type, element_type, fhour, maps);
             is_exist = true;
@@ -137,10 +137,10 @@ bool WrfDataManager::GetGridValueMap(QDateTime& datetime, WrfModelType model_typ
     return is_exist;
 }
 
-bool WrfDataManager::GetGridValueMap(int datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector< WrfGridValueMap* >& maps){
+bool WrfDataManager::GetGridValueMap(int datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector<WrfGridValueMap*>& maps){
     bool is_exist = false;
 
-    for ( int i = 0; i < map_data_vec_.size(); ++i )
+    for ( int i = 0; i <map_data_vec_.size(); ++i )
         if ( map_data_vec_[i]->CheckExisting(datetime, model_type, element_type, fhour) ){
             map_data_vec_[i]->GetMaps(datetime, model_type, element_type, fhour, maps);
             is_exist = true;
@@ -151,11 +151,11 @@ bool WrfDataManager::GetGridValueMap(int datetime, WrfModelType model_type, WrfE
     return is_exist;
 }
 
-bool WrfDataManager::GetGridData(QDateTime& datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector< float* >& data){
+bool WrfDataManager::GetGridData(QDateTime& datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector<float*>& data){
     bool is_exist = false;
 
     qint64 time = datetime.msecsTo(QDateTime(QDate(1800, 1, 1), QTime(0, 0, 0))) / 3600000 * -1;
-    for ( int i = 0; i < map_data_vec_.size(); ++i )
+    for ( int i = 0; i <map_data_vec_.size(); ++i )
         if ( map_data_vec_[i]->CheckExisting((int)time, model_type, element_type, fhour) ){
             map_data_vec_[i]->GetData(time, model_type, element_type, fhour, data);
             is_exist = true;
@@ -166,10 +166,10 @@ bool WrfDataManager::GetGridData(QDateTime& datetime, WrfModelType model_type, W
     return is_exist;
 }
 
-bool WrfDataManager::GetGridData(int datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector< float* >& data){
+bool WrfDataManager::GetGridData(int datetime, WrfModelType model_type, WrfElementType element_type, int fhour, std::vector<float*>& data){
     bool is_exist = false;
 
-    for ( int i = 0; i < map_data_vec_.size(); ++i )
+    for ( int i = 0; i <map_data_vec_.size(); ++i )
         if ( map_data_vec_[i]->CheckExisting(datetime, model_type, element_type, fhour) ){
             map_data_vec_[i]->GetData(datetime, model_type, element_type, fhour, data);
             is_exist = true;
@@ -181,21 +181,21 @@ bool WrfDataManager::GetGridData(int datetime, WrfModelType model_type, WrfEleme
 }
 
 void WrfDataManager::GetModelMapRange(WrfModelType model_type, MapRange& range){
-    for ( int i = 0; i < map_data_vec_.size(); ++i )
+    for ( int i = 0; i <map_data_vec_.size(); ++i )
         if ( map_data_vec_[i]->CheckExisting(model_type) ){
             switch ( map_data_vec_[i]->DataType() ){
             case WrfNcMapData::SQUARE_PROJECTION_DATA:{
-                WrfNcSquareProjectionData* nc_data = dynamic_cast< WrfNcSquareProjectionData* >(map_data_vec_[i]);
+                WrfNcSquareProjectionData* nc_data = dynamic_cast<WrfNcSquareProjectionData*>(map_data_vec_[i]);
                 range = nc_data->map_range_;
                 break;
                                                       }
             case WrfNcMapData::LAMBCC_PROJECTION_DATA:{
-                WrfNcLambCcProjectionData* nc_data = dynamic_cast< WrfNcLambCcProjectionData* >(map_data_vec_[i]);
+                WrfNcLambCcProjectionData* nc_data = dynamic_cast<WrfNcLambCcProjectionData*>(map_data_vec_[i]);
                 range = nc_data->map_range_;
                 break;
                                                       }
             default:{
-                std::cout << "No map range for the selected model_type: " << enum_model_to_string(model_type) << std::endl; 
+                std::cout <<"No map range for the selected model_type: " <<enum_model_to_string(model_type) <<std::endl; 
                 exit(-1);
                     }                 
             }
@@ -215,18 +215,18 @@ void WrfDataManager::LoadMapInformation(const char* file_name, float start_x, fl
         while ( !border_file.eof() ){
             int poly_size;
             float x, y;
-            std::vector< float > temp_poly;
-            border_file >> poly_size;
+            std::vector<float> temp_poly;
+            border_file>> poly_size;
             temp_poly.resize(poly_size * 2);
             bool is_negative = false;
-            for ( int i = 0; i < poly_size; ++i ){
-                border_file >> temp_poly[2 * i] >> temp_poly[2 * i + 1];
-                if ( temp_poly[2 * i] < 0 ) is_negative = true;
+            for ( int i = 0; i <poly_size; ++i ){
+                border_file>> temp_poly[2 * i]>> temp_poly[2 * i + 1];
+                if ( temp_poly[2 * i] <0 ) is_negative = true;
             }
             if ( is_negative )
-                for ( int i = 0; i < temp_poly.size() / 2; ++i ) temp_poly[2 * i] += 360;
+                for ( int i = 0; i <temp_poly.size() / 2; ++i ) temp_poly[2 * i] += 360;
             bool is_used = false;
-            for ( int i = 0; i < temp_poly.size() / 2; ++i )
+            for ( int i = 0; i <temp_poly.size() / 2; ++i )
                 if ( (temp_poly[2 * i] - start_x) * (temp_poly[2 * i] - end_x) <= 0 && (temp_poly[2 * i +1] - start_y) * (temp_poly[2 * i + 1] - end_y) <= 0 ){
                     is_used = true;
                     break;
@@ -245,10 +245,10 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     if ( status != NC_NOERR ) return;
 
     size_t xa_len, ya_len, xf_len, yf_len, time_len, ens_len;
-    std::vector< float > xa, ya, xf, yf, time;
-    std::vector< int > ensv;
-    std::vector< float > lons_anal, lats_anal, lons_fcst, lats_fcst;
-    std::vector< int > init_time, fcst_time_begin, fcst_time_end;
+    std::vector<float> xa, ya, xf, yf, time;
+    std::vector<int> ensv;
+    std::vector<float> lons_anal, lats_anal, lons_fcst, lats_fcst;
+    std::vector<int> init_time, fcst_time_begin, fcst_time_end;
 
     nc_inq_dimid(ncid, "xa", &dim_id);
     nc_inq_dimlen(ncid, dim_id, &xa_len);
@@ -289,7 +289,7 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     nc_get_var_float(ncid, var_id, time.data());
 
     qint64 temp_time = QDateTime(QDate(1, 1, 1), QTime(0, 0, 0)).msecsTo(QDateTime(QDate(1800, 1, 1), QTime(0, 0, 0))) / 3600000;
-    for ( int i = 0; i < time.size(); ++i ) time[i] -= temp_time;
+    for ( int i = 0; i <time.size(); ++i ) time[i] -= temp_time;
 
     nc_inq_varid(ncid, "ensv", &var_id);
     ensv.resize(ens_len);
@@ -324,24 +324,24 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     nc_get_var_int(ncid, var_id, fcst_time_end.data());
 
     // pre process data
-    std::map< int, int > ens_time_map, anal_time_map;
-    std::map< int, int > fhour_map;
-    std::vector< float > lat_anal_vec, lon_anal_vec, lat_fcst_vec, lon_fcst_vec;
+    std::map<int, int> ens_time_map, anal_time_map;
+    std::map<int, int> fhour_map;
+    std::vector<float> lat_anal_vec, lon_anal_vec, lat_fcst_vec, lon_fcst_vec;
     MapRange anal_map_range, fcst_map_range;
 
     int bias_hour = (fcst_time_end[0] - init_time[0]) / 100 * 24 + (fcst_time_end[0] - init_time[0]) % 100;
-    for ( int i = 0; i < time.size(); ++i ) {
-        ens_time_map.insert(std::map< int, int >::value_type((int)(time[i] - bias_hour), i));
+    for ( int i = 0; i <time.size(); ++i ) {
+        ens_time_map.insert(std::map<int, int>::value_type((int)(time[i] - bias_hour), i));
     }
-    fhour_map.insert(std::map< int, int >::value_type(bias_hour, 0));
+    fhour_map.insert(std::map<int, int>::value_type(bias_hour, 0));
     lat_anal_vec.resize(ya_len);
-    for ( int i = 0; i < ya_len; ++i ) lat_anal_vec[i] = lats_anal[xa_len * i];
+    for ( int i = 0; i <ya_len; ++i ) lat_anal_vec[i] = lats_anal[xa_len * i];
     lon_anal_vec.resize(xa_len);
-    for ( int i = 0; i < xa_len; ++i ) lon_anal_vec[i] = lons_anal[i] + 360;
+    for ( int i = 0; i <xa_len; ++i ) lon_anal_vec[i] = lons_anal[i] + 360;
     lat_fcst_vec.resize(yf_len);
-    for ( int i = 0; i < yf_len; ++i ) lat_fcst_vec[i] = lats_fcst[xf_len * i];
+    for ( int i = 0; i <yf_len; ++i ) lat_fcst_vec[i] = lats_fcst[xf_len * i];
     lon_fcst_vec.resize(xf_len);
-    for ( int i = 0; i < xf_len; ++i ) lon_fcst_vec[i] = lons_fcst[i] + 360;
+    for ( int i = 0; i <xf_len; ++i ) lon_fcst_vec[i] = lons_fcst[i] + 360;
 
     anal_map_range.start_x = lon_anal_vec[0];
     anal_map_range.end_x = lon_anal_vec[lon_anal_vec.size() - 1];
@@ -361,7 +361,7 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     fcst_map_range.x_grid_number = xf_len;
     fcst_map_range.y_grid_number = yf_len;
 
-	std::cout << "X Space: "<< fcst_map_range.x_grid_space << "  Y Space: "<< fcst_map_range.y_grid_space << std::endl;
+	std::cout <<"X Space: "<<fcst_map_range.x_grid_space <<"  Y Space: "<<fcst_map_range.y_grid_space <<std::endl;
 
     ens_map_range_ = fcst_map_range;
     LoadMapInformation("./Resources/border.txt", ens_map_range_.start_x, ens_map_range_.end_x, ens_map_range_.start_y, ens_map_range_.end_y);
@@ -383,8 +383,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     apcp_anal_data->data_values_ = new float[time_len * ya_len * xa_len];
     nc_inq_varid(ncid, "apcp_anal", &var_id);
     nc_get_var_float(ncid, var_id, apcp_anal_data->data_values_);
-    for ( int i = 0; i < time_len * ya_len * xa_len; ++i )
-        if ( apcp_anal_data->data_values_[i] < -1 ) apcp_anal_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * ya_len * xa_len; ++i )
+        if ( apcp_anal_data->data_values_[i] <-1 ) apcp_anal_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(apcp_anal_data);
     observation_elements_.push_back(WRF_ACCUMULATED_PRECIPITATION);
 
@@ -405,8 +405,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     apcp_fcst_ens_data->data_values_ = new float[time_len * ens_len * yf_len * xf_len];
     nc_inq_varid(ncid, "apcp_fcst_ens", &var_id);
     nc_get_var_float(ncid, var_id, apcp_fcst_ens_data->data_values_);
-    for ( int i = 0; i < time_len * ens_len * yf_len * xf_len; ++i )
-        if ( apcp_fcst_ens_data->data_values_[i] < -1 ) apcp_fcst_ens_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * ens_len * yf_len * xf_len; ++i )
+        if ( apcp_fcst_ens_data->data_values_[i] <-1 ) apcp_fcst_ens_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(apcp_fcst_ens_data);
     ensemble_elements_.push_back(WRF_ACCUMULATED_PRECIPITATION);
 
@@ -427,8 +427,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     t2m_fcst_mean_data->data_values_ = new float[time_len * yf_len * xf_len];
     nc_inq_varid(ncid, "T2m_fcst_mean", &var_id);
     nc_get_var_float(ncid, var_id, t2m_fcst_mean_data->data_values_);
-    for ( int i = 0; i < time_len * yf_len * xf_len; ++i )
-        if ( t2m_fcst_mean_data->data_values_[i] < -1 ) t2m_fcst_mean_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * yf_len * xf_len; ++i )
+        if ( t2m_fcst_mean_data->data_values_[i] <-1 ) t2m_fcst_mean_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(t2m_fcst_mean_data);
     ensemble_mean_elements_.push_back(WRF_T2M);
 
@@ -449,8 +449,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     pwat_fcst_mean_data->data_values_ = new float[time_len * yf_len * xf_len];
     nc_inq_varid(ncid, "pwat_fcst_mean", &var_id);
     nc_get_var_float(ncid, var_id, pwat_fcst_mean_data->data_values_);
-    for ( int i = 0; i < time_len * yf_len * xf_len; ++i )
-        if ( pwat_fcst_mean_data->data_values_[i] < -1 ) pwat_fcst_mean_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * yf_len * xf_len; ++i )
+        if ( pwat_fcst_mean_data->data_values_[i] <-1 ) pwat_fcst_mean_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(pwat_fcst_mean_data);
     ensemble_mean_elements_.push_back(WRF_PRECIPITABLE_WATER);
 
@@ -471,8 +471,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     cape_fcst_mean_data->data_values_ = new float[time_len * yf_len * xf_len];
     nc_inq_varid(ncid, "cape_fcst_mean", &var_id);
     nc_get_var_float(ncid, var_id, cape_fcst_mean_data->data_values_);
-    for ( int i = 0; i < time_len * yf_len * xf_len; ++i )
-        if ( cape_fcst_mean_data->data_values_[i] < -1 ) cape_fcst_mean_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * yf_len * xf_len; ++i )
+        if ( cape_fcst_mean_data->data_values_[i] <-1 ) cape_fcst_mean_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(cape_fcst_mean_data);
     ensemble_mean_elements_.push_back(WRF_CAPE);*/
 
@@ -493,8 +493,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     cin_fcst_mean_data->data_values_ = new float[time_len * yf_len * xf_len];
     nc_inq_varid(ncid, "cin_fcst_mean", &var_id);
     nc_get_var_float(ncid, var_id, cin_fcst_mean_data->data_values_);
-    for ( int i = 0; i < time_len * yf_len * xf_len; ++i )
-        if ( cin_fcst_mean_data->data_values_[i] < -4000 ) cin_fcst_mean_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * yf_len * xf_len; ++i )
+        if ( cin_fcst_mean_data->data_values_[i] <-4000 ) cin_fcst_mean_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(cin_fcst_mean_data);
     ensemble_mean_elements_.push_back(WRF_CIN);*/
 
@@ -515,8 +515,8 @@ void WrfDataManager::LoadCombinedData(std::string& file_name){
     mslp_fcst_mean_data->data_values_ = new float[time_len * yf_len * xf_len];
     nc_inq_varid(ncid, "MSLP_fcst_mean", &var_id);
     nc_get_var_float(ncid, var_id, mslp_fcst_mean_data->data_values_);
-    for ( int i = 0; i < time_len * yf_len * xf_len; ++i )
-        if ( mslp_fcst_mean_data->data_values_[i] < -1 ) mslp_fcst_mean_data->data_values_[i] = -10001;
+    for ( int i = 0; i <time_len * yf_len * xf_len; ++i )
+        if ( mslp_fcst_mean_data->data_values_[i] <-1 ) mslp_fcst_mean_data->data_values_[i] = -10001;
     this->map_data_vec_.push_back(mslp_fcst_mean_data);
     ensemble_mean_elements_.push_back(WRF_MSLP);
 

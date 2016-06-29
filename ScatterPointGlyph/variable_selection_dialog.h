@@ -15,15 +15,15 @@ public:
 	VariableSelectionDialog();
 	~VariableSelectionDialog();
 
-	void SetDatasetInfo(int pnum, int vnum, std::vector< QString >& var_names);
-	void GetSelectionResult(std::vector< float >& weights);
+	void SetDatasetInfo(int pnum, int vnum, std::vector<QString>& var_names);
+	void GetSelectionResult(std::vector<float>& weights);
 	bool IsAutomaticDimReduction() { return ui_.dim_red_checkbox->isChecked();  }
 	int GetDimNumber() { return ui_.auto_dim_number->value(); }
 
 private:
 	Ui::VarSelectionDialog ui_;
-	std::vector< QCheckBox* > var_check_boxes_;
-	std::vector< QDoubleSpinBox* > var_weight_spin_boxes_;
+	std::vector<QCheckBox*> var_check_boxes_;
+	std::vector<QDoubleSpinBox*> var_weight_spin_boxes_;
 
 	private slots:
 	void OnAutoStateChanged(int);

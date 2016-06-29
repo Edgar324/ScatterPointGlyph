@@ -22,13 +22,13 @@ WrfNcSquareProjectionData::WrfNcSquareProjectionData(std::string& file_name, Wrf
     QDateTime temp_time = QDateTime(QDate(year, 1, 1), QTime(0, 0));
     int time = temp_time.msecsTo(QDateTime(QDate(1800, 1, 1), QTime(0, 0, 0))) / 3600000 * -1;
     time -= 24;
-    for ( int i = 0; i < time_len_; ++i ){
-        time_map_.insert(std::map< int, int >::value_type(time, i));
+    for ( int i = 0; i <time_len_; ++i ){
+        time_map_.insert(std::map<int, int>::value_type(time, i));
         time += 24;
     }
 
     fhour_len_ = 1;
-    fhour_map_.insert(std::map< int, int >::value_type(24, 0));
+    fhour_map_.insert(std::map<int, int>::value_type(24, 0));
 
     lon_len_ = 280;
     lat_len_ = 180;
@@ -42,23 +42,23 @@ WrfNcSquareProjectionData::WrfNcSquareProjectionData(std::string& file_name, Wrf
     map_range_.end_y = map_range_.start_y + map_range_.y_grid_space * (map_range_.y_grid_number - 1);
 
     lon_.resize(lon_len_);
-    for ( int i = 0; i < lon_len_; ++i )
+    for ( int i = 0; i <lon_len_; ++i )
         lon_[i] = map_range_.start_x + i * map_range_.x_grid_space;
     lat_.resize(lat_len_);
-    for ( int i = 0; i < lat_len_; ++i )
+    for ( int i = 0; i <lat_len_; ++i )
         lat_[i] = map_range_.start_y + i * map_range_.y_grid_space;
 
     ens_len_ = 1;
 
     data_values_ = new float[time_len_ * lon_len_ * lat_len_];
 
-    std::vector< float > temp_values;
+    std::vector<float> temp_values;
     temp_values.resize(time_len_ * lon_len_ * lat_len_ * 2);
     std::ifstream input_stream(file_name.c_str(), std::ios::binary);
     if ( input_stream.good() ){
         input_stream.read((char*)temp_values.data(), time_len_ * lon_len_ * lat_len_ * sizeof(float) * 2);
     }
-    for ( int i = 0; i < time_len_; ++i ){
+    for ( int i = 0; i <time_len_; ++i ){
         memcpy(data_values_ + lon_len_ * lat_len_ * i, (char*)(&temp_values[i * lon_len_ * lat_len_ * 2]), lon_len_ * lat_len_ * sizeof(float));
     }
     input_stream.close();
@@ -96,20 +96,20 @@ void WrfNcSquareProjectionData::LoadData(const char* file_name){
 
     // load analysis time
     nc_inq_varid(ncid, "time", &var_id);
-    std::vector< double > temp_time;
+    std::vector<double> temp_time;
     temp_time.resize(time_len_ * fhour_len_);
     nc_get_var_double(ncid, var_id, temp_time.data());
-    for ( int i = 0; i < temp_time.size(); ++i ) {
-        time_map_.insert(std::map< int, int >::value_type((int)temp_time[i], i));
+    for ( int i = 0; i <temp_time.size(); ++i ) {
+        time_map_.insert(std::map<int, int>::value_type((int)temp_time[i], i));
     }
 
     nc_inq_varid(ncid, "intValidTime", &var_id);
-    std::vector< int > intvalidtime;
+    std::vector<int> intvalidtime;
     intvalidtime.resize(time_len_ * fhour_len_);
     nc_get_var_int(ncid, var_id, intvalidtime.data());
 
     nc_inq_varid(ncid, "intTime", &var_id);
-    std::vector< int > inttime;
+    std::vector<int> inttime;
     inttime.resize(time_len_ * fhour_len_);
     nc_get_var_int(ncid, var_id, inttime.data());
 
@@ -123,11 +123,11 @@ void WrfNcSquareProjectionData::LoadData(const char* file_name){
     
 
     nc_inq_varid(ncid, "fhour", &var_id);
-    std::vector< int > temp_fhour;
+    std::vector<int> temp_fhour;
     temp_fhour.resize(fhour_len_);
     nc_get_var_int(ncid, var_id, temp_fhour.data());
-    for ( int i = 0; i < temp_fhour.size(); ++i )
-        fhour_map_.insert(std::map< int, int >::value_type(temp_fhour[i], i));
+    for ( int i = 0; i <temp_fhour.size(); ++i )
+        fhour_map_.insert(std::map<int, int>::value_type(temp_fhour[i], i));
 
     switch ( element_ ){
     case WRF_ACCUMULATED_PRECIPITATION:
@@ -151,7 +151,7 @@ void WrfNcSquareProjectionData::LoadData(const char* file_name){
     
     data_values_ = new float[time_len_ * ens_len_ * fhour_len_ * lat_len_ * lon_len_];
     if ( data_values_ == NULL ){
-        std::cout << "Out of memory" << std::endl;
+        std::cout <<"Out of memory" <<std::endl;
         return;
     }
     nc_get_var_float(ncid, var_id, data_values_);
@@ -170,7 +170,7 @@ void WrfNcSquareProjectionData::LoadData(const char* file_name){
 
 bool WrfNcSquareProjectionData::CheckExisting(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num){
     if ( element != element_ || model != model_ || fhour_map_.find(fhour) == fhour_map_.end() 
-        || ens_num >= ens_len_ || time_map_.find(time) == time_map_.end() ) 
+        || ens_num>= ens_len_ || time_map_.find(time) == time_map_.end() ) 
         return false;
     
     return true;
@@ -209,11 +209,11 @@ WrfGridValueMap* WrfNcSquareProjectionData::GetMap(int time, WrfModelType model,
     return temp_map;
 }
 
-void WrfNcSquareProjectionData::GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< WrfGridValueMap* >& maps){
+void WrfNcSquareProjectionData::GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<WrfGridValueMap*>& maps){
     if ( data_values_ == NULL ) return;
 
     maps.clear();
-    for ( int ens_num = 0; ens_num < ens_len_; ++ens_num ){
+    for ( int ens_num = 0; ens_num <ens_len_; ++ens_num ){
         WrfGridValueMap* temp_map = new WrfGridValueMap;
 
         long index = time_map_[time];
@@ -230,11 +230,11 @@ void WrfNcSquareProjectionData::GetMaps(int time, WrfModelType model, WrfElement
     }
 }
 
-void WrfNcSquareProjectionData::GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< float* >& data){
+void WrfNcSquareProjectionData::GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<float*>& data){
     if ( data_values_ == NULL ) return;
 
     data.clear();
-    for ( int ens_num = 0; ens_num < ens_len_; ++ens_num ){
+    for ( int ens_num = 0; ens_num <ens_len_; ++ens_num ){
         long index = time_map_[time];
         index *= lat_len_ * lon_len_ * fhour_len_ * ens_len_;
         index += ens_num * lat_len_ * lon_len_ * fhour_len_;

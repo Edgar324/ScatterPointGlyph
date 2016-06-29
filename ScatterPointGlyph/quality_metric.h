@@ -14,9 +14,9 @@ public:
 	void SaveMeasures(const char* file_path);
 
 private:
-	std::vector< std::vector< float > > quality_measures_;
+	std::vector<std::vector<float>> quality_measures_;
 
-	void GenerateLvelMeasure(TreeCommon* tree, int level, std::vector< float >& measures);
+	void GenerateLvelMeasure(TreeCommon* tree, int level, std::vector<float>& measures);
 };
 
 #endif

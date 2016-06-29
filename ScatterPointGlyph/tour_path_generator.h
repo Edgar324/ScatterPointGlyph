@@ -18,20 +18,20 @@ public:
 	bool GenerateSpanningTree();
 	bool GenerateVarTrend(int var_index);
 	bool GeneratePath(int begin_index = -1, int end_index = -1);
-	bool GenerateMinimumPath(int begin, int end, std::vector< int >& tour_list);
+	bool GenerateMinimumPath(int begin, int end, std::vector<int>& tour_list);
 	
-	static bool GenerateRoundPath(std::vector< CNode* >& nodes, std::vector< int >& tour_list);
-	static bool GenerateRoundPath(std::vector< std::vector< float > >& node_dis, std::vector< int >& tour_list);
+	static bool GenerateRoundPath(std::vector<CNode*>& nodes, std::vector<int>& tour_list);
+	static bool GenerateRoundPath(std::vector<std::vector<float>>& node_dis, std::vector<int>& tour_list);
 
 	PathRecord* GetPath();
 
-	std::vector< int > trans_edge_list;
-    std::vector< int > linked_edge_list;
-	std::vector< int > tour_node_list;
+	std::vector<int> trans_edge_list;
+    std::vector<int> linked_edge_list;
+	std::vector<int> tour_node_list;
 
 private:
 	TransMapData* trans_data_ = NULL;
-	std::vector< std::vector< float > > node_dis_;
+	std::vector<std::vector<float>> node_dis_;
 };
 
 #endif

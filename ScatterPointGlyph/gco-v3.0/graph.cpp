@@ -13,8 +13,8 @@ template <typename captype, typename tcaptype, typename flowtype>
 	  nodeptr_block(NULL),
 	  error_function(err_function)
 {
-	if (node_num_max < 16) node_num_max = 16;
-	if (edge_num_max < 16) edge_num_max = 16;
+	if (node_num_max <16) node_num_max = 16;
+	if (edge_num_max <16) edge_num_max = 16;
 
 	nodes = (node*) malloc(node_num_max*sizeof(node));
 	arcs = (arc*) malloc(2*edge_num_max*sizeof(arc));
@@ -65,7 +65,7 @@ template <typename captype, typename tcaptype, typename flowtype>
 	node* nodes_old = nodes;
 
 	node_num_max += node_num_max / 2;
-	if (node_num_max < node_num + num) node_num_max = node_num + num;
+	if (node_num_max <node_num + num) node_num_max = node_num + num;
 	nodes = (node*) realloc(nodes_old, node_num_max*sizeof(node));
 	if (!nodes) { if (error_function) (*error_function)("Not enough memory!"); exit(1); }
 

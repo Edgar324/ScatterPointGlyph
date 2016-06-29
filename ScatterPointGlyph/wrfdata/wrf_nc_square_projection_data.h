@@ -19,19 +19,19 @@ public:
     float* GetData(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num = 0);
     WrfGridValueMap* GetMap(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num = 0);
 
-    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< WrfGridValueMap* >& maps);
-    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< float* >& data);
+    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<WrfGridValueMap*>& maps);
+    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<float*>& data);
 
     virtual NcMapDataType DataType() { return WrfNcMapData::SQUARE_PROJECTION_DATA; }
 
     MapRange map_range_;
 
-    std::map< int, int > time_map_;
-    std::map< int, int > fhour_map_;
+    std::map<int, int> time_map_;
+    std::map<int, int> fhour_map_;
     WrfModelType model_;
     WrfElementType element_;
-    std::vector< float > lat_;
-    std::vector< float > lon_;
+    std::vector<float> lat_;
+    std::vector<float> lon_;
     size_t time_len_, lat_len_, lon_len_, ens_len_, fhour_len_;
 
     // [time][ens][lat][lon]

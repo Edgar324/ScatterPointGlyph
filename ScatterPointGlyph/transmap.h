@@ -53,12 +53,12 @@ public:
 	void SetData(ScatterPointDataset* ori_data, TransMapData* data);
 	void SetNodeRadius(float r);
 	void SetInteractionState(WidgetState s);
-	void SetAxisOrder(std::vector< int >& order);
+	void SetAxisOrder(std::vector<int>& order);
     void SetIndicatorRenderer(vtkRenderer* renderer);
 
 	void ClearView();
 
-	std::list< CNode* > GetNodeSequence() { return highlight_node_sequence; }
+	std::list<CNode*> GetNodeSequence() { return highlight_node_sequence; }
 
 	void HighlightVar(int var_index);
 	void ShowMinimumSpanningTree(bool enabled);
@@ -68,14 +68,14 @@ public:
 	void OnMouseReleased(bool is_left_button = true);
 	void OnMouseMove(int x, int y);
 
-    void GetFocusVarIndex(std::vector< int >& focus_index);
+    void GetFocusVarIndex(std::vector<int>& focus_index);
 	int GetSelectedClusterIndex();
-	void GetSelectedClusterIndex(std::vector< int >& index);
-	void GetSelectedClusterIds(std::vector< int >& ids);
-	void GetSelectedClusterNodes(std::vector< CNode* >& nodes);
+	void GetSelectedClusterIndex(std::vector<int>& index);
+	void GetSelectedClusterIds(std::vector<int>& ids);
+	void GetSelectedClusterNodes(std::vector<CNode*>& nodes);
 
     void SetDensityMapVisibility(bool visibility);
-    void UpdateDensityActor(std::vector< QColor >& node_colors);
+    void UpdateDensityActor(std::vector<QColor >& node_colors);
 
 	void ForceFocusCenter();
 	void MoveViewToFocus(float scale);
@@ -98,15 +98,15 @@ protected:
 
 	ScatterPointView* parent_view;
 
-	std::vector< vtkActor* > node_glyph_actors;
-	std::vector< vtkPolyData* > node_glyph_polys;
+	std::vector<vtkActor* > node_glyph_actors;
+	std::vector<vtkPolyData* > node_glyph_polys;
 
-    std::vector< int > linked_edges;
+    std::vector<int> linked_edges;
     vtkActor* linked_glyph_actors;
 	vtkPolyDataMapper* linked_glyph_mapper;
 	vtkPolyData* linked_glyph_polys;
 
-    std::vector< int > trans_edges;
+    std::vector<int> trans_edges;
 	vtkActor* trans_glyph_actors;
 	vtkPolyDataMapper* trans_glyph_mapper;
 	vtkPolyData* trans_glyph_polys;
@@ -114,7 +114,7 @@ protected:
 	vtkActor* highlight_actor;
 	vtkPolyDataMapper* hightlight_mapper;
 	vtkPolyData* highlight_poly;
-	std::vector< vtkTextActor3D* > seqence_text_actors;
+	std::vector<vtkTextActor3D* > seqence_text_actors;
 
 	vtkActor* selection_brush_actor;
 	vtkPolyDataMapper* selection_brush_mapper;
@@ -132,12 +132,12 @@ protected:
     vtkActor* var_icon_actor_;
     vtkPolyDataMapper* var_icon_mapper_;
     vtkPolyData* var_icon_poly_;
-    std::vector< vtkTextActor3D* > variable_color_text_;
+    std::vector<vtkTextActor3D* > variable_color_text_;
 
 	vtkPropPicker* node_picker;
 	vtkTooltipItem* tool_tip_item_;
 
-	std::list< CNode* > highlight_node_sequence;
+	std::list<CNode*> highlight_node_sequence;
 
 	TourPathGenerator* path_generator_;
 
@@ -145,7 +145,7 @@ private:
 	TransMapData* dataset_;
 	ScatterPointDataset* scatter_data_;
 	float node_radius_;
-	std::vector< int > axis_order_;
+	std::vector<int> axis_order_;
 
     vtkRenderer* glyph_indicator_renderer_;
 
@@ -159,7 +159,7 @@ private:
 
     int current_highlight_var_index_;
 
-	std::vector< int > focus_var_index_;
+	std::vector<int> focus_var_index_;
 	bool is_focus_var_fixed_ = false;
 
 	double focus_pos_[2];
@@ -180,7 +180,7 @@ private:
 	bool IsLevelOneNode(CNode* node);
 
 	bool IsInsideSelection(float x, float y);
-	void Sort(std::vector< int >& index_one, std::vector< int >& index_two);
+	void Sort(std::vector<int>& index_one, std::vector<int>& index_two);
 };
 
 #endif

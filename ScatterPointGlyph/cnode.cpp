@@ -33,7 +33,7 @@ CBranch::CBranch() : CNode() {
 }
 
 CBranch::~CBranch() {
-	for (int i = 0; i < linked_nodes.size(); ++i)
+	for (int i = 0; i <linked_nodes.size(); ++i)
 		delete linked_nodes[i];
 	linked_nodes.clear();
 }

@@ -10,7 +10,7 @@
 
 #include "glyph_design_dialog.h"
 #include <QVTKWidget.h>
-#include <vtkRenderer.h>;
+#include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkActor.h>
 #include <vtkPolyData.h>
@@ -50,7 +50,7 @@ GlyphDesignDialog::~GlyphDesignDialog()
     variable_checkbox_.clear();
 }
 
-void GlyphDesignDialog::SetVariables(std::vector< QString >& names)
+void GlyphDesignDialog::SetVariables(std::vector<QString >& names)
 {
     mean_values_.clear();
     msd_values_.clear();
@@ -73,7 +73,7 @@ void GlyphDesignDialog::SetVariables(std::vector< QString >& names)
     UpdateGlyph();
 }
 
-void GlyphDesignDialog::GetSelectedVariables(std::vector< int >& index)
+void GlyphDesignDialog::GetSelectedVariables(std::vector<int>& index)
 {
     index.clear();
     for (int i = 0; i < variable_checkbox_.size(); ++i)
@@ -83,7 +83,7 @@ void GlyphDesignDialog::GetSelectedVariables(std::vector< int >& index)
 void GlyphDesignDialog::UpdateGlyph() {
     glyph_poly_->Initialize();
 
-    std::vector< int > selection_index;
+    std::vector<int> selection_index;
     this->GetSelectedVariables(selection_index);
 
     float node_center_x = 0.0;
@@ -110,7 +110,7 @@ void GlyphDesignDialog::UpdateGlyph() {
 
     int seg_per_circle = 50;
 	// insert background
-	std::vector< vtkIdType > background_ids;
+	std::vector<vtkIdType > background_ids;
 	for (int j = 0; j <= seg_per_circle; ++j) {
 		float end_arc = j * 3.14159 * 2 / seg_per_circle;
 		float x = node_radius * cos(end_arc);
@@ -121,7 +121,7 @@ void GlyphDesignDialog::UpdateGlyph() {
 	}
 	glyph_poly_->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, background_ids.data());
 
-	std::vector< vtkIdType > center_cirlce_ids;
+	std::vector<vtkIdType > center_cirlce_ids;
 	for (int j = 0; j <= seg_per_circle; ++j) {
 		float end_arc = j * 3.14159 * 2 / seg_per_circle;
 		float x = node_radius * 0.05 * cos(end_arc);
@@ -132,7 +132,7 @@ void GlyphDesignDialog::UpdateGlyph() {
 	}
 	glyph_poly_->InsertNextCell(VTK_POLYGON, seg_per_circle + 1, center_cirlce_ids.data());
 
-	std::vector< vtkIdType > radius_circle_ids;
+	std::vector<vtkIdType > radius_circle_ids;
 	for (int j = 0; j <= seg_per_circle; ++j) {
 		float end_arc = j * 3.14159 * 2 / seg_per_circle;
 		float x = node_radius * cos(end_arc);
@@ -153,7 +153,7 @@ void GlyphDesignDialog::UpdateGlyph() {
     // paint encoding for the point number
     float point_rate = 0.5;
     int seg_num = seg_per_circle * point_rate;
-    std::vector< vtkIdType > inner_ids, outer_ids;
+    std::vector<vtkIdType > inner_ids, outer_ids;
     for (int j = 0; j <= seg_num; ++j) {
         float end_arc = -1 * j * 3.14159 * 2 / seg_per_circle + 3.14159 * 0.5;
         float x = node_radius * cos(end_arc) * 1.05;
@@ -185,9 +185,9 @@ void GlyphDesignDialog::UpdateGlyph() {
     }
 
 	// paint variance
-	std::vector< vtkIdType > var_point_ids1;
-	std::vector< vtkIdType > var_point_ids2;
-	std::vector< vtkIdType > gray_region_ids;
+	std::vector<vtkIdType > var_point_ids1;
+	std::vector<vtkIdType > var_point_ids2;
+	std::vector<vtkIdType > gray_region_ids;
 	int seg_per_pie = 30;
 	var_point_ids1.resize(2 * seg_per_pie);
 	var_point_ids2.resize(2 * seg_per_pie);

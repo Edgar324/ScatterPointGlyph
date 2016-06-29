@@ -33,11 +33,11 @@ public:
 	}
 
 	void SetData(ScatterPointDataset* data);
-	void SetPointValue(std::vector< float >& values);
+	void SetPointValue(std::vector<float>& values);
 
-	void SetClusterIndex(int cluster_count, std::vector< int >& point_index, std::vector< QColor >& colors);
+	void SetClusterIndex(int cluster_count, std::vector<int>& point_index, std::vector<QColor>& colors);
 	void SetHighlightCluster(int index);
-	void SetHighlightClusters(std::vector< int >& index);
+	void SetHighlightClusters(std::vector<int>& index);
 
 	void SetCategoryOn();
 	void SetCategoryOff();
@@ -47,18 +47,18 @@ public:
 
     void SetColorBarRenderer(vtkRenderer* renderer);
 
-	std::vector< int >& GetClusterColor() { return cluster_color_; }
+	std::vector<int>& GetClusterColor() { return cluster_color_; }
 
 	void ClearView();
 
 private:
 	int cluster_count_;
-	std::vector< int > point_index_;
-	std::vector< float > point_values_;
-	std::vector< int > cluster_color_;
+	std::vector<int> point_index_;
+	std::vector<float> point_values_;
+	std::vector<int> cluster_color_;
 
 	bool is_category_on_;
-	std::vector< int > current_selection_index_;
+	std::vector<int> current_selection_index_;
 
 	ScatterPointDataset* dataset_;
 

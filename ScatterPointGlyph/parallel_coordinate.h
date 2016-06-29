@@ -12,7 +12,7 @@ public:
     ParallelRecord() { }        
     ~ParallelRecord() { }
 
-    std::vector< float > values;
+    std::vector<float> values;
 };
 
 class ParallelDataset {
@@ -25,33 +25,33 @@ public:
     bool ClearData();
 
     // attributes which must be set
-    std::vector< QString > subset_names;
-    std::vector< std::vector< ParallelRecord* > > subset_records;
-    std::vector< std::vector< QString > > axis_anchors;
-    std::vector< QString > axis_names;
-	std::vector< QColor > subset_colors;
+    std::vector<QString > subset_names;
+    std::vector<std::vector<ParallelRecord*>> subset_records;
+    std::vector<std::vector<QString>> axis_anchors;
+    std::vector<QString > axis_names;
+	std::vector<QColor > subset_colors;
 
 
     // attributes which can be set automatically
-	std::vector< std::vector< float > > var_centers;
-	std::vector< std::vector< float > > var_width;
-	std::vector< std::vector< float > > var_std_dev;
-    std::vector< std::vector< QColor > > record_color;
-    std::vector< std::vector< bool > > is_record_selected;
+	std::vector<std::vector<float>> var_centers;
+	std::vector<std::vector<float>> var_width;
+	std::vector<std::vector<float>> var_std_dev;
+    std::vector<std::vector<QColor>> record_color;
+    std::vector<std::vector<bool>> is_record_selected;
 
-    std::vector< bool > is_subset_visible;
-    std::vector< float > subset_opacity;
-    std::vector< bool > is_axis_selected;
-    std::vector< int > mapped_axis;
+    std::vector<bool> is_subset_visible;
+    std::vector<float> subset_opacity;
+    std::vector<bool> is_axis_selected;
+    std::vector<int> mapped_axis;
 
 	bool is_axis_weight_enabled;
-	std::vector< float > axis_weights;
+	std::vector<float> axis_weights;
 
     bool is_cluster_enabled;
-    std::vector< std::vector< ParallelRecord* > > cluster_centers;
+    std::vector<std::vector<ParallelRecord*>> cluster_centers;
 
     bool is_range_filter_enabled;
-    std::vector< std::vector< float > > axis_value_filter_range;
+    std::vector<std::vector<float>> axis_value_filter_range;
 
     bool is_edge_bundling_enabled;
     bool is_correlation_analysis_enabled;
@@ -74,7 +74,7 @@ public:
 
 
     void SetDataset(ParallelDataset* dataset_t);
-	void SetAxisOrder(std::vector< int >& axis_order);
+	void SetAxisOrder(std::vector<int>& axis_order);
 	void SetHighlightAxis(int var_index);
 
 signals:
@@ -94,7 +94,7 @@ private:
     float subset_rect_width_, subset_rect_height_, subset_rect_text_width_, subset_rect_y_value_;
 
     float axis_top_y_value_, axis_bottom_y_value_, axis_y_size_;
-    std::vector< float > axis_x_pos_values_;
+    std::vector<float> axis_x_pos_values_;
     float axis_name_y_value_, range_text_top_y_value_, range_text_bottom_y_value_;
 
     float weight_circle_center_y_value_;
@@ -103,7 +103,7 @@ private:
     float icon_width_, icon_height_;
 
 	int highlight_var_index_;
-	std::vector< int > axis_order_;
+	std::vector<int> axis_order_;
 
     void UpdateViewLayoutParameters();
 

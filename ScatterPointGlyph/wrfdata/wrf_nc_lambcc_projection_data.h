@@ -19,8 +19,8 @@ public:
     virtual float* GetData(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num = 0);
     WrfLambCcValueMap* GetMap(int time, WrfModelType model, WrfElementType element, int fhour, int ens_num = 0);
 
-    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< WrfGridValueMap* >& maps);
-    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector< float* >& data);
+    virtual void GetMaps(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<WrfGridValueMap*>& maps);
+    virtual void GetData(int time, WrfModelType model, WrfElementType element, int fhour, std::vector<float*>& data);
 
     virtual NcMapDataType DataType() { return WrfNcMapData::LAMBCC_PROJECTION_DATA; }
 
@@ -29,16 +29,16 @@ public:
 
     WrfModelType model_;
     WrfElementType element_;
-    std::vector< float > lon_;
-    std::vector< float > lat_;
-    std::vector< float > x_dist_;
-    std::vector< float > y_dist_;
+    std::vector<float> lon_;
+    std::vector<float> lat_;
+    std::vector<float> x_dist_;
+    std::vector<float> y_dist_;
     double standard_parallel_[2];
     double longitude_of_central_meridian_;
     double latitude_of_projection_origin_;
     double false_easting_, false_northing_;
 
-    std::map< int, int > time_map_;
+    std::map<int, int> time_map_;
     size_t time_len_, y_len_, x_len_, nbnds_len_;
 
     // [time][lat][lon]

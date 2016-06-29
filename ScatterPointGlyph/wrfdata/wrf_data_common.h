@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
-//template class WRF_DATA_EXPORT std::allocator< float >;
-//template class WRF_DATA_EXPORT std::vector< float >;
-//template class WRF_DATA_EXPORT std::allocator< char >;
-//template class WRF_DATA_EXPORT std::basic_string< char >;
+//template class WRF_DATA_EXPORT std::allocator<float>;
+//template class WRF_DATA_EXPORT std::vector<float>;
+//template class WRF_DATA_EXPORT std::allocator<char>;
+//template class WRF_DATA_EXPORT std::basic_string<char>;
 
 enum WrfModelType{
     WRF_UNKNOWN_MODEL = 0x0,
@@ -66,7 +66,7 @@ struct RmsUnit{
     float lon;
     float lat;
     int grid_point_index;
-    std::vector< float > values;
+    std::vector<float> values;
 };
 
 class WrfValueMap
@@ -108,8 +108,8 @@ public:
 
     int dimension;
     // x, y
-    std::vector< float > coor;
-    std::vector< float > values;
+    std::vector<float> coor;
+    std::vector<float> values;
 
     virtual WrfValueMap::ValueMapType type() {
         return WrfValueMap::DISCRETE_VALUE_MAP;
@@ -201,8 +201,8 @@ public:
         return WrfValueMap::LAMBCC_VALUE_MAP;
     }
     
-    std::vector< float > lon;
-    std::vector< float > lat;
+    std::vector<float> lon;
+    std::vector<float> lat;
 
     double standard_parallel[2];
     double longitude_of_central_meridian;
@@ -273,13 +273,13 @@ public:
     int r, g, b;
     bool is_axis;
 
-    std::vector< WrfElementType > variables;
-    std::vector< float > weights;
-    std::vector< float > normalize_values;
+    std::vector<WrfElementType> variables;
+    std::vector<float> weights;
+    std::vector<float> normalize_values;
 
-    std::vector< float > rms_values;
-    std::vector< int > sort_date_index;
-    std::vector< int > date_sort_index;
+    std::vector<float> rms_values;
+    std::vector<int> sort_date_index;
+    std::vector<int> date_sort_index;
 };
 
 #endif

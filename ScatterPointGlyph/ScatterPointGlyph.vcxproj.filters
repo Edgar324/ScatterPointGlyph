@@ -69,6 +69,12 @@
     <Filter Include="Source Files\Utility">
       <UniqueIdentifier>{3e5e327b-67d4-47a5-968d-9883823548e3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Slic">
+      <UniqueIdentifier>{eea5380a-d3e2-44c0-8472-3c5a788ccb99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Slic">
+      <UniqueIdentifier>{d242c695-5b6c-4983-940d-c4084df6cde4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -236,6 +242,9 @@
     <ClCompile Include="color_mapping_generator.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="slic\slic_vf.cpp">
+      <Filter>Source Files\Slic</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -389,6 +398,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_option_dialog.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="slic\slic_vf.h">
+      <Filter>Header Files\Slic</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
