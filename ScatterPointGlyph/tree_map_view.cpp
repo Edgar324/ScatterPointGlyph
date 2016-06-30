@@ -22,11 +22,12 @@ TreeMapView::~TreeMapView() {
 
 }
 
-void TreeMapView::SetData(TreeCommon* tree, int var_num, 
+void TreeMapView::SetData(TreeCommon* tree, vector<int>& selected_var_index, 
     std::vector<CNode*>& selected_nodes, int selected_count, std::vector<int>& order, 
     std::vector<QString >& names, std::vector<QColor >& colors) {
 	this->tree_ = tree;
-	this->var_num_ = var_num;
+	this->var_num_ = selected_var_index.size();
+    this->selected_var_index_ = selected_var_index;
 
 	if (scene_ == NULL) {
 		scene_ = new QGraphicsScene(this);
@@ -49,8 +50,8 @@ void TreeMapView::SetData(TreeCommon* tree, int var_num,
 	}
 
 	if (var_items_.size() == 0) {
-		var_items_.resize(var_num);
-		for (int i = 0; i < var_num; ++i) {
+		var_items_.resize(var_num_);
+		for (int i = 0; i < var_num_; ++i) {
 			var_items_[i] = new VariableItem(i);
 			scene_->addItem(var_items_[i]);
 
@@ -107,6 +108,8 @@ void TreeMapView::UpdateLayout() {
 			var_items_[var_order_[i]]->setPos(0, total_height);
 			total_height += var_height + item_margin;
 		}
+        for (int i = var_num_; i < var_items_.size(); ++i) var_items_[i]->setVisible(false);
+
 	} else {
 		for (int i = 0; i < var_items_.size(); ++i) {
 			var_items_[var_order_[i]]->setVisible(false);
@@ -133,14 +136,14 @@ void TreeMapView::UpdateVariableItems(std::vector<CNode*>& selected_nodes, int s
 		QString var_name = names[i];
 		
 		for (int j = 0; j < selected_nodes.size(); ++j) {
-			var_values[i].push_back(selected_nodes[j]->average_values[i]);
+			var_values[i].push_back(selected_nodes[j]->average_values[selected_var_index_[i]]);
 			node_count[i].push_back(selected_nodes[j]->point_count);
-			tree_->GetNodeValues(selected_nodes[j], i, context_data[j]);
+			tree_->GetNodeValues(selected_nodes[j], selected_var_index_[i], context_data[j]);
 			std::sort(context_data[j].begin(), context_data[j].end());
 		}
 
 		var_items_[i]->SetData(var_name, colors[i], var_values[i], node_count[i], selected_count, context_data);
-		var_items_[i]->SetValueRange(tree_->data()->original_value_ranges[i][0], tree_->data()->original_value_ranges[i][1]);
+		var_items_[i]->SetValueRange(tree_->data()->original_value_ranges[selected_var_index_[i]][0], tree_->data()->original_value_ranges[selected_var_index_[i]][1]);
 	}
 }
 

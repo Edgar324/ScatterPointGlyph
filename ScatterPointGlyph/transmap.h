@@ -5,6 +5,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QTimer>
 #include <vector>
+using namespace std;
 
 class vtkActor;
 class vtkPolyDataMapper;
@@ -50,7 +51,7 @@ public:
 		this->Superclass::PlaceWidget(xmin, xmax, ymin, ymax, zmin, zmax);
 	}
 
-	void SetData(ScatterPointDataset* ori_data, TransMapData* data);
+	void SetData(ScatterPointDataset* ori_data, TransMapData* data, vector<int>& selected_var);
 	void SetNodeRadius(float r);
 	void SetInteractionState(WidgetState s);
 	void SetAxisOrder(std::vector<int>& order);
@@ -159,8 +160,7 @@ private:
 
     int current_highlight_var_index_;
 
-	std::vector<int> focus_var_index_;
-	bool is_focus_var_fixed_ = false;
+	std::vector<int> selected_var_index_;
 
 	double focus_pos_[2];
 	double current_pos_[3];

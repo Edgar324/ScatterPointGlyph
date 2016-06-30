@@ -244,7 +244,7 @@ void ParallelCoordinate::PaintCoordinate(){
 		glColor3f(0.0, 0.0, 0.0);
         glRectf(axis_x_pos_values_[i] - axis_width_ / 2, axis_bottom_y_value_, axis_x_pos_values_[i] + axis_width_ / 2, axis_top_y_value_);
 
-		if (axis_order_[i] == highlight_var_index_) {
+		if (i == highlight_var_index_) {
 			float centerx = axis_x_pos_values_[i];
 			float centery = axis_top_y_value_;
 
@@ -400,7 +400,7 @@ void ParallelCoordinate::mousePressEvent(QMouseEvent *event) {
 		for (int i = 0; i < axis_x_pos_values_.size(); ++i)
 			if (abs(axis_x_pos_values_[i] - x) < min_dis) {
 				min_dis = abs(axis_x_pos_values_[i] - x);
-				index = axis_order_[i];
+				index = i;
 			}
 		if (index == highlight_var_index_) {
 			this->highlight_var_index_ = -1;

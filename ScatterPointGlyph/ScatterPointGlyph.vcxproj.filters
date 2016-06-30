@@ -245,6 +245,15 @@
     <ClCompile Include="slic\slic_vf.cpp">
       <Filter>Source Files\Slic</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_var_selection_widget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="slic\var_selection_widget.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_var_selection_widget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -300,6 +309,9 @@
     </CustomBuild>
     <CustomBuild Include="option_dialog.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="slic\var_selection_widget.h">
+      <Filter>Header Files\Views</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>

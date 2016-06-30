@@ -8,6 +8,7 @@
 
 #include <string>
 #include <vector>
+using namespace std;
 #include <QtCore/QTimer>
 
 #include <vtkAutoInit.h>
@@ -39,6 +40,7 @@ class TransMapData;
 class PathExploreWidget; 
 class PathDataset;
 class TreeMapView;
+class VarSelectionWidget;
 
 class ScatterPointGlyph : public QMainWindow
 {
@@ -83,6 +85,9 @@ private:
     QTableView* detailed_data_tableview_;
     QDockWidget* data_table_panel_;
 
+    VarSelectionWidget* var_selection_widget_;
+    QDockWidget* var_selection_panel_;
+
 	PointRenderingLayer* original_point_rendering_layer_;
 	PointRenderingLayer* un_rendering_layer_;
 
@@ -99,6 +104,7 @@ private:
 
 	// the only dataset served in the memory
 	ScatterPointDataset* scatter_point_dataset_;
+    vector<int> selected_var_index_;
 
 	// system status
 	SystemMode sys_mode_;
@@ -196,6 +202,7 @@ private slots:
 
 	void OnGlyphSizeChanged();
 	void OnFocusTimerRunOut();
+    void OnVarSelectionChanged();
 };
 
 #endif // SCATTER_POINT_GLYPH_H

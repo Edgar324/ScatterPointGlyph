@@ -22,7 +22,6 @@ VariableItem::~VariableItem() {
 void VariableItem::SetData(QString var_name, QColor var_color, std::vector<float>& var_values, 
 	std::vector<int>& node_count, int selected_count, 
 	std::vector<std::vector<float>>& context) {
-
 	var_name_ = var_name;
 	var_values_ = var_values;
 	node_count_ = node_count;
