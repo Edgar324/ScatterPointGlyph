@@ -254,6 +254,21 @@
     <ClCompile Include="GeneratedFiles\Release\moc_var_selection_widget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_transmap.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_transmap.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_widget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_glyph_widget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_widget.cpp">
+      <Filter>Source Files\Rendering Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -312,6 +327,9 @@
     </CustomBuild>
     <CustomBuild Include="slic\var_selection_widget.h">
       <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_widget.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -413,6 +431,9 @@
     </ClInclude>
     <ClInclude Include="slic\slic_vf.h">
       <Filter>Header Files\Slic</Filter>
+    </ClInclude>
+    <ClInclude Include="radar_band_widget.h">
+      <Filter>Header Files\Rendering Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

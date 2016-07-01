@@ -96,11 +96,11 @@ void ScatterPointGlyph::InitWidget() {
 	parallel_coordinate_panel_->setVisible(false);
 
     var_selection_widget_ = new VarSelectionWidget;
-    var_selection_widget_->setFixedWidth(700);
+    var_selection_widget_->setFixedWidth(400);
     var_selection_panel_ = new QDockWidget(QString("Variable Selection"), this);
 	var_selection_panel_->setWidget(var_selection_widget_);
 	this->addDockWidget(Qt::RightDockWidgetArea, var_selection_panel_);
-	var_selection_panel_->setVisible(true);
+	var_selection_panel_->setVisible(false);
 
 	tree_map_view_ = new TreeMapView;
 	tree_map_view_->setMinimumWidth(700);
@@ -138,7 +138,7 @@ void ScatterPointGlyph::InitWidget() {
 
     indicator_renderer_ = vtkRenderer::New();
     main_view_->GetRenderWindow()->AddRenderer(indicator_renderer_);
-	indicator_renderer_->SetViewport(0.8, 0.8, 1.0, 1.0);
+	indicator_renderer_->SetViewport(0.85, 0.0, 1.0, 1.0);
 	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
 
     other_renderer_ = vtkRenderer::New();
@@ -245,6 +245,7 @@ void ScatterPointGlyph::InitWidget() {
     connect(ui_.actionShow_Density_Map, SIGNAL(triggered()), this, SLOT(OnActionShowDensityMapTriggered()));
     connect(ui_.actionShow_Data_Table, SIGNAL(triggered()), this, SLOT(OnActionShowDataTableTriggered()));
     connect(ui_.actionShow_Map, SIGNAL(triggered()), this, SLOT(OnActionShowMapTriggered()));
+    connect(ui_.actionVariable_Selection, SIGNAL(triggered()), this, SLOT(OnActionVariableSelectionTriggered()));
 
     connect(ui_.actionShow_2D_Result_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult2DSPTriggered()));
     connect(ui_.actionShow_Result_3D_Scatter_Plot, SIGNAL(triggered()), this, SLOT(OnActionShowResult3DSpTriggered()));
@@ -795,7 +796,8 @@ void ScatterPointGlyph::OnClusterFinished() {
 	}
 
 	int max_level = cluster_tree_->GetMaxLevel();
-    if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
+    if (current_view_level_ >= max_level - 1) current_view_level_ = max_level - 1;
+    if (current_view_level_ < 0) current_view_level_ = 0;
 	map_control_ui_.level_slider->setRange(0, max_level);
 	map_control_ui_.level_slider->setValue(current_view_level_);
 	map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
@@ -822,7 +824,8 @@ void ScatterPointGlyph::OnMainViewUpdated() {
 		float dis_per_pixel = this->GetMainViewDisPerPixel();
 		current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
         int max_level = multi_label_tree->GetMaxLevel();
-        if (current_view_level_ >= max_level) current_view_level_ = max_level - 1;
+        if (current_view_level_ >= max_level - 1) current_view_level_ = max_level - 1;
+        if (current_view_level_ < 0) current_view_level_ = 0;
 		map_control_ui_.level_slider->setValue(current_view_level_);
 		map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 	}
@@ -1227,7 +1230,8 @@ void ScatterPointGlyph::OnSplitClusterTriggered() {
 			float dis_per_pixel = this->GetMainViewDisPerPixel();
 			current_view_level_ = multi_label_tree->GetRadiusLevel(glyph_pixel_radius_ * label_size_factor_ * dis_per_pixel / scatter_point_dataset_->max_pos_range);
 			int max_level = multi_label_tree->GetMaxLevel();
-			if (current_view_level_ >= max_level) current_view_level_ = max_level;
+			if (current_view_level_ >= max_level - 1) current_view_level_ = max_level - 1;
+            if (current_view_level_ < 0) current_view_level_ = 0;
 			map_control_ui_.level_slider->setValue(current_view_level_);
 			map_control_ui_.level_index_label->setText(QString("%0").arg(current_view_level_));
 
@@ -1487,6 +1491,10 @@ void ScatterPointGlyph::OnActionShowMapTriggered() {
         original_point_rendering_layer_->SetMapEnabled(ui_.actionShow_Map->isChecked());
         this->main_view_->update();
     }
+}
+
+void ScatterPointGlyph::OnActionVariableSelectionTriggered() {
+    var_selection_panel_->setVisible(ui_.actionVariable_Selection->isChecked());
 }
 
 void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)

@@ -196,6 +196,7 @@ private slots:
 	void OnActionShowParallelCoordinateTriggered();
     void OnActionShowDataTableTriggered();
     void OnActionShowMapTriggered();
+    void OnActionVariableSelectionTriggered();
 
     void OnActionShowResult2DSPTriggered();
     void OnActionShowResult3DSpTriggered();

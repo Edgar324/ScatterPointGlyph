@@ -896,8 +896,6 @@ void TransMap::UpdateTransEdgeActor() {
 }
 
 void TransMap::UpdateIconActor() {
-    this->glyph_indicator_renderer_->ResetCamera();
-    return;
 	if (dataset_ == NULL || scatter_data_ == NULL) return;
 
     if (variable_color_text_.size() < scatter_data_->var_names.size()) {
@@ -942,7 +940,7 @@ void TransMap::UpdateIconActor() {
         variable_color_text_.resize(scatter_data_->var_names.size());
     }
 
-	/*var_icon_poly_->Initialize();
+	var_icon_poly_->Initialize();
 
     vtkPoints* points = vtkPoints::New();
     vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
@@ -979,7 +977,7 @@ void TransMap::UpdateIconActor() {
         var_icon_poly_->InsertNextCell(VTK_POLYGON, 4, cell_ids);
     }
 
-    var_icon_actor_->Modified();*/
+    var_icon_actor_->Modified();
 }
 
 void TransMap::UpdateDensityActor(std::vector<QColor >& node_colors) {

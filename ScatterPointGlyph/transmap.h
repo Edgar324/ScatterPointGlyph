@@ -24,8 +24,10 @@ class vtkTooltipItem;
 
 class ScatterPointView;
 
-class TransMap : public vtk3DWidget
+class TransMap : public QObject, public vtk3DWidget
 {
+    Q_OBJECT
+
 public:
 	TransMap(ScatterPointView* parent);
 

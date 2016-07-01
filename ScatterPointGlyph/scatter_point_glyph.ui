@@ -120,6 +120,7 @@
     <addaction name="actionShow_Table_Lens"/>
     <addaction name="actionShow_Data_Table"/>
     <addaction name="separator"/>
+    <addaction name="actionVariable_Selection"/>
     <addaction name="actionOptions"/>
    </widget>
    <addaction name="menuFile"/>
@@ -605,6 +606,17 @@
    </property>
    <property name="text">
     <string>Meteo-Case</string>
+   </property>
+  </action>
+  <action name="actionVariable_Selection">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Variable Selection</string>
    </property>
   </action>
  </widget>

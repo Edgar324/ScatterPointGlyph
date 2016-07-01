@@ -31,8 +31,8 @@ void MultiLabelTree::SetUncertaintyThreshold(float un_threshold) {
 int MultiLabelTree::GetRadiusLevel(float radius) {
 	int level = 0;
 	float temp_radius = max_radius_threshold_;
-	while (temp_radius / factor_ > radius) {
-		temp_radius /= factor_;
+	while (temp_radius / (factor_ * 1.25) > radius) {
+		temp_radius /= (factor_ * 1.25);
 		level++;
 	}
 	if (level > max_level_) level = max_level_;
