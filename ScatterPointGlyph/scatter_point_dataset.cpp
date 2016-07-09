@@ -1,6 +1,6 @@
 #include "scatter_point_dataset.h"
 #include <assert.h>
-#include "SimpleMatrix.h"
+
 #include "color_mapping_generator.h"
 
 ScatterPointDataset::ScatterPointDataset() {
@@ -29,7 +29,11 @@ void ScatterPointDataset::ClearData() {
 
 void ScatterPointDataset::DirectConstruct() {
 	var_num = var_names.size();
-	point_num = original_point_values.size();
+	point_num = original_point_values[0].size();
+
+    is_valid.resize(point_num, true);
+
+    var_weights.resize(var_num, 1.0 / var_num);
 
     // assign variable colors
     ColorMappingGenerator::GetInstance()->GetQualitativeColors(var_num, var_colors);
@@ -39,32 +43,41 @@ void ScatterPointDataset::DirectConstruct() {
 
 	NormalizePosition(this->normalized_point_pos, this->original_pos_ranges);
 	NormalizeValues(this->normalized_point_values, this->original_value_ranges);
+}
 
-	// construct adaptive rate
-	/*vector<vector<float>> point_dis;
-	point_dis.resize(this->normalized_point_pos.size());
-	for (int i = 0; i < point_num; ++i)
-		point_dis[i].resize(normalized_point_pos.size());
-	for (int i = 0; i < this->normalized_point_pos.size() - 1; ++i) {
-		point_dis[i][i] = 0;
-		for (int j = i + 1; j < this->normalized_point_pos.size(); ++j) {
-			float dis = sqrt(pow(normalized_point_pos[i][0] - normalized_point_pos[j][0], 2) + pow(normalized_point_pos[i][1] - normalized_point_pos[j][1], 2));
-			point_dis[i][j] = dis;
-			point_dis[j][i] = dis;
-		}
-	}
-	for (int i = 0; i < point_dis.size(); ++i)
-		sort(point_dis[i].begin(), point_dis[i].end());
-	adaptive_rate.resize(point_num);
-	int kNum = 20;
-	for (int i = 0; i < point_num; ++i) {
-		float ave_dis = 0;
-		for (int j = 0; j < kNum; ++j)
-			ave_dis += point_dis[i][j];
-		ave_dis /= (kNum - 1);
-		if (ave_dis > 0.1) ave_dis = 0.1;
-		adaptive_rate[i] = ave_dis;
-	}*/
+void ScatterPointDataset::ConstructWithValueRanges(vector<vector<float>>& ranges) {
+    var_num = var_names.size();
+	point_num = original_point_values[0].size();
+    is_valid.resize(point_num, true);
+
+    var_weights.resize(var_num, 1.0 / var_num);
+
+    // assign variable colors
+    ColorMappingGenerator::GetInstance()->GetQualitativeColors(var_num, var_colors);
+
+	normalized_point_values = original_point_values;
+    this->original_value_ranges = ranges;
+    for (int i = 0; i < point_num; ++i) {
+        is_valid[i] = true;
+        for (int j = 0; j < var_num; ++j) 
+            is_valid[i] = is_valid[i] && ((original_point_values[j][i] - ranges[j][0]) * (original_point_values[j][i] - ranges[j][1]) <= 0);
+        /*if (is_valid[i]) {
+            for (int j = 0; j < var_num; ++j)
+                normalized_point_values[j][i] = (original_point_values[j][i] - ranges[j][0]) / (ranges[j][1] - ranges[j][0]);
+        }*/
+    }
+
+    normalized_point_pos = original_point_pos;
+	normalized_point_values = original_point_values;
+
+	NormalizePosition(this->normalized_point_pos, this->original_pos_ranges);
+	NormalizeValues(this->normalized_point_values, this->original_value_ranges);
+}
+
+void ScatterPointDataset::NormalizePos() {
+    normalized_point_pos = original_point_pos;
+
+	NormalizePosition(this->normalized_point_pos, this->original_pos_ranges);
 }
 
 void ScatterPointDataset::AutoDimReduction(int dim_num) {
@@ -93,73 +106,31 @@ void ScatterPointDataset::ManualSelectDim(vector<bool>& is_dim_selected) {
 }
 
 void ScatterPointDataset::ExecMds() {
-	smat::Matrix<double> *X0 = new smat::Matrix<double>(original_point_values.size(), selected_vars.size(), 0.0);
-
-	for (int i = 0; i < selected_vars.size(); ++i) {
-		float min_value = 1e30;
-		float max_value = -1e30;
-		for (int j = 0; j < original_point_values.size(); ++j) {
-			if (original_point_values[j][selected_vars[i]] > max_value) max_value = original_point_values[j][selected_vars[i]];
-			if (original_point_values[j][selected_vars[i]] < min_value) min_value = original_point_values[j][selected_vars[i]];
-		}
-
-		assert(max_value - min_value != 0);
-
-		for (int j = 0; j < original_point_values.size(); ++j) {
-			float scale_value = (original_point_values[j][selected_vars[i]] - min_value) / (max_value - min_value);
-			X0->set(j, i, scale_value);
-		}
-	}
-
-	smat::Matrix<double> *D = new smat::Matrix<double>(original_point_values.size(), original_point_values.size(), 0.0);
-	float total_weight = 0;
-	for (int i = 0; i < selected_vars.size(); ++i) total_weight += var_weights[selected_vars[i]];
-	for (int i = 0; i < original_point_values.size() - 1; ++i){
-		D->set(i, i, 0);
-		for (int j = i + 1; j < original_point_values.size(); ++j) {
-			float dis = 0;
-			for (int k = 0; k < selected_vars.size(); ++k)
-				dis += pow((X0->get(i, k) - X0->get(j, k)) * var_weights[selected_vars[k]], 2) + 1e-20;
-			dis = sqrt(dis / total_weight);
-			assert(dis != 0);
-			D->set(i, j, dis);
-			D->set(j, i, dis);
-		}
-	}
-
-	int dim = 2;
 	
-	//int iteration = 40;
-	int iteration = 40;
-
-	smat::Matrix<double> * X1 = MDS_SMACOF(D, NULL, dim, iteration); // without initialization
-
-	original_point_pos.resize(original_point_values.size());
-	for (int i = 0; i < original_point_values.size(); ++i) {
-		original_point_pos[i].resize(2);
-		original_point_pos[i][0] = X1->get(i, 0) * 10000;
-		original_point_pos[i][1] = X1->get(i, 1) * 10000;
-	}
 }
 
 void ScatterPointDataset::NormalizeValues(vector<vector<float>>& vec, vector<vector<float>>& ranges){
-	ranges.resize(vec[0].size());
+	ranges.resize(vec.size());
 
-	for (int i = 0; i < vec[0].size(); ++i){
+	for (int i = 0; i < vec.size(); ++i){
 		float minValue = 1e10;
 		float maxValue = -1e10;
 
-		for (int j = 0; j < vec.size(); ++j){
-			if (minValue > vec[j][i]) minValue = vec[j][i];
-			if (maxValue < vec[j][i]) maxValue = vec[j][i];
+		for (int j = 0; j < vec[i].size(); ++j){
+            if (!is_valid[j]) continue;
+			if (minValue > vec[i][j]) minValue = vec[i][j];
+			if (maxValue < vec[i][j]) maxValue = vec[i][j];
 		}
 
 		if (maxValue - minValue != 0) {
-			for (int j = 0; j < vec.size(); ++j)
-				vec[j][i] = (vec[j][i] - minValue) / (maxValue - minValue);
+            for (int j = 0; j < vec[i].size(); ++j) {
+                if (!is_valid[j]) continue;
+                vec[i][j] = (vec[i][j] - minValue) / (maxValue - minValue);
+            }
+				
 		}
 		else {
-			for (int j = 0; j < vec.size(); ++j) vec[j][i] = 0.5;
+			for (int j = 0; j < vec[i].size(); ++j) vec[i][j] = 0.5;
 		}
 
 		ranges[i].resize(2);
@@ -169,16 +140,17 @@ void ScatterPointDataset::NormalizeValues(vector<vector<float>>& vec, vector<vec
 }
 
 void ScatterPointDataset::NormalizePosition(vector<vector<float>>& vec, vector<vector<float>>& ranges) {
-	ranges.resize(vec[0].size());
+	ranges.resize(vec.size());
 
 	max_pos_range = -1e10;
-	for (int i = 0; i < vec[0].size(); ++i){
+	for (int i = 0; i < vec.size(); ++i){
 		float minValue = 1e10;
 		float maxValue = -1e10;
 
-		for (int j = 0; j < vec.size(); ++j){
-			if (minValue > vec[j][i]) minValue = vec[j][i];
-			if (maxValue < vec[j][i]) maxValue = vec[j][i];
+		for (int j = 0; j < vec[i].size(); ++j){
+            if (!is_valid[j]) continue;
+			if (minValue > vec[i][j]) minValue = vec[i][j];
+			if (maxValue < vec[i][j]) maxValue = vec[i][j];
 		}
 		if (maxValue - minValue > max_pos_range) max_pos_range = maxValue - minValue;
 
@@ -187,13 +159,15 @@ void ScatterPointDataset::NormalizePosition(vector<vector<float>>& vec, vector<v
 		ranges[i][1] = maxValue;
 	}
 
-	for (int i = 0; i < vec[0].size(); ++i){
+	for (int i = 0; i < vec.size(); ++i){
 		float mid_value = (ranges[i][0] + ranges[i][1]) / 2;
 		
 		ranges[i][0] = mid_value - max_pos_range / 2;
 		ranges[i][1] = mid_value + max_pos_range / 2;
 
-		for (int j = 0; j < vec.size(); ++j)
-			vec[j][i] = (vec[j][i] - mid_value) / max_pos_range + 0.5;
+        for (int j = 0; j < vec[i].size(); ++j) {
+            if (!is_valid[j]) continue;
+			vec[i][j] = (vec[i][j] - mid_value) / max_pos_range + 0.5;
+        }
 	}
 }

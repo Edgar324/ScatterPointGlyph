@@ -19,6 +19,7 @@ public:
 	void SetValueRange(float min_value, float max_value);
 	void SetAbsWidthEnabled(bool enabled);
 	void SetHighlightEnabled(bool enabled);
+    int GetWidth();
 	QString GetTipString();
 
     void SetValueIndex(std::vector<int>& index);

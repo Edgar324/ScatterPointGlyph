@@ -9,31 +9,36 @@
 */
 
 #include "glyph_widget.h"
+#include "glyph_object.h"
+#include <vtkCallbackCommand.h>
 
 vtkStandardNewMacro(GlyphWidget);
 
 GlyphWidget::GlyphWidget() {
-
+    this->EventCallbackCommand->SetCallback(GlyphWidget::ProcessEvents);
 }
 
 GlyphWidget::~GlyphWidget() {
 
 }
 
-void GlyphWidget::SetData(int cluster_index, vector<QString>& names, 
-    vector<float>& means, vector<float>& std_devs, 
-    float saliency, int node_count, int max_node_count) {
-    this->cluster_index_ = cluster_index;
-    this->names_ = names;
-    this->means_ = means;
-    this->std_devs_ = std_devs;
-    this->saliency_ = saliency;
-    this->node_count_ = node_count;
-    this->max_node_count_ = max_node_count;
+void GlyphWidget::SetData(GlyphObject* object) {
+    this->glyph_object_ = object;
+    if (this->glyph_object_ != NULL) 
+        this->glyph_object_->set_glyph_widget(this);
+    this->BuildRepresentation();
+}
+
+void GlyphWidget::SetRenderingWidget(GlyphRenderingWidget* widget) {
+    this->rendering_widget_ = widget;
+}
+
+void GlyphWidget::SetEnabled(int enabled) {
+    
 }
 
 void GlyphWidget::BuildRepresentation() {
-
+    
 }
 
 void GlyphWidget::ProcessEvents(vtkObject* object, unsigned long event, void* clientdata, void* calldata) {
@@ -62,7 +67,7 @@ void GlyphWidget::ProcessEvents(vtkObject* object, unsigned long event, void* cl
 }
 
 void GlyphWidget::OnMouseMove() {
-    
+    cout << "Glyph widget move" << endl;
 }
 
 void GlyphWidget::OnLeftButtonDown() {
@@ -79,4 +84,8 @@ void GlyphWidget::OnRightButtonDown() {
 
 void GlyphWidget::OnRightButtonUp() {
 
+}
+
+void GlyphWidget::Modified() {
+    this->BuildRepresentation();
 }

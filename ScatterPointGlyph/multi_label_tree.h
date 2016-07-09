@@ -9,27 +9,22 @@ class MultiLabelTree : public TreeCommon
 {
 public:
 	MultiLabelTree(ScatterPointDataset* data);
-	~MultiLabelTree();
+	virtual ~MultiLabelTree();
 
-	// Set radius of level 1
-	void SetRadiusThreshold(float max_radius);
-	void SetUncertaintyThreshold(float un_threshold);
-	int GetRadiusLevel(float radius);
+    virtual void AutoConstructTree(float std_dev_threshold);
 
 protected:
-	virtual void GenerateClusters();
-	virtual void BeginClustering();
 	virtual void SplitNode(CBranch* node);
+    void SplitOnSlic(CBranch* node);
+    void DirectSplit(CBranch* node);
+
     void SplitPoints(vector<vector<float>>& pos, vector<vector<float>>& value, float radius, vector<int>& clusters);
 
-	// Generate new graph based on the cluster results based on each variable
-	void GenerateSegmentUncertainty(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, std::vector<std::vector<float>>& edge_weight);
+	MultiLabelProcessor* processor_ = NULL;
 
-	MultiLabelProcessor* processor_;
-
-	float max_radius_threshold_;
-	float un_threshold_;
+	float max_radius_threshold_ = 0.5;
 	float factor_ = 2.0;
+    int SLIC_PIXEL_THRESHOLD = 500;
 };
 
 #endif

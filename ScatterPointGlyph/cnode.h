@@ -24,25 +24,24 @@ public:
 
 	CBranch* parent = NULL;
 
-	int point_count;
-	std::vector<float> center_pos;
-	std::vector<float> average_values;
-	std::vector<float> variable_variances;
-	float general_variance;
+    // Bounding rect of each node
+    float left = 0, right = 0, bottom = 0, top = 0;
+    vector<float> center_pos;
 
-    float saliency;
+    // Statistics of each node
+	int point_count = 0;
+	vector<float> mean_pos;
+	vector<float> mean_values;
+	vector<float> std_deviations;
 
 	// The parameter for generating this node using multi-label clustering method
-	float radius;
+	float radius = 0;
 
-	// Parameters for rendering effect in the main views
-	bool is_expanded;
-	bool is_highlighted;
+    //
+    float average_dis = 0;
 
-	// Representative color for the cluster
-	// [hstart, hend] is the hue range for child nodes
-	QColor color;
-	float hstart, hend;
+    bool is_expanded = false;
+    bool is_visible = false;
 
 	int level() { return level_; }
 	void set_level(int l) { level_ = l; }
@@ -63,7 +62,7 @@ public:
 
 	virtual CNode::NodeType type() { return CNode::LEAF; }
 
-	std::vector<int> linked_points;
+	vector<int> linked_points;
 };
 
 class CBranch : public CNode
@@ -74,10 +73,7 @@ public:
 
 	virtual CNode::NodeType type() { return CNode::BRANCH; }
 
-	std::vector<CNode*> linked_nodes;
-	// The placement positions for the linked_nodes
-	// This can be generated either by manually or by TSP algorithm
-	std::vector<int> sorting_index;
+	vector<CNode*> linked_nodes;
 };
 
 #endif

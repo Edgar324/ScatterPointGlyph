@@ -2,63 +2,10 @@
 #define PARALLEL_COORDINATE_H_
 
 #include "gl/glew.h"
-#include <QtGui/QColor>
 #include <QtOpenGL/QGLWidget>
 #include <vector>
 #include <iostream>
-
-class ParallelRecord {
-public:
-    ParallelRecord() { }        
-    ~ParallelRecord() { }
-
-    std::vector<float> values;
-};
-
-class ParallelDataset {
-public:
-    ParallelDataset();
-    ~ParallelDataset();
-
-    bool CompleteInput();
-	void UpdateGaussian();
-    bool ClearData();
-
-    // attributes which must be set
-    std::vector<QString > subset_names;
-    std::vector<std::vector<ParallelRecord*>> subset_records;
-    std::vector<std::vector<QString>> axis_anchors;
-    std::vector<QString > axis_names;
-	std::vector<QColor > subset_colors;
-
-
-    // attributes which can be set automatically
-	std::vector<std::vector<float>> var_centers;
-	std::vector<std::vector<float>> var_width;
-	std::vector<std::vector<float>> var_std_dev;
-    std::vector<std::vector<QColor>> record_color;
-    std::vector<std::vector<bool>> is_record_selected;
-
-    std::vector<bool> is_subset_visible;
-    std::vector<float> subset_opacity;
-    std::vector<bool> is_axis_selected;
-    std::vector<int> mapped_axis;
-
-	bool is_axis_weight_enabled;
-	std::vector<float> axis_weights;
-
-    bool is_cluster_enabled;
-    std::vector<std::vector<ParallelRecord*>> cluster_centers;
-
-    bool is_range_filter_enabled;
-    std::vector<std::vector<float>> axis_value_filter_range;
-
-    bool is_edge_bundling_enabled;
-    bool is_correlation_analysis_enabled;
-	bool is_gaussian_enabled;
-
-	bool is_updating;
-};
+#include "parallel_dataset.h"
 
 class ParallelCoordinate : public QGLWidget {
     Q_OBJECT
@@ -72,10 +19,12 @@ public:
         GL_INIT_ERROR	    = 0x000010
     };
 
-
-    void SetDataset(ParallelDataset* dataset_t);
+    void SetData(ParallelDataset* dataset_t);
 	void SetAxisOrder(std::vector<int>& axis_order);
 	void SetHighlightAxis(int var_index);
+
+public slots:
+    void OnDataChanged();
 
 signals:
 	void HighlightVarChanged(int);
@@ -103,7 +52,6 @@ private:
     float icon_width_, icon_height_;
 
 	int highlight_var_index_;
-	std::vector<int> axis_order_;
 
     void UpdateViewLayoutParameters();
 
@@ -113,8 +61,9 @@ private:
     void PaintText();
     void PaintSubsetIdentifyItems();
     void PaintWeightCircles();
-
 	void PaintGaussianCurve();
+
+    void UpdateView();
 };
 
 #endif

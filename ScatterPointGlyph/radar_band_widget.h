@@ -15,12 +15,12 @@
 
 class RadarBandWidget : public GlyphWidget
 {
-    Q_OBJECT
-
 public:
     static RadarBandWidget* New();
 
     vtkTypeMacro(RadarBandWidget, GlyphWidget);
+
+    virtual void SetEnabled(int enabled);
 
 protected:
     RadarBandWidget();
@@ -32,6 +32,18 @@ protected:
 	virtual void OnLeftButtonUp();
 	virtual void OnRightButtonDown();
 	virtual void OnRightButtonUp();
+
+private:
+    vtkActor* glyph_actor_ = NULL;
+    vtkPolyDataMapper* glyph_data_mapper_ = NULL;
+    vtkPolyData* glyph_poly_ = NULL;
+
+    vtkActor* highlight_actor_ = NULL;
+    vtkPolyDataMapper* highlight_data_mapper_ = NULL;
+    vtkPolyData* highlight_poly_ = NULL;
+
+    void BuildLargeGlyph();
+    void BuildSmallGlyph();
 };
 
 #endif

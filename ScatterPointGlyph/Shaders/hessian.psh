@@ -1,0 +1,34 @@
+#version 330
+
+uniform sampler3D GradientTexture;
+uniform float sampleStepX, sampleStepY, sampleStepZ;
+
+in vec3 Position;
+out vec4 Color;
+
+vec3 to01Value(vec3 value)
+{
+	value = (value + vec3(512, 512, 512)) / 1024;
+	return value;
+}
+
+vec3 getHessian(vec3 position)
+{
+		vec3 h1;
+		h1 = texture(GradientTexture, position + vec3(sampleStepX, sampleStepY, sampleStepZ)).xyz
+			- texture(GradientTexture, position - vec3(sampleStepX, sampleStepY, sampleStepZ)).xyz;
+		if (sampleStepX != 0)
+			h1 = h1 / (2 * sampleStepX);
+		else if (sampleStepY != 0)
+			h1 = h1 / (2 * sampleStepY);
+		else
+			h1 = h1 / (2 * sampleStepZ);
+		return h1;
+}
+
+void main()
+{	
+		Color = vec4(to01Value(getHessian(Position).xyz), 1.0);
+		//Color = vec4(sampleStepX, sampleStepY, sampleStepZ, 1.0);
+		//Color = vec4(texture(GradientTexture, vec3((Position.xy + vec2(1.0, 1.0)) / 2.0, Position.z)).xyz, 1.0);
+}

@@ -1,0 +1,77 @@
+#version 330
+
+uniform sampler3D VolumeTex;
+
+in vec3 Position;
+out vec4 Color;
+
+const float StepX = 1.0f / 256;
+const float StepY = 1.0f / 256;
+const float StepZ = 1.0f / 256;
+
+int weights[81] = int[](
+    -1, -3, -1, -3, -6, -3, -1, -3, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  3,  1,  3,  6,  3,  1, 3, 1,
+    -1, -3, -1,  0,  0,  0,  1,  3,  1, -3, -6, -3,  0,  0,  0,  3,  6,  3, -1, -3, -1,  0,  0,  0,  1, 3, 1,
+    -1,  0,  1, -3,  0,  3, -1,  0,  1, -3,  0,  3, -6,  0,  6, -3,  0,  3, -1,  0,  1, -3,  0,  3, -1, 0, 1);
+
+vec3 to01Value(vec3 value)
+{
+	value = (value + vec3(512, 512, 512)) / 1024;
+	return value;
+}
+
+float valueAt(vec3 rayPosition)
+{
+	return texture(VolumeTex, rayPosition).a;
+}
+
+vec3 getNormal(vec3 rayPosition)
+{
+	vec3 normal;
+	normal = vec3(valueAt(rayPosition + vec3(StepX, 0.0, 0.0)) - valueAt(rayPosition - vec3(StepX, 0.0, 0.0)),
+				valueAt(rayPosition + vec3(0.0, StepY, 0.0)) - valueAt(rayPosition - vec3(0.0, StepY, 0.0)),
+				valueAt(rayPosition + vec3(0.0, 0.0, StepZ)) - valueAt(rayPosition - vec3(0.0, 0.0, StepZ)));
+	normal = normal / vec3(StepX, StepY, StepZ);
+	normal = normal / 2;
+	return normal;
+}
+
+vec4 getSobelNormal(vec3 rayPosition)
+{
+    rayPosition -= vec3(StepX, StepY, StepZ);
+    vec3 position = rayPosition;
+    vec3 normal = vec3(0.0);
+    int index = 0;
+    for (int i = 0; i < 3; i++) 
+    {
+        position.y = rayPosition.y;
+        for (int j = 0; j < 3; j++)
+        {
+            position.z = rayPosition.z;
+            for (int k = 0; k < 3; k++) 
+            {
+                normal.r += weights[ 0 + index] * valueAt(position);
+                normal.g += weights[27 + index] * valueAt(position);
+                normal.b += weights[54 + index] * valueAt(position);
+                index++;
+                position.z += StepZ;
+            }
+            position.y += StepY;
+        }
+        position.x += StepX;
+    }
+	
+	float temp = (abs(normal.r) + abs(normal.g) + abs(normal.b)) / 10;
+	vec4 normalTemp = vec4(normalize(normal), temp);
+    return normalTemp;
+}
+
+void main()
+{
+	vec4 normal = getSobelNormal(Position.xyz);
+	normal.rgb = (normal.rgb + vec3(1.0)) / 2;
+	Color = normal;
+	//Color = vec4(Position.xyz, 0.9);
+	//Color = vec4(vec3((Position.xy + vec2(1.0, 1.0)) / 2.0, Position.z), 1.0);
+	//Color = vec4(valueAt(vec3((Position.xy + vec2(1.0, 1.0)) / 2.0, Position.z)) * 10, 0.0, 0.0, 1.0);
+}

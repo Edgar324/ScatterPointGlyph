@@ -2,6 +2,7 @@
 #define UTILITY_H_
 
 #include<vector>
+#include <algorithm>
 using namespace std;
 
 class CNode;
@@ -27,6 +28,11 @@ public:
     static void VtkTriangulation(vector<vector<float>>& pos, vector<vector<bool>>& connecting_status, float& min_edge_length);
 
 	static void GenerateAxisOrder(ParallelDataset* dataset_t, std::vector<int>& axis_order);
+
+    static void GenerateAxisOrder(vector<vector<float>>& values, vector<int>& axis_order);
+    static float GetAverageDistance(vector<vector<float>>& pos);
+
+    static bool CheckInside(vector<float>& path, float x, float y);
 };
 
 #endif

@@ -113,7 +113,7 @@
     <addaction name="menuShow_Sequence"/>
     <addaction name="actionShow_Minimum_Spanning_Tree"/>
     <addaction name="separator"/>
-    <addaction name="actionShow_Transmap"/>
+    <addaction name="actionShow_Glyph"/>
     <addaction name="actionShow_Density_Map"/>
     <addaction name="actionShow_PCP"/>
     <addaction name="actionShow_Tree_Map"/>
@@ -143,15 +143,14 @@
    <addaction name="actionVTK_Unstructured_Grid_Data"/>
    <addaction name="separator"/>
    <addaction name="actionShow_Scatter_Plot"/>
-   <addaction name="actionShow_Transmap"/>
+   <addaction name="actionShow_Glyph"/>
    <addaction name="actionShow_Density_Map"/>
    <addaction name="actionShow_Tree_Map"/>
    <addaction name="actionShow_Table_Lens"/>
    <addaction name="actionShow_PCP"/>
-   <addaction name="actionShow_Data_Table"/>
+   <addaction name="actionShow_Volume"/>
    <addaction name="actionShow_Map"/>
-   <addaction name="separator"/>
-   <addaction name="actionShow_Minimum_Spanning_Tree"/>
+   <addaction name="actionShow_Data_Table"/>
    <addaction name="separator"/>
    <addaction name="actionSingle_Selection"/>
    <addaction name="actionSequence_Selection"/>
@@ -160,11 +159,7 @@
    <addaction name="actionBrush_Cluster"/>
    <addaction name="actionAdd_Path_Sequence"/>
    <addaction name="separator"/>
-   <addaction name="actionShow_2D_Result_Scatter_Plot"/>
-   <addaction name="actionShow_Result_3D_Scatter_Plot"/>
-   <addaction name="separator"/>
-   <addaction name="actionExec"/>
-   <addaction name="actionBegin_Clustering"/>
+   <addaction name="actionRecursive_Splitting"/>
    <addaction name="actionSplit"/>
    <addaction name="actionMerge"/>
    <addaction name="separator"/>
@@ -261,6 +256,9 @@
    <property name="checked">
     <bool>false</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/sequence.png</normaloff>:/ScatterPointGlyph/images/sequence.png</iconset>
@@ -315,6 +313,9 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/painter1.png</normaloff>:/ScatterPointGlyph/images/painter1.png</iconset>
@@ -326,6 +327,9 @@
   <action name="actionSelect_Minimum_Path">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
@@ -397,7 +401,7 @@
     <string>Multi Label Clustering</string>
    </property>
   </action>
-  <action name="actionShow_Transmap">
+  <action name="actionShow_Glyph">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -409,7 +413,7 @@
      <normaloff>:/ScatterPointGlyph/images/transmap.png</normaloff>:/ScatterPointGlyph/images/transmap.png</iconset>
    </property>
    <property name="text">
-    <string>Show Transmap</string>
+    <string>Show Glyph</string>
    </property>
   </action>
   <action name="actionShow_PCP">
@@ -462,13 +466,16 @@
     <string>Options</string>
    </property>
   </action>
-  <action name="actionBegin_Clustering">
+  <action name="actionRecursive_Splitting">
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
      <normaloff>:/ScatterPointGlyph/images/begin.png</normaloff>:/ScatterPointGlyph/images/begin.png</iconset>
    </property>
    <property name="text">
-    <string>Begin Clustering</string>
+    <string>Recursive Splitting</string>
+   </property>
+   <property name="toolTip">
+    <string>Recursive Splitting</string>
    </property>
   </action>
   <action name="actionShow_Density_Map">
@@ -617,6 +624,18 @@
    </property>
    <property name="text">
     <string>Variable Selection</string>
+   </property>
+  </action>
+  <action name="actionShow_Volume">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/volume.png</normaloff>:/ScatterPointGlyph/images/volume.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Volume</string>
    </property>
   </action>
  </widget>

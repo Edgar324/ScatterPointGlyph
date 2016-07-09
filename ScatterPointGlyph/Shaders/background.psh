@@ -1,0 +1,11 @@
+#version 330
+
+uniform sampler2D BackgroundTex;
+
+in vec4 Position;
+out vec4 Color;
+
+void main() 
+{
+    Color = texture(BackgroundTex, Position.xy);
+}

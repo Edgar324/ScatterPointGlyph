@@ -61,10 +61,10 @@ void TreeMapItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *optio
 	if (root_ == NULL) return;
 
 	// paint title
-	QPen title_pen;
+	/*QPen title_pen;
 	title_pen.setColor(Qt::black);
 	title_pen.setWidth(2.0);
-	painter->drawText(QRect(0, 0, this->total_width, title_height), Qt::AlignCenter, QString("Hierarchical Tree"));
+	painter->drawText(QRect(0, 0, this->total_width, title_height), Qt::AlignCenter, QString("Hierarchical Tree"));*/
 
 	int item_width = left_margin;
 
@@ -83,7 +83,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 		CBranch* branch = dynamic_cast<CBranch*>(node);
 		for (int i = 0; i < branch->linked_nodes.size(); ++i) {
 			float item_left = max_width;
-			PaintItem(painter, branch->linked_nodes[branch->sorting_index[i]], max_width);
+			PaintItem(painter, branch->linked_nodes[i], max_width);
 			linked_pos.push_back((item_left + max_width) / 2);
 			if (i != branch->linked_nodes.size() - 1) {
 				max_width += item_margin;
@@ -114,7 +114,7 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 	// paint the radar glyph
 	if (!node->is_expanded) {
 		int seg_per_circle = 20;
-		float temp_un = node->general_variance > 0.5 ? 1.0 : node->general_variance / 0.5;
+		float temp_un = 0.5;
 		float temp_radius = temp_item_size / 2.0 * (temp_un * 0.95 + 0.05);
 
 		QPainterPath circle_path;
@@ -125,8 +125,8 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 			circle_path.lineTo(x, y);
 		}
 
-        if (is_color_used_)
-		    painter->fillPath(circle_path, node->color);
+        if (node->is_visible)
+            painter->fillPath(circle_path, QColor(255, 140, 61));
         else
             painter->fillPath(circle_path, QColor(200, 200, 200));
 	}
@@ -145,12 +145,12 @@ void TreeMapItem::PaintItem(QPainter* painter, CNode* node, int& max_width) {
 		painter->drawLine(center_x - temp_item_size / 2 + 3, topy, center_x - temp_item_size / 2 + 3, topy + 6);
 	}
 
-	QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
+	/*QRectF item_rect = QRectF(center_x - temp_item_size / 2, center_y - temp_item_size / 2, temp_item_size, temp_item_size);
 	this->item_pos_map_.insert(std::map< int, QRectF >::value_type(node->id(), item_rect));
-	if (node->is_highlighted) {
+	if (node->is_visible) {
 		painter->setPen(QColor(255, 0.55 * 255, 0.24 * 255));
 		painter->drawRect(item_rect);
-	}
+	}*/
 
 	// paint linkage
 	painter->setPen(QColor(220, 220, 220));
@@ -187,7 +187,7 @@ void TreeMapItem::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 		std::map< int, CNode*>::iterator iter = item_map_.find(id_index);
 		if (iter->second->is_expanded) return;
 		if (iter != item_map_.end()) {
-			iter->second->is_highlighted = !iter->second->is_highlighted;
+			iter->second->is_visible = !iter->second->is_visible;
 			emit NodeSelected(id_index);
 			this->update();
 			return;

@@ -1,9 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ScatterPointGlyph", "ScatterPointGlyph\ScatterPointGlyph.vcxproj", "{B12702AD-ABFB-343A-A199-8E24837244A3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED} = {7FE85B25-22CF-4CB1-945A-99613AD3CEED}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VolumeRenderer", "VolumeRenderer\VolumeRenderer.vcxproj", "{7FE85B25-22CF-4CB1-945A-99613AD3CEED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +26,14 @@ Global
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|Win32.Build.0 = Release|Win32
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.ActiveCfg = Release|x64
 		{B12702AD-ABFB-343A-A199-8E24837244A3}.Release|x64.Build.0 = Release|x64
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Debug|Win32.Build.0 = Debug|Win32
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Debug|x64.ActiveCfg = Debug|x64
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Debug|x64.Build.0 = Debug|x64
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Release|Win32.ActiveCfg = Release|Win32
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Release|Win32.Build.0 = Release|Win32
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Release|x64.ActiveCfg = Release|x64
+		{7FE85B25-22CF-4CB1-945A-99613AD3CEED}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

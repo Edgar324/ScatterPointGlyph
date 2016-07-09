@@ -1,0 +1,137 @@
+#version 330
+
+uniform sampler2D BackFaceTex;
+uniform sampler3D VolumeTex;
+uniform sampler1D ValueFactor;
+uniform sampler3D GradientTex;
+uniform vec2 ScreenResolution;
+uniform float StepX;
+uniform float StepY;
+uniform float StepZ;
+uniform float StepSize;
+uniform int Mode;
+
+int weights[81] = int[](
+    -1, -3, -1, -3, -6, -3, -1, -3, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  3,  1,  3,  6,  3,  1, 3, 1,
+    -1, -3, -1,  0,  0,  0,  1,  3,  1, -3, -6, -3,  0,  0,  0,  3,  6,  3, -1, -3, -1,  0,  0,  0,  1, 3, 1,
+    -1,  0,  1, -3,  0,  3, -1,  0,  1, -3,  0,  3, -6,  0,  6, -3,  0,  3, -1,  0,  1, -3,  0,  3, -1, 0, 1);
+	
+in vec4 Position;
+out vec4 Color;
+
+float valueAt(vec3 rayPosition)
+{
+	return texture(VolumeTex, rayPosition).a;
+}
+
+float gradientValueAt(vec3 rayPosition, vec3 dir)
+{
+	vec3 gradient = texture(GradientTex, rayPosition).rgb;
+	gradient = gradient * 2 - vec3(1.0);
+	float temp = abs(dot(gradient, dir));
+	return temp;
+}
+
+vec4 getSobelNormal(vec3 rayPosition)
+{
+    rayPosition -= vec3(StepX, StepY, StepZ);
+    vec3 position = rayPosition;
+    vec3 normal = vec3(0.0);
+    int index = 0;
+    for (int i = 0; i < 3; i++) 
+    {
+        position.y = rayPosition.y;
+        for (int j = 0; j < 3; j++)
+        {
+            position.z = rayPosition.z;
+            for (int k = 0; k < 3; k++) 
+            {
+                normal.r += weights[ 0 + index] * valueAt(position);
+                normal.g += weights[27 + index] * valueAt(position);
+                normal.b += weights[54 + index] * valueAt(position);
+                index++;
+                position.z += StepZ;
+            }
+            position.y += StepY;
+        }
+        position.x += StepX;
+    }
+	
+	float temp = (abs(normal.r) + abs(normal.g) + abs(normal.b))  * texture(ValueFactor, valueAt(rayPosition)).a;
+	vec4 normalTemp = vec4(normalize(normal), temp);
+    return normalTemp;
+}
+
+vec3 getGradientNormal(vec3 rayPosition, vec3 dir)
+{
+	rayPosition -= vec3(StepX, StepY, StepZ);
+    vec3 position = rayPosition;
+    vec3 normal = vec3(0.0);
+    int index = 0;
+    for (int i = 0; i < 3; i++) 
+    {
+        position.y = rayPosition.y;
+        for (int j = 0; j < 3; j++)
+        {
+            position.z = rayPosition.z;
+            for (int k = 0; k < 3; k++) 
+            {
+                normal.r += weights[ 0 + index] * gradientValueAt(position, dir);
+                normal.g += weights[27 + index] * gradientValueAt(position, dir);
+                normal.b += weights[54 + index] * gradientValueAt(position, dir);
+                index++;
+                position.z += StepZ;
+            }
+            position.y += StepY;
+        }
+        position.x += StepX;
+    }
+
+	vec3 normalTemp = normalize(normal);
+    return normalTemp;
+}
+
+void main()
+{
+	vec2 p = gl_FragCoord.xy / ScreenResolution.xy;
+	vec3 pos = Position.xyz;
+	
+	vec3 path = texture(BackFaceTex, p).xyz - Position.xyz;
+    vec3 dir = normalize(path);
+	
+	int iterations;
+	iterations = int(pow(dot(path, path), 0.5) / StepSize);
+	
+	vec4 normal;
+	vec3 gradientNormal;
+	float maxrate = 0.0;
+	Color = vec4(0.0);
+    for (int i = 0; i < iterations; ++i) 
+	{		
+		//normal = getNormal(pos);
+		//normal = getSobelNormal(pos);
+		gradientNormal = getGradientNormal(pos, dir);
+		float second1 = gradientValueAt(pos + gradientNormal * vec3(StepX, StepY, StepZ), dir);
+		float second2 = gradientValueAt(pos - gradientNormal * vec3(StepX, StepY, StepZ), dir);
+		float secondW = abs(second1 - second2);
+		vec4 normalTemp = texture(GradientTex, pos);
+		normalize(normalTemp.rgb);
+		normal = vec4(normalTemp.rgb * 2 - vec3(1.0), normalTemp.a);
+		float temp = normal.a * texture(ValueFactor, valueAt(pos)).a;
+		normal.a = temp;
+		float rate = abs(dot(normal.rgb, dir));
+		//if (normal.a > 7 && rate > maxrate ) 
+		if ((1.0 - rate) * (1.0 - secondW) > maxrate && secondW < 0.1 && second1 < 0.2 && second2 < 0.2 && normal.a > 0.3) //object
+		//if ((1.0 - rate) > maxrate && secondW < 1 && second1 < 1 && second2 < 1 && normal.a > 0.3) // lobster
+		{
+			maxrate = (1.0 - rate) * (1.0 - secondW);
+			//break;
+			Color = vec4(pos.rgb, 1.0);
+		}
+		pos += dir * StepSize;
+    }
+	//if (maxrate > 0.3) maxrate = 1.0;
+	//maxrate = (maxrate - 0.95) * 20; 
+	if (maxrate < 0.5) maxrate = 0;
+	if (Mode == 0) Color = vec4(vec3(maxrate), 1.0);
+}

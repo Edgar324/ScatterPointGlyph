@@ -31,7 +31,7 @@
 #include "tree_common.h"
 #include "scatter_point_dataset.h"
 #include "tour_path_generator.h"
-#include "scatter_point_view.h"
+#include "qvtk_rendering_widget.h
 
 //#define RADAR_GLYPH
 
@@ -123,7 +123,7 @@ TransMap::TransMap() {
 	this->path_generator_ = new TourPathGenerator;
 }
 
-TransMap::TransMap(ScatterPointView* parent)
+TransMap::TransMap(QVtkRenderingWidget* parent)
 	: TransMap() {
 	this->parent_view = parent;
 }
@@ -383,8 +383,8 @@ void TransMap::UpdateNodeActors() {
     
 	for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
 		CNode* node = dataset_->cluster_nodes[i];
-		float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_center_x = node->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = node->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		if (node->point_count >= dataset_->min_point_num && node->type() == CNode::BRANCH) {
 			// construct the polydata 
@@ -528,7 +528,7 @@ void TransMap::UpdateNodeActors() {
                 int var_index = axis_order_[j];
 				float end_arc = j * 3.14159 * 2 / dataset_->var_num;
 
-				float temp_radius = node_radius_ * (node->average_values[var_index] - node->variable_variances[var_index]) * 0.9 + node_radius_ * 0.1;
+				float temp_radius = node_radius_ * (node->mean_values[var_index] - node->std_deviations[var_index]) * 0.9 + node_radius_ * 0.1;
 				if (temp_radius < 0) temp_radius = 0;
 				float x = temp_radius * cos(end_arc);
 				float y = temp_radius * sin(end_arc);
@@ -536,14 +536,14 @@ void TransMap::UpdateNodeActors() {
 				vtkIdType id_one = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000002);
 				colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 128);
 
-                temp_radius = node_radius_ * node->average_values[var_index] * 0.9 + node_radius_ * 0.1;
+                temp_radius = node_radius_ * node->mean_values[var_index] * 0.9 + node_radius_ * 0.1;
 				x = temp_radius * cos(end_arc);
 				y = temp_radius * sin(end_arc);
 
 				value_pos_ids[j] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00003);
 				colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 255);
 
-				temp_radius = node_radius_ * (node->average_values[var_index] + node->variable_variances[var_index]) * 0.9 + node_radius_ * 0.1;
+				temp_radius = node_radius_ * (node->mean_values[var_index] + node->std_deviations[var_index]) * 0.9 + node_radius_ * 0.1;
 				if (temp_radius > node_radius_) temp_radius = node_radius_;
 				x = temp_radius * cos(end_arc);
 				y = temp_radius * sin(end_arc);
@@ -657,7 +657,7 @@ void TransMap::UpdateNodeActors() {
 					float sin_value = sin(temp_arc);
 
 					// insert the outer polygon
-					float temp_radius = node_radius_ * (node->average_values[var_index] + node->variable_variances[var_index]) * 0.9 + node_radius_ * 0.1;
+					float temp_radius = node_radius_ * (node->mean_values[var_index] + node->std_deviations[var_index]) * 0.9 + node_radius_ * 0.1;
 					if (temp_radius > node_radius_) temp_radius = node_radius_;
 					float x = temp_radius * cos_value;
 					float y = temp_radius * sin_value;
@@ -666,7 +666,7 @@ void TransMap::UpdateNodeActors() {
 					var_point_ids1[2 * k + 1] = id_one;
 
 					// insert the inner polygon
-					temp_radius = node_radius_ * (node->average_values[var_index] - node->variable_variances[var_index]) * 0.9 + node_radius_ * 0.1;
+					temp_radius = node_radius_ * (node->mean_values[var_index] - node->std_deviations[var_index]) * 0.9 + node_radius_ * 0.1;
 					if (temp_radius < 0.1) temp_radius = 0.1;
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
@@ -681,7 +681,7 @@ void TransMap::UpdateNodeActors() {
 					gray_region_ids[k] = id_four;
 
 					// insert the average value
-					temp_radius = node_radius_ * node->average_values[var_index] * 0.9 + node_radius_ * 0.1;
+					temp_radius = node_radius_ * node->mean_values[var_index] * 0.9 + node_radius_ * 0.1;
 					x = temp_radius * cos_value;
 					y = temp_radius * sin_value;
 					vtkIdType id_three = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.0000002);
@@ -716,7 +716,7 @@ void TransMap::UpdateNodeActors() {
 						float sin_value = sin(temp_arc);
 
 						// insert the average value
-						float temp_radius = node_radius_ * current_node_->average_values[var_index] * 0.9 + node_radius_ * 0.1;
+						float temp_radius = node_radius_ * current_node_->mean_values[var_index] * 0.9 + node_radius_ * 0.1;
 						float x = temp_radius * cos_value;
 						float y = temp_radius * sin_value;
 						comp_ids[k] = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.00001);
@@ -801,14 +801,14 @@ void TransMap::UpdateTransEdgeActor() {
 		CNode* node_one = dataset_->cluster_nodes[linked_edges[i * 2]];
 		CNode* node_two = dataset_->cluster_nodes[linked_edges[i * 2 + 1]];
 
-		float node_one_center_x = node_one->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_one_center_y = node_one->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
-		float node_two_center_x = node_two->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_two_center_y = node_two->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_one_center_x = node_one->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_one_center_y = node_one->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_two_center_x = node_two->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_two_center_y = node_two->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		float dir_vec[2], orth_vec[2];
-		dir_vec[0] = node_two->center_pos[0] - node_one->center_pos[0];
-		dir_vec[1] = node_two->center_pos[1] - node_one->center_pos[1];
+		dir_vec[0] = node_two->mean_pos[0] - node_one->mean_pos[0];
+		dir_vec[1] = node_two->mean_pos[1] - node_one->mean_pos[1];
 		float dir_length = sqrt(pow(dir_vec[0], 2) + pow(dir_vec[1], 2));
 		dir_vec[0] /= dir_length;
 		dir_vec[1] /= dir_length;
@@ -823,7 +823,7 @@ void TransMap::UpdateTransEdgeActor() {
 
 		float value_dis = 0.0;
         for (int j = 0; j < scatter_data_->var_num; ++j)
-            value_dis += abs(node_one->average_values[j] - node_two->average_values[j]) * scatter_data_->var_weights[j];
+            value_dis += abs(node_one->mean_values[j] - node_two->mean_values[j]) * scatter_data_->var_weights[j];
 
 		cell_ids[0] = linked_points->InsertNextPoint(begin_pos[0] + node_radius_ * orth_vec[0] * value_dis, begin_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0);
 		cell_ids[1] = linked_points->InsertNextPoint(end_pos[0] + node_radius_ * orth_vec[0] * value_dis, end_pos[1] + node_radius_ * orth_vec[1] * value_dis, 0);
@@ -855,14 +855,14 @@ void TransMap::UpdateTransEdgeActor() {
 		CNode* node_one = dataset_->cluster_nodes[trans_edges[i * 2]];
 		CNode* node_two = dataset_->cluster_nodes[trans_edges[i * 2 + 1]];
 
-		float node_one_center_x = node_one->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_one_center_y = node_one->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
-		float node_two_center_x = node_two->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_two_center_y = node_two->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_one_center_x = node_one->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_one_center_y = node_one->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_two_center_x = node_two->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_two_center_y = node_two->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		float dir_vec[2], orth_vec[2];
-		dir_vec[0] = node_two->center_pos[0] - node_one->center_pos[0];
-		dir_vec[1] = node_two->center_pos[1] - node_one->center_pos[1];
+		dir_vec[0] = node_two->mean_pos[0] - node_one->mean_pos[0];
+		dir_vec[1] = node_two->mean_pos[1] - node_one->mean_pos[1];
 		float dir_length = sqrt(pow(dir_vec[0], 2) + pow(dir_vec[1], 2));
 		dir_vec[0] /= dir_length;
 		dir_vec[1] /= dir_length;
@@ -1070,8 +1070,8 @@ void TransMap::UpdateHightlightActor() {
 	int hightlight_node_index = 0;
 	while (iter != highlight_node_sequence.end()) {
 		CNode* temp_node = *iter;
-		float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_center_x = temp_node->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = temp_node->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		if (IsLevelOneNode(temp_node)) {
 			vtkIdType pre_id = points->InsertNextPoint(node_center_x + x, node_center_y + y, 0.003);
@@ -1388,8 +1388,8 @@ void TransMap::OnMouseMove() {
 	if (current_node_ != NULL && IsLevelOneNode(current_node_)) {
 		double woldpos[4];
 		vtkInteractorObserver::ComputeDisplayToWorld(x, y, 0, woldpos);
-		float node_center_x = current_node_->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_center_y = current_node_->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_center_x = current_node_->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = current_node_->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 		float xt = woldpos[0] - node_center_x;
 		float yt = woldpos[1] - node_center_y;
 		float length = sqrt(pow(xt, 2) + pow(yt, 2));
@@ -1403,9 +1403,9 @@ void TransMap::OnMouseMove() {
 
 		if (current_highlight_var_index_ != -1) {
 			std::vector<float> ranges = dataset_->dataset->original_value_ranges[selected_var_index_[axis_order_[current_highlight_var_index_]]];
-			float average_value = current_node_->average_values[selected_var_index_[axis_order_[current_highlight_var_index_]]]
+			float average_value = current_node_->mean_values[selected_var_index_[axis_order_[current_highlight_var_index_]]]
 				* (ranges[1] - ranges[0]) + ranges[0];
-			float variance_value = current_node_->variable_variances[selected_var_index_[axis_order_[current_highlight_var_index_]]] * (ranges[1] - ranges[0]);
+			float variance_value = current_node_->std_deviations[selected_var_index_[axis_order_[current_highlight_var_index_]]] * (ranges[1] - ranges[0]);
 
 			this->parent_view->ShowTooltip(current_node_->point_count, dataset_->dataset->var_names[selected_var_index_[axis_order_[current_highlight_var_index_]]], average_value, variance_value);
 		}
@@ -1509,8 +1509,8 @@ void TransMap::OnLeftButtonUp() {
 
 		for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
 			CNode* node = dataset_->cluster_nodes[i];
-			float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-			float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+			float node_center_x = node->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+			float node_center_y = node->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 			if (IsInsideSelection(node_center_x, node_center_y)) {
 				highlight_node_sequence.push_back(dataset_->cluster_nodes[i]);
 				dataset_->cluster_nodes[i]->is_highlighted = true;
@@ -1534,8 +1534,8 @@ void TransMap::OnLeftButtonUp() {
 
 		for (int i = 0; i < dataset_->cluster_nodes.size(); ++i) {
 			CNode* node = dataset_->cluster_nodes[i];
-			float node_center_x = node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-			float node_center_y = node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+			float node_center_x = node->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+			float node_center_y = node->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 			int min_dis_index = -1;
 			float temp_min_dis = 1e10;
@@ -1847,8 +1847,8 @@ void TransMap::ForceFocusCenter() {
 	std::list<CNode*>::iterator iter = highlight_node_sequence.begin();
 	while (iter != highlight_node_sequence.end()) {
 		CNode* temp_node = *iter;
-		float node_center_x = temp_node->center_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
-		float node_center_y = temp_node->center_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
+		float node_center_x = temp_node->mean_pos[0] * (scatter_data_->original_pos_ranges[0][1] - scatter_data_->original_pos_ranges[0][0]) + scatter_data_->original_pos_ranges[0][0];
+		float node_center_y = temp_node->mean_pos[1] * (scatter_data_->original_pos_ranges[1][1] - scatter_data_->original_pos_ranges[1][0]) + scatter_data_->original_pos_ranges[1][0];
 
 		focus_pos_[0] += node_center_x;
 		focus_pos_[1] += node_center_y;

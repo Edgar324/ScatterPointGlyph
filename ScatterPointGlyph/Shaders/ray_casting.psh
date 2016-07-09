@@ -1,0 +1,165 @@
+//[FRAGMENT SHADER]
+#version 330
+
+uniform mat4 projection, modelView;
+uniform sampler3D volume;
+uniform sampler2D table;
+uniform sampler1D transferFunction;
+uniform vec3 sampleScale, volumeSize;
+uniform float volumeOffset, volumeScale;
+uniform float stepSize;
+uniform vec3 lightPosition;
+uniform vec3 lightColor;
+uniform vec3 diffuseColor;
+uniform float ambientCoeff;
+uniform float diffuseCoeff;
+uniform float specularCoeff;
+uniform bool enableSobelOperator;
+
+in vec3 texCoord;
+out vec4 gl_FragColor;
+
+// Define the boundaries for early ray termination
+vec3 minPosition = vec3(0.0);
+vec3 maxPosition = vec3(1.0);
+
+// Define the maximum number of iterations for raycasting
+int maxIterations = 65536;
+
+// Define the sobel operator
+int weights[81] = int[](
+    -1, -3, -1, -3, -6, -3, -1, -3, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  3,  1,  3,  6,  3,  1, 3, 1,
+    -1, -3, -1,  0,  0,  0,  1,  3,  1, -3, -6, -3,  0,  0,  0,  3,  6,  3, -1, -3, -1,  0,  0,  0,  1, 3, 1,
+    -1,  0,  1, -3,  0,  3, -1,  0,  1, -3,  0,  3, -6,  0,  6, -3,  0,  3, -1,  0,  1, -3,  0,  3, -1, 0, 1);
+
+// Define the step size for computing gradients
+float dx = 1.0 / volumeSize.x;
+float dy = 1.0 / volumeSize.y;
+float dz = 1.0 / volumeSize.z;
+
+// Compute the data value along the ray
+float valueAt(vec3 position)
+{
+    return texture(volume, position).r;
+}
+
+// Compute the ray's starting point
+vec3 rayPosition = texCoord * sampleScale;
+
+// Compute the normal vector using sobel operator
+vec3 getSobelNormal()
+{
+    vec3 position = rayPosition;
+    vec3 normal = vec3(0.0);
+    int index = 0;
+    for (int i = 0; i < 3; i++) 
+    {
+        position.y = rayPosition.y;
+        for (int j = 0; j < 3; j++)
+        {
+            position.z = rayPosition.z;
+            for (int k = 0; k < 3; k++) 
+            {
+                normal.x += weights[ 0 + index] * valueAt(position);
+                normal.y += weights[27 + index] * valueAt(position);
+                normal.z += weights[54 + index] * valueAt(position);
+                index++;
+                position.z += dz;
+            }
+            position.y += dy;
+        }
+        position.x += dx;
+    }
+    return normalize(normal);
+}
+
+// Compute the normal vector using difference operator
+vec3 getDifferenceNormal()
+{
+    vec3 normal = vec3(
+        valueAt(rayPosition + vec3( dx, 0.0, 0.0)) - valueAt(rayPosition - vec3( dx, 0.0, 0.0)),
+        valueAt(rayPosition + vec3(0.0,  dy, 0.0)) - valueAt(rayPosition - vec3(0.0,  dy, 0.0)),
+        valueAt(rayPosition + vec3(0.0, 0.0,  dz)) - valueAt(rayPosition - vec3(0.0, 0.0,  dz)));
+    return normalize(normal);
+}
+
+// Compute the camera position by translating the origin to the center of the volume
+vec3 cameraPosition = inverse(modelView)[3].xyz; // for gl version 330
+// vec3 cameraPosition = gl_ModelViewMatrixInverse[3].xyz; // for gl version 130
+
+// Compute the ray direction
+vec3 rayDirection = normalize(texCoord - cameraPosition) * sampleScale;
+
+// Compute the light direction
+vec3 lightDirection = normalize(-lightPosition);
+
+// Compute the normal vector using difference operator
+vec3 phongColor(vec3 materialColor)
+{
+    vec3 color = ambientCoeff * materialColor;
+    vec3 normal = enableSobelOperator ? getSobelNormal() : getDifferenceNormal();
+    float temp = dot(normal, lightDirection);
+    if (temp > 0)
+    {
+        color += diffuseCoeff * diffuseColor * temp;
+    }
+
+    vec3 reflectDirection = lightDirection - 2 * temp * normal;
+    temp = dot(reflectDirection, rayDirection);
+    if (temp > 0)
+    {
+        // color += specularCoeff * lightColor * pow(temp , 2.0);
+        color += specularCoeff * lightColor * temp * temp; // for speed up
+    }
+    return color;
+}
+
+void main()
+{
+    // Initialize scalar value
+    vec2 scalar = vec2(texture(volume, rayPosition).r * volumeScale + volumeOffset);
+    
+    // Initialize integration value
+    // vec4 integration = vec4(0.0); // turn off pre-integration
+    vec4 integration = texture(table, scalar);
+    
+    // Initialize destination color
+    vec4 color = integration;
+    
+    // Initialize number of iterations
+    int count = 0;
+    
+    // Ray-casting algorithm
+    while (true)
+    {
+        // Move one step forward
+        rayPosition += rayDirection * stepSize;
+        
+        // Lookup new scalar value
+        scalar.x = (texture(volume, rayPosition).r + volumeOffset) * volumeScale;
+        
+        // Do color integration
+        // integration = texture1D(transferFunction, scalar.x); // turn off pre-integration
+        integration = texture(table, scalar);
+        
+        // Perform blending
+        color += vec4(integration.rgb, 1.0) * integration.a * (1.0 - color.a); // turn off phong model
+        // color += vec4(phongColor(integration.rgb), 1.0) * integration.a * (1.0 - color.a);
+        
+        // Early ray termination
+        if (color.a >= 1.0) break;
+        
+        // Terminate loop if outside volume
+        if (any(greaterThan(rayPosition, maxPosition))) break;
+        
+        if (any(lessThan(rayPosition, minPosition))) break;
+        
+        // Terminate if too many iterations
+        if (++count >= maxIterations) break;
+        
+        // Save current scalar value
+        scalar.y = scalar.x;
+    }
+    
+    gl_FragColor = color;
+}

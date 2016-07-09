@@ -39,8 +39,8 @@ void NCutTree::GenerateClusters()
 			if (is_un_fit) SplitNode(branch);*/
 
 			float accu_un = 0.0;
-			for (int i = 0; i < dataset_->var_num; ++i) {
-				accu_un += branch->variable_variances[i] * dataset_->var_weights[i];
+			for (int i = 0; i < point_dataset_->var_num; ++i) {
+				accu_un += branch->std_deviations[i] * point_dataset_->var_weights[i];
 			}
 			if (branch == root_ || accu_un > un_threshold_) SplitNode(branch);
 
@@ -55,7 +55,8 @@ void NCutTree::SplitNode(CBranch* node)
 	int seg_num = 2;
 
 	std::vector<std::vector<bool>> connect_status;
-	Utility::VtkTriangulation(node->linked_nodes, connect_status, this->min_edge_length_);
+    // TODO: add triangulation
+	//Utility::VtkTriangulation(node->linked_nodes, connect_status, this->min_edge_length_);
 
 	mwSize node_num = node->linked_nodes.size();
 	mwSize element_num = node_num * node_num - node_num;
@@ -77,10 +78,10 @@ void NCutTree::SplitNode(CBranch* node)
 			float temp_dis = 0;
 
 			float value_dis = 0;
-			for (int k = 0; k < dataset_->var_num; ++k)
-				value_dis += abs(node->linked_nodes[i]->average_values[k] - node->linked_nodes[j]->average_values[k]) * dataset_->var_weights[k];
+			for (int k = 0; k < point_dataset_->var_num; ++k)
+				value_dis += abs(node->linked_nodes[i]->mean_values[k] - node->linked_nodes[j]->mean_values[k]) * point_dataset_->var_weights[k];
 
-			float pos_dis = sqrt(pow(node->linked_nodes[i]->center_pos[0] - node->linked_nodes[j]->center_pos[0], 2) + pow(node->linked_nodes[i]->center_pos[1] - node->linked_nodes[j]->center_pos[1], 2));
+			float pos_dis = sqrt(pow(node->linked_nodes[i]->mean_pos[0] - node->linked_nodes[j]->mean_pos[0], 2) + pow(node->linked_nodes[i]->mean_pos[1] - node->linked_nodes[j]->mean_pos[1], 2));
 
 			temp_dis = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
 

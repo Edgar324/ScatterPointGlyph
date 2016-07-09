@@ -1,0 +1,83 @@
+#version 330
+
+uniform sampler1D TransferFunc;
+uniform sampler2D BackFaceTex;
+uniform sampler3D VolumeTex;
+uniform sampler2D RandomTex;
+uniform float StepSize;
+uniform float VolumeBias;
+uniform float VolumeScale;
+uniform vec2 ScreenResolution;
+//uniform vec3 BackgroundColor;
+uniform mat3 NormalMatrix;
+uniform vec3 LightDir;
+uniform vec4 LightDiffuse, LightAmbient, LightSpecular;
+uniform vec3 LightHalfVec;
+uniform float Shininess;
+
+in vec4 Position;
+out vec4 Color;
+
+vec4 GetColor(vec4 diffuse_color, vec3 pos)
+{
+    vec3 temp_normal;
+    temp_normal.x = texture(VolumeTex, vec3(pos.x + StepSize, pos.y, pos.z)).a - texture(VolumeTex, vec3(pos.x - StepSize, pos.y, pos.z)).a;
+    temp_normal.y = texture(VolumeTex, vec3(pos.x, pos.y + StepSize, pos.z)).a - texture(VolumeTex, vec3(pos.x, pos.y - StepSize, pos.z)).a;
+    temp_normal.z = texture(VolumeTex, vec3(pos.x, pos.y, pos.z + StepSize)).a - texture(VolumeTex, vec3(pos.x, pos.y, pos.z - StepSize)).a;
+    vec3 normal = normalize(NormalMatrix * temp_normal);
+    
+    float temp_alpha = diffuse_color.a;
+    diffuse_color.a = 1.0;
+    float NdotL = max(dot(normal, LightDir), 0.0);
+    vec4 diffuse = LightDiffuse * diffuse_color;
+    vec4 specular = vec4(0.0);
+    if ( NdotL > 0.0 )
+    {
+        float NdotHV = max(dot(normal, LightHalfVec), 0.0);
+        specular = LightSpecular * pow(NdotHV, Shininess);
+    }
+    vec4 coded_color = LightAmbient * diffuse_color + NdotL * diffuse + specular;
+    coded_color.a = coded_color.a * temp_alpha;
+    //coded_color = coded_color * 1e-20 + diffuse_color;
+    //coded_color = vec4(1.0, 0.0, 0.0, 1.0) + coded_color;
+    
+    return coded_color;
+}
+
+void main() 
+{
+    vec2 p = gl_FragCoord.xy / ScreenResolution.xy;
+	
+	vec3 path = texture(BackFaceTex, p).xyz - Position.xyz;
+    vec3 dir = normalize(path);
+    vec3 pos = Position.xyz + texture(RandomTex, p).a * dir * StepSize;
+	
+	int iterations;
+	iterations = int(pow(dot(path, path), 0.5) / StepSize);
+	
+    vec4 dst = vec4(0);
+	vec4 src;
+	
+	float temp_value = -2.0;
+    for (int i = 0; i < iterations; ++i) 
+	{
+		float temp = texture(VolumeTex, pos).a;
+		if ( temp > temp_value ) temp_value = temp;
+		src = texture(TransferFunc, (temp + VolumeBias) * VolumeScale);
+        src = GetColor(src, pos) * 1e-20 + src;
+        src.rgb *= src.a;
+        dst += (1.0 - dst.a) * src;
+
+        if (dst.a >= 0.95) break;
+
+		pos += dir * StepSize;
+    }
+	
+    //dst = vec4(dst.xyz * dst.a + BackgroundColor * (1.0 - dst.a), 1.0);
+    Color = dst;
+    //Color = dst * 1e-10 + vec4(texture(RandomTex, p).a);
+	//Color = vec4(texture(BackFaceTex, p).xyz, 1.0) + dst * 1e-20;
+	//Color = vec4(Position.xyz, 1.0);
+	//Color = vec4((temp_value + 1) * 0.5, 0.0, 0.0, 1.0);
+	//Color = vec4(Position.xyz, 1.0);
+}

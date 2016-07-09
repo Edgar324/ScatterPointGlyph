@@ -1,0 +1,67 @@
+#version 330
+
+uniform sampler3D GradientTexture;
+uniform sampler3D Hessian1Texture;
+uniform sampler3D Hessian2Texture;
+uniform sampler3D Hessian3Texture;
+
+in vec3 Position;
+out vec4 Color;
+
+void main()
+{
+	vec3 gradient;
+	vec3 N;
+	mat3 P, Hessian, G;
+	int i, j;
+		
+	gradient = texture(GradientTexture, Position.xyz).xyz;
+	float t = dot(gradient, gradient);
+	if (t > 1e-6)
+	{
+		Color.x = 0.7;
+		Color.y = 0.7;
+	}
+	else
+	{
+		gradient = -1 * normalize(gradient);
+		P[0][0] = gradient.x * gradient.x;
+		P[0][1] = gradient.x * gradient.y;
+		P[1][0] = P[0][1];
+		P[0][2] = gradient.x * gradient.z;
+		P[2][0] = P[0][2];
+		P[1][1] = gradient.y * gradient.y;
+		P[2][1] = gradient.z * gradient.y;
+		P[1][2] = P[2][1];
+		P[2][2] = gradient.z * gradient.z;
+		
+		for (i = 0; i < 3; ++i)
+			for (j = 0; j < 3; ++j)
+			{
+				if (i == j)
+					P[i][j] = 1 - P[i][j];
+				else
+					P[i][j] = -1 * P[i][j];
+			}
+		
+		Hessian[0] = texture(Hessian1Texture, Position.xyz).xyz;
+		Hessian[1] = texture(Hessian2Texture, Position.xyz).xyz;
+		Hessian[2] = texture(Hessian3Texture, Position.xyz).xyz;
+		
+		G = -1 * P * Hessian * P / pow(t, 0.5);
+		
+		float trace, norm;
+		trace = 0;
+		for (i = 0; i < 3; ++i) trace = trace + G[i][i];
+		norm = 0;
+		for (i = 0; i < 3; ++i)
+			for (j = 0; j < 3; ++j)
+				norm = norm + pow(G[i][j], 2);
+		float temp = pow(2 * norm - pow(trace, 2), 0.5);
+		
+		Color.x = (trace + temp) / 2;
+		Color.y = (trace - temp) / 2;
+	}
+		//Color = vec4(texture(GradientTexture, Position).xyz, 1.0);
+		//Color.x = Position.z;
+}

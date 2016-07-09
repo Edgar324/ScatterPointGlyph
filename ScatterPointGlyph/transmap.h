@@ -22,14 +22,14 @@ class vtkPropPicker;
 class vtkTextActor3D;
 class vtkTooltipItem;
 
-class ScatterPointView;
+class QVtkRenderingWidget;
 
 class TransMap : public QObject, public vtk3DWidget
 {
     Q_OBJECT
 
 public:
-	TransMap(ScatterPointView* parent);
+	TransMap(QVtkRenderingWidget* parent);
 
 	vtkTypeMacro(TransMap, vtk3DWidget);
 	void PrintSelf(ostream& os, vtkIndent indent) {}
@@ -99,7 +99,7 @@ protected:
 
 	void BuildRepresentation();
 
-	ScatterPointView* parent_view;
+	QVtkRenderingWidget* parent_view;
 
 	std::vector<vtkActor* > node_glyph_actors;
 	std::vector<vtkPolyData* > node_glyph_polys;

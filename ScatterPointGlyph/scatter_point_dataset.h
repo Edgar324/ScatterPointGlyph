@@ -15,7 +15,8 @@ public:
 
     enum DataType {
         POINT_DATA = 0x0,
-        GRID_DATA
+        GRID_DATA,
+        VOLUME_DATA
     };
 
     virtual DataType type() { return POINT_DATA; }
@@ -43,21 +44,20 @@ public:
 	// normalized point variable values
 	vector<vector<float>> normalized_point_values;
 
-	vector<float> adaptive_rate;
+    vector<bool> is_valid;
 
 	void ManualSelectDim(vector<bool>& is_dim_selected);
 	// TODO: Add automatic dimension reduction method
 	void AutoDimReduction(int dim_num);
 
-	// Execute MDS on the normalized multi-variate data
-	// The implementation of MDS is from Quan Wang.
-	// More information about this function can be retrieved from "SimpleMatrix.h" or
-	// https://sites.google.com/site/simpmatrix/
+	
 	void ExecMds();
 
 	// Direct use the normalized original point positions and variable values
 	// TODO: Provide sampling methods for large scale data
 	void DirectConstruct();
+    void ConstructWithValueRanges(vector<vector<float>>& ranges);
+    void NormalizePos();
 	void ClearData();
 
 protected:

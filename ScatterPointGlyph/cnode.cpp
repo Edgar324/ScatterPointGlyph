@@ -2,20 +2,8 @@
 
 int CNode::max_id_ = 0;
 
-CNode::CNode() : level_(-1) {
+CNode::CNode() {
 	this->id_ = max_id_++;
-	this->level_ = -1;
-
-	this->radius = 0;
-	this->is_expanded = false;
-	this->is_highlighted = false;
-
-	this->color = QColor(128, 128, 128, 200);
-	this->hstart = 0;
-	this->hend = 1.0;
-
-	this->point_count = 0;
-	this->general_variance = 0;
 }
 
 CNode::~CNode() {

@@ -45,12 +45,6 @@
     <Filter Include="Source Files\Tree">
       <UniqueIdentifier>{43fbeeff-559e-4990-abf2-17b7f17377b1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Rendering Layer">
-      <UniqueIdentifier>{e18f4f9b-332f-4253-88f7-c5e2da6e043f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Rendering Layer">
-      <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Data">
       <UniqueIdentifier>{23aced1f-8c33-4cb8-9ed2-34af8a057215}</UniqueIdentifier>
     </Filter>
@@ -74,6 +68,12 @@
     </Filter>
     <Filter Include="Source Files\Slic">
       <UniqueIdentifier>{d242c695-5b6c-4983-940d-c4084df6cde4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Glyph">
+      <UniqueIdentifier>{e18f4f9b-332f-4253-88f7-c5e2da6e043f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Glyph">
+      <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -101,18 +101,6 @@
     <ClCompile Include="gco-v3.0\maxflow.cpp">
       <Filter>Source Files\GcOpt</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_scatter_point_view.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_scatter_point_view.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="point_rendering_layer.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="hierarchical_tree.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
     <ClCompile Include="tree_common.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
@@ -125,65 +113,8 @@
     <ClCompile Include="GeneratedFiles\Release\moc_parallel_coordinate.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="transmap.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="transmap_data.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_path_explore_widget.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_path_explore_widget.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_path_explore_item.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_path_explore_item.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_tree_map_view.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_tree_map_view.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_tree_map_item.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_tree_map_item.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_variable_selection_dialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_variable_selection_dialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="multi_label_processor.cpp">
       <Filter>Source Files\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="variable_item.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="tree_map_view.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="tree_map_item.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="path_explore_widget.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="path_explore_item.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="scatter_point_view.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="variable_selection_dialog.cpp">
-      <Filter>Source Files\Views</Filter>
     </ClCompile>
     <ClCompile Include="parallel_coordinate.cpp">
       <Filter>Source Files\Views</Filter>
@@ -194,9 +125,6 @@
     <ClCompile Include="tour_path_generator.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="ncut_tree.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
     <ClCompile Include="multi_label_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
@@ -206,68 +134,140 @@
     <ClCompile Include="utility.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_variable_item.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_variable_item.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="quality_metric.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="wrfdata\wrf_data_common.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="wrfdata\wrf_data_manager.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="wrfdata\wrf_nc_lambcc_projection_data.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="wrfdata\wrf_nc_square_projection_data.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="wrfdata\wrf_utility.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_design_dialog.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_glyph_design_dialog.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="glyph_design_dialog.cpp">
-      <Filter>Source Files\Views</Filter>
-    </ClCompile>
     <ClCompile Include="color_mapping_generator.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="slic\slic_vf.cpp">
       <Filter>Source Files\Slic</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_var_selection_widget.cpp">
+    <ClCompile Include="glyph_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="radar_band_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_rendering_widget.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="slic\var_selection_widget.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_glyph_rendering_widget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_rendering_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_dataset.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_glyph_dataset.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_dataset.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="point_data_reader.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="mds_projector.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="geo_point_data_reader.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_object.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_object.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_dataset_builder.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_qvtk_rendering_widget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_qvtk_rendering_widget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="point_rendering_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_glyph_object.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="parallel_dataset.cpp">
       <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_tree_map_item.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_tree_map_item.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="tree_map_item.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_tree_map.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_tree_map.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="tree_map.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="qvtk_rendering_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_var_selection_widget.cpp">
+      <Filter>Generated Files\Debug</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_var_selection_widget.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_transmap.cpp">
+    <ClCompile Include="var_selection_widget.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="scatter_volume_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="volume_data_reader.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="pca_projector.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="parallel_dataset_builder.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_parallel_dataset.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_transmap.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_glyph_widget.cpp">
+    <ClCompile Include="GeneratedFiles\Debug\moc_view_dataset.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_glyph_widget.cpp">
+    <ClCompile Include="GeneratedFiles\Release\moc_view_dataset.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="glyph_widget.cpp">
-      <Filter>Source Files\Rendering Layer</Filter>
+    <ClCompile Include="GeneratedFiles\Release\moc_parallel_dataset.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="table_lens.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_variable_item.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_variable_item.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="variable_item.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="arrow_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="density_rendering_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -280,32 +280,8 @@
     <CustomBuild Include="scatter_point_glyph.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="transmap.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </CustomBuild>
     <CustomBuild Include="variable_selection_dialog.ui">
       <Filter>Form Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="tree_map_view.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="tree_map_item.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="variable_item.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="path_explore_widget.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="path_explore_item.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="scatter_point_view.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="variable_selection_dialog.h">
-      <Filter>Header Files\Views</Filter>
     </CustomBuild>
     <CustomBuild Include="parallel_coordinate.h">
       <Filter>Header Files\Views</Filter>
@@ -316,20 +292,47 @@
     <CustomBuild Include="map_controller.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="glyph_design_dialog.h">
-      <Filter>Header Files\Views</Filter>
-    </CustomBuild>
     <CustomBuild Include="glyph_design_dialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
     <CustomBuild Include="option_dialog.ui">
       <Filter>Form Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="slic\var_selection_widget.h">
+    <CustomBuild Include="glyph_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="radar_band_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_dataset.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_object.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="tree_map_item.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
-    <CustomBuild Include="glyph_widget.h">
-      <Filter>Header Files\Rendering Layer</Filter>
+    <CustomBuild Include="tree_map.h">
+      <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="qvtk_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="var_selection_widget.h">
+      <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="parallel_dataset.h">
+      <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="view_dataset.h">
+      <Filter>Header Files\Glyph</Filter>
+    </CustomBuild>
+    <CustomBuild Include="variable_item.h">
+      <Filter>Header Files\Views</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -351,25 +354,10 @@
     <ClInclude Include="gco-v3.0\LinkedBlockList.h">
       <Filter>Header Files\GcOpt</Filter>
     </ClInclude>
-    <ClInclude Include="basic_glyph_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="point_rendering_layer.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="hierarchical_tree.h">
-      <Filter>Header Files\Tree</Filter>
-    </ClInclude>
     <ClInclude Include="tree_common.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="scatter_point_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="transmap_data.h">
-      <Filter>Header Files\Rendering Layer</Filter>
-    </ClInclude>
-    <ClInclude Include="path_dataset.h">
       <Filter>Header Files\Data</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h">
@@ -384,40 +372,16 @@
     <ClInclude Include="tour_path_generator.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="ncut_tree.h">
-      <Filter>Header Files\Tree</Filter>
-    </ClInclude>
     <ClInclude Include="cnode.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="utility.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="quality_metric.h">
-      <Filter>Header Files\Tree</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_map_controller.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="scatter_grid_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_data_common.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_data_manager.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_nc_lambcc_projection_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_nc_map_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_nc_square_projection_data.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="wrfdata\wrf_utility.h">
       <Filter>Header Files\Data</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h">
@@ -432,8 +396,41 @@
     <ClInclude Include="slic\slic_vf.h">
       <Filter>Header Files\Slic</Filter>
     </ClInclude>
-    <ClInclude Include="radar_band_widget.h">
-      <Filter>Header Files\Rendering Layer</Filter>
+    <ClInclude Include="point_data_reader.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="mds_projector.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="geo_point_data_reader.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="glyph_dataset_builder.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="point_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="table_lens.h">
+      <Filter>Header Files\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="scatter_volume_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="volume_data_reader.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="pca_projector.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="parallel_dataset_builder.h">
+      <Filter>Header Files\Views</Filter>
+    </ClInclude>
+    <ClInclude Include="arrow_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="density_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

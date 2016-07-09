@@ -1,0 +1,49 @@
+#version 330
+
+uniform sampler1D TransferFunc;
+uniform sampler2D BackFaceTex;
+uniform sampler3D VolumeTex;
+uniform float StepSize;
+uniform float VolumeBias;
+uniform float VolumeScale;
+uniform vec2 ScreenResolution;
+uniform vec3 BackgroundColor;
+
+in vec4 Position;
+out vec4 Color;
+
+void main() 
+{
+    vec2 p = gl_FragCoord.xy / ScreenResolution.xy;
+	vec3 pos = Position.xyz;
+	
+	vec3 path = texture(BackFaceTex, p).xyz - Position.xyz;
+    vec3 dir = normalize(path);
+	
+	int iterations;
+	iterations = int(pow(dot(path, path), 0.5) / StepSize);
+	
+    vec4 dst = vec4(0);
+	vec4 src;
+	
+	float temp_value = -2.0;
+    for (int i = 0; i < iterations; ++i) 
+	{
+		float temp = texture(VolumeTex, pos).a;
+		if ( temp > temp_value ) temp_value = temp;
+		src = texture(TransferFunc, (temp + VolumeBias) * VolumeScale);
+        src.rgb *= src.a;
+        dst += (1.0 - dst.a) * src;
+
+        if (dst.a >= 0.95) break;
+
+		pos += dir * StepSize;
+    }
+	
+    //dst = vec4(dst.xyz * dst.a + BackgroundColor * (1.0 - dst.a), 1.0);
+    Color = dst;
+	//Color = vec4(texture(BackFaceTex, p).xyz, 1.0);
+	//Color = vec4(Position.xyz, 1.0);
+	//Color = vec4((temp_value + 1) * 0.5, 0.0, 0.0, 1.0);
+	//Color = vec4(Position.xyz, 1.0);
+}

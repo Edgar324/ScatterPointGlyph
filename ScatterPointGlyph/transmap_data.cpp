@@ -60,9 +60,9 @@ void TransMapData::ProcessData() {
                 if (i != j && this->node_connecting_status[i][j]) {
                     float var_dis = 0;
                     for (int k = 0; k < dataset->var_num; ++k)
-                        var_dis += abs(level_one_nodes[i]->average_values[k] - level_one_nodes[j]->average_values[k]) * dataset->var_weights[k];
+                        var_dis += abs(level_one_nodes[i]->mean_values[k] - level_one_nodes[j]->mean_values[k]) * dataset->var_weights[k];
                     float space_dis = 0;
-                    space_dis = sqrt(pow(level_one_nodes[i]->center_pos[0] - level_one_nodes[j]->center_pos[0], 2) + pow(level_one_nodes[i]->center_pos[1] - level_one_nodes[j]->center_pos[1], 2));
+                    space_dis = sqrt(pow(level_one_nodes[i]->mean_pos[0] - level_one_nodes[j]->mean_pos[0], 2) + pow(level_one_nodes[i]->mean_pos[1] - level_one_nodes[j]->mean_pos[1], 2));
                     node_saliency[i] += var_dis * exp(-1 * space_dis / 0.25);
                 }
         }
@@ -89,7 +89,7 @@ void TransMapData::ProcessData() {
 void TransMapData::UpdateConnectingStatus() {
 	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < level_one_nodes.size(); ++i) {
-		points->InsertNextPoint(level_one_nodes[i]->center_pos[0], level_one_nodes[i]->center_pos[1], 0);
+		points->InsertNextPoint(level_one_nodes[i]->mean_pos[0], level_one_nodes[i]->mean_pos[1], 0);
 	}
 	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(points);

@@ -72,14 +72,14 @@ void Utility::VtkTriangulation(std::vector<CNode*>& nodes, std::vector<std::vect
             min_edge_length = 0;
         else
         {
-            min_edge_length = sqrt(pow(nodes[0]->center_pos[0] - nodes[1]->center_pos[1], 2) + pow(nodes[0]->center_pos[1] - nodes[1]->center_pos[1], 2));
+            min_edge_length = sqrt(pow(nodes[0]->mean_pos[0] - nodes[1]->mean_pos[1], 2) + pow(nodes[0]->mean_pos[1] - nodes[1]->mean_pos[1], 2));
         }
         return;
     }
 
 	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < nodes.size(); ++i) {
-		points->InsertNextPoint(nodes[i]->center_pos[0], nodes[i]->center_pos[1], 0);
+		points->InsertNextPoint(nodes[i]->mean_pos[0], nodes[i]->mean_pos[1], 0);
 	}
 	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(points);
@@ -108,16 +108,16 @@ void Utility::VtkTriangulation(std::vector<CNode*>& nodes, std::vector<std::vect
 		connecting_status[id3][id1] = true;
 
 		float temp_dis;
-		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id2]->center_pos[0], 2)
-			+ pow(nodes[id1]->center_pos[1] - nodes[id2]->center_pos[1], 2));
+		temp_dis = sqrt(pow(nodes[id1]->mean_pos[0] - nodes[id2]->mean_pos[0], 2)
+			+ pow(nodes[id1]->mean_pos[1] - nodes[id2]->mean_pos[1], 2));
 		if (temp_dis < min_dis) min_dis = temp_dis;
 
-		temp_dis = sqrt(pow(nodes[id1]->center_pos[0] - nodes[id3]->center_pos[0], 2)
-			+ pow(nodes[id1]->center_pos[1] - nodes[id3]->center_pos[1], 2));
+		temp_dis = sqrt(pow(nodes[id1]->mean_pos[0] - nodes[id3]->mean_pos[0], 2)
+			+ pow(nodes[id1]->mean_pos[1] - nodes[id3]->mean_pos[1], 2));
 		if (temp_dis < min_dis) min_dis = temp_dis;
 
-		temp_dis = sqrt(pow(nodes[id3]->center_pos[0] - nodes[id2]->center_pos[0], 2)
-			+ pow(nodes[id3]->center_pos[1] - nodes[id2]->center_pos[1], 2));
+		temp_dis = sqrt(pow(nodes[id3]->mean_pos[0] - nodes[id2]->mean_pos[0], 2)
+			+ pow(nodes[id3]->mean_pos[1] - nodes[id2]->mean_pos[1], 2));
 		if (temp_dis < min_dis) min_dis = temp_dis;
 	}
 	min_edge_length = min_dis;
@@ -132,8 +132,8 @@ void Utility::VtkTriangulation(std::vector<CNode*>& nodes, std::vector<std::vect
             for (int j = 0; j < connecting_status[i].size(); ++j) {
                 if (j == i) continue;
                 float temp_dis;
-		        temp_dis = sqrt(pow(nodes[i]->center_pos[0] - nodes[j]->center_pos[0], 2)
-			        + pow(nodes[i]->center_pos[1] - nodes[j]->center_pos[1], 2));
+		        temp_dis = sqrt(pow(nodes[i]->mean_pos[0] - nodes[j]->mean_pos[0], 2)
+			        + pow(nodes[i]->mean_pos[1] - nodes[j]->mean_pos[1], 2));
                 if (temp_dis < min_dis) {
                     min_dis = temp_dis;
                     min_index = j;
@@ -322,4 +322,122 @@ void Utility::GridConnection(std::vector<CNode*>& nodes, int w, int h, std::vect
             }
         }
     }
+}
+
+void Utility::GenerateAxisOrder(vector<vector<float>>& values, vector<int>& axis_order) {
+    if (values.size() <= 1) return;
+
+    int axis_num = values[0].size();
+    int record_num = values.size();
+
+    axis_order.resize(axis_num);
+    for (int i = 0; i < axis_num; ++i) axis_order[i] = i;
+    if (record_num <= 1) record_num;
+
+    vector<float> average_values;
+    vector<float> std_devs;
+    average_values.resize(axis_num, 0);
+    std_devs.resize(axis_num, 0);
+    for (int i = 0; i < record_num; ++i)
+        for (int j = 0; j < axis_num; ++j)
+            average_values[j] += values[i][j];
+    for (int i = 0; i < axis_num; ++i)
+        average_values[i] /= record_num;
+    for (int i = 0; i < record_num; ++i)
+        for (int j = 0; j < axis_num; ++j)
+            std_devs[j] += pow(values[i][j] - average_values[j], 2);
+    for (int i = 0; i < axis_num; ++i)
+        std_devs[i] = sqrt(std_devs[i]);
+
+	std::vector<std::vector<float>> corr_values;
+	corr_values.resize(axis_num);
+	for (int i = 0; i < axis_num; ++i) {
+		corr_values[i].resize(axis_num, 0);
+	}
+	for (int i = 0; i < axis_num - 1; ++i)
+			for (int j = i + 1; j < axis_num; ++j) {
+				float temp_corr = 0;
+				for (int k = 0; k < record_num; ++k)
+					temp_corr += (values[k][i] - average_values[i]) * (values[k][j] - average_values[j]);
+				corr_values[i][j] = abs(temp_corr / (std_devs[i] * std_devs[j]));
+				corr_values[j][i] = corr_values[i][j];
+			}
+	TourPathGenerator::GenerateRoundPath(corr_values, axis_order);
+}
+
+float Utility::GetAverageDistance(vector<vector<float>>& pos) {
+    vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
+	for (int i = 0; i < pos.size(); ++i) {
+		points->InsertNextPoint(pos[i][0], pos[i][1], 0);
+	}
+	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
+	polydata->SetPoints(points);
+	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
+	delaunay->SetInputData(polydata);
+	delaunay->SetTolerance(0.0000001);
+	delaunay->SetBoundingTriangulation(false);
+	delaunay->Update();
+	vtkPolyData* triangle_out = delaunay->GetOutput();
+
+	int edge_count = 0;
+    float average_distance = 0;
+
+    vector<float> distances;
+
+	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
+	float min_dis = 1e10;
+	for (int i = 0; i < triangle_out->GetNumberOfPolys(); ++i){
+		vtkCell* cell = triangle_out->GetCell(i);
+		int id1 = cell->GetPointId(0);
+		int id2 = cell->GetPointId(1);
+		int id3 = cell->GetPointId(2);
+
+		float temp_dis[3];
+		temp_dis[0] = sqrt(pow(pos[id1][0] - pos[id2][0], 2)
+			+ pow(pos[id1][1] - pos[id2][1], 2));
+
+		temp_dis[1] = sqrt(pow(pos[id1][0] - pos[id3][0], 2)
+			+ pow(pos[id1][1] - pos[id3][1], 2));
+
+		temp_dis[2] = sqrt(pow(pos[id3][0] - pos[id2][0], 2)
+			+ pow(pos[id3][1] - pos[id2][1], 2));
+
+		average_distance += min(min(temp_dis[0], temp_dis[1]), temp_dis[2]);
+
+        edge_count += 1;
+	}
+	average_distance /= edge_count;
+    return average_distance;
+}
+
+bool Utility::CheckInside(vector<float>& path, float x, float y) {
+    if (path.size() < 6) return false;
+
+    int count = path.size() / 2;
+
+	if (count < 3) return false;
+
+	const double PI = 3.14159265358979323846;
+	double angle = 0;
+
+    double p1[2];
+	double p2[2];
+
+	for (int i = 0, k = count - 1; i < count; k = i++) {	
+		p1[0] = path[2 * i] - x;
+		p1[1] = path[2 * i + 1] - y;
+
+		p2[0] = path[2 * k] - x;
+		p2[1] = path[2 * k + 1] - y;
+
+		double radian = atan2(p1[1], p1[0]) - atan2(p2[1], p2[0]);
+		radian = abs(radian);
+		if (radian > PI)
+			radian = 2 * PI - radian;
+		angle += radian;
+	}
+	if (fabs(6.28318530717958647692 - abs(angle)) < 1)
+		return true;
+	else
+		return false;
 }

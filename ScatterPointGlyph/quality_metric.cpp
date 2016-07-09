@@ -25,7 +25,7 @@ void QualityMetric::GenerateQualityMeasures(TreeCommon* tree) {
 
 void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector<float>& measures) {
 	std::vector<CNode*> cluster_nodes;
-	tree->GetClusterResult(level, cluster_nodes);
+	tree->GetNodes(level, cluster_nodes);
 
 	int cluster_num = cluster_nodes.size();
 
@@ -40,7 +40,7 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 		float x = dataset->normalized_point_pos[i][0];
 		float y = dataset->normalized_point_pos[i][1];
 		for (int j = 0; j < cluster_num; ++j) {
-			float dis = sqrt(pow(x - cluster_nodes[j]->center_pos[0], 2) + pow(y - cluster_nodes[j]->center_pos[1], 2));
+			float dis = sqrt(pow(x - cluster_nodes[j]->mean_pos[0], 2) + pow(y - cluster_nodes[j]->mean_pos[1], 2));
 			if (dis < temp_dis) {
 				temp_dis = dis;
 				temp_index = j;
@@ -49,7 +49,7 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 		if (temp_index != -1) {
 			float value_dis = 0;
 			for (int j = 0; j < dataset->var_num; ++j)
-				value_dis += abs(cluster_nodes[temp_index]->average_values[j] - dataset->normalized_point_values[i][j]) * dataset->var_weights[j];
+				value_dis += abs(cluster_nodes[temp_index]->mean_values[j] - dataset->normalized_point_values[i][j]) * dataset->var_weights[j];
 			nnm += value_dis;
 		}
 	}
@@ -61,7 +61,7 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 		float value_dis = 0;
 		if (cluster_nodes[i]->type() != CNode::LEAF) {
 			for (int j = 0; j < dataset->var_num; ++j)
-				value_dis += cluster_nodes[i]->variable_variances[j] * dataset->var_weights[j];
+				value_dis += cluster_nodes[i]->std_deviations[j] * dataset->var_weights[j];
 			sqrerr += value_dis * cluster_nodes[i]->point_count;
 		}
 	}

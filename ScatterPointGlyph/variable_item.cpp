@@ -82,6 +82,11 @@ void VariableItem::SetValueRange(float min_value, float max_value)
 }
 
 
+int VariableItem::GetWidth() {
+    return this->total_width;
+}
+
+
 QRectF VariableItem::boundingRect() const {
 	return QRectF(-170, 0, total_width + 170, total_height);
 }
@@ -116,14 +121,14 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 				painter->setPen(QColor(160, 160, 160, 20));
 			else
 				painter->setPen(QColor(160, 160, 160, 255));
-			for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
+			/*for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
 				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[temp_value_index].size() - 1);
 				float y1 = total_height - total_height * sampled_context_data_[temp_value_index][j];
 				float x2 = temp_width + (float)(temp_bar_width - 1) * (j + 1) / (sampled_context_data_[temp_value_index].size() - 1);
 				float y2 = total_height - total_height * sampled_context_data_[temp_value_index][j + 1];
 
 				painter->drawLine(x1, y1, x2, y2);
-			}
+			}*/
 
 			temp_width += temp_bar_width + item_margin;
 		}
@@ -149,14 +154,14 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 				painter->setPen(QColor(160, 160, 160, 20));
 			else
 				painter->setPen(QColor(160, 160, 160, 255));
-			for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
+			/*for (int j = 0; j < sampled_context_data_[temp_value_index].size() - 1; ++j) {
 				float x1 = temp_width + (float)(temp_bar_width - 1) * j / (sampled_context_data_[temp_value_index].size() - 1);
 				float y1 = total_height - total_height * sampled_context_data_[temp_value_index][j];
 				float x2 = temp_width + (float)(temp_bar_width - 1) * (j + 1) / (sampled_context_data_[temp_value_index].size() - 1);
 				float y2 = total_height - total_height * sampled_context_data_[temp_value_index][j + 1];
 
 				painter->drawLine(x1, y1, x2, y2);
-			}
+			}*/
 		}
 	}
 

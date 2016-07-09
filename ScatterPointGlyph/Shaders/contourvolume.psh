@@ -1,0 +1,69 @@
+#version 330
+
+uniform sampler3D VolumeTex;
+uniform vec3 ViewDirection;
+uniform float StepX;
+uniform float StepY;
+uniform float StepZ;
+
+int weights[81] = int[](
+    -1, -3, -1, -3, -6, -3, -1, -3, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  3,  1,  3,  6,  3,  1, 3, 1,
+    -1, -3, -1,  0,  0,  0,  1,  3,  1, -3, -6, -3,  0,  0,  0,  3,  6,  3, -1, -3, -1,  0,  0,  0,  1, 3, 1,
+    -1,  0,  1, -3,  0,  3, -1,  0,  1, -3,  0,  3, -6,  0,  6, -3,  0,  3, -1,  0,  1, -3,  0,  3, -1, 0, 1);
+	
+in vec4 Position;
+out vec4 Color;
+
+float valueAt(vec3 rayPosition)
+{
+	return texture(VolumeTex, rayPosition).a;
+}
+
+vec3 getSobelNormal(vec3 rayPosition)
+{
+    rayPosition -= vec3(StepX, StepY, StepZ);
+    vec3 position = rayPosition;
+    vec3 normal = vec3(0.0);
+    int index = 0;
+    for (int i = 0; i < 3; i++) 
+    {
+        position.y = rayPosition.y;
+        for (int j = 0; j < 3; j++)
+        {
+            position.z = rayPosition.z;
+            for (int k = 0; k < 3; k++) 
+            {
+                normal.r += weights[ 0 + index] * valueAt(position);
+                normal.g += weights[27 + index] * valueAt(position);
+                normal.b += weights[54 + index] * valueAt(position);
+                index++;
+                position.z += StepZ;
+            }
+            position.y += StepY;
+        }
+        position.x += StepX;
+    }
+	
+    return normal;
+}
+
+void main()
+{
+	vec3 pos = Position.xyz;
+	
+	vec3 normal = getSobelNormal(pos);
+	vec3 unitNormal = normalize(normal);
+	unitNormal = unitNormal * StepX;
+	float gradientValue = abs(valueAt(pos + unitNormal) - valueAt(pos - unitNormal)) / 2;
+	float gradientValue1 = abs(valueAt(pos + 2 * unitNormal) - valueAt(pos)) / 2;
+	float gradientValue2 = abs(valueAt(pos) - valueAt(pos - 2 * unitNormal)) / 2;
+	float derivativeGra = (gradientValue1 - gradientValue2) / 2;
+	
+	//Color = vec4(dot(unitNormal,ViewDirection), 0.0, 0.0, gradientValue);
+	float temp = dot(unitNormal,ViewDirection);
+	if (temp < 0.1 && gradientValue > 0.2 && derivativeGra > 0.005)
+		Color = vec4(0.0, 0.0, 0.0, 1.0);
+	else
+		Color = vec4(0.0, 0.0, 0.0, 0.0);
+	//Color = vec4(, 0.0, 0.0, dot(unitNormal,ViewDirection));
+}

@@ -28,7 +28,9 @@ void HierarchicalTree::GenerateClusters() {
         root_->linked_nodes.push_back(branch);
     }
 
-    std::vector<std::vector<bool>> connecting_status = this->node_connecting_status_;
+    // TODO: add connecting status
+    std::vector<std::vector<bool>> connecting_status;
+    //std::vector<std::vector<bool>> connecting_status = this->node_connecting_status_;
 
 	while (root_->linked_nodes.size() > expected_cluster_num_) {
         cout << "Cluster Number: " << root_->linked_nodes.size() << endl;
@@ -44,10 +46,10 @@ void HierarchicalTree::GenerateClusters() {
 				    float temp_dis = 0;
 
 				    float value_dis = 0;
-				    for (int k = 0; k < dataset_->var_num; ++k)
-					    value_dis += abs(root_->linked_nodes[i]->average_values[k] - root_->linked_nodes[j]->average_values[k]) * dataset_->var_weights[k];
+				    for (int k = 0; k < point_dataset_->var_num; ++k)
+					    value_dis += abs(root_->linked_nodes[i]->mean_values[k] - root_->linked_nodes[j]->mean_values[k]) * point_dataset_->var_weights[k];
 
-				    float pos_dis = sqrt(pow(root_->linked_nodes[i]->center_pos[0] - root_->linked_nodes[j]->center_pos[0], 2) + pow(root_->linked_nodes[i]->center_pos[1] - root_->linked_nodes[j]->center_pos[1], 2));
+				    float pos_dis = sqrt(pow(root_->linked_nodes[i]->mean_pos[0] - root_->linked_nodes[j]->mean_pos[0], 2) + pow(root_->linked_nodes[i]->mean_pos[1] - root_->linked_nodes[j]->mean_pos[1], 2));
 
 				    temp_dis = data_dis_scale_ * value_dis + (1.0 - data_dis_scale_) * pos_dis;
 
