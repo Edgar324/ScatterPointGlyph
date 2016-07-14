@@ -5,8 +5,7 @@
 #include "LibNCut/libNcut.h"
 
 NCutTree::NCutTree(ScatterPointDataset* data) 
-	: TreeCommon(data), un_threshold_(0.1)
-{
+	: TreeCommon(data) {
 	libNcutInitialize();
 }
 
@@ -15,39 +14,8 @@ NCutTree::~NCutTree()
 	libNcutTerminate();
 }
 
-void NCutTree::SetUncertaintyThreshold(float un_threshold)
-{
-	un_threshold_ = un_threshold;
-}
-
-void NCutTree::GenerateClusters()
-{
-	std::queue<CNode*> node_queue;
-	node_queue.push(root_);
-	while (node_queue.size() > 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-
-		if (temp_node->type() == CNode::BRANCH) {
-			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-			/*bool is_un_fit = false;
-			for (int i = 0; i < dataset_->var_num; ++i)
-				if (branch == root_ || branch->value_variance[i] > un_threshold_) {
-					is_un_fit = true;
-					break;
-				}
-			if (is_un_fit) SplitNode(branch);*/
-
-			float accu_un = 0.0;
-			for (int i = 0; i < point_dataset_->var_num; ++i) {
-				accu_un += branch->std_deviations[i] * point_dataset_->var_weights[i];
-			}
-			if (branch == root_ || accu_un > un_threshold_) SplitNode(branch);
-
-			for (int i = 0; i < branch->linked_nodes.size(); ++i)
-				node_queue.push(branch->linked_nodes[i]);
-		}
-	}
+void NCutTree::AutoConstructTree(float std_dev_threshold) {
+	if (root_ != NULL) this->SplitNodeRecursively(root_->id(), std_dev_threshold);
 }
 
 void NCutTree::SplitNode(CBranch* node) 
@@ -56,7 +24,8 @@ void NCutTree::SplitNode(CBranch* node)
 
 	std::vector<std::vector<bool>> connect_status;
     // TODO: add triangulation
-	//Utility::VtkTriangulation(node->linked_nodes, connect_status, this->min_edge_length_);
+    float min_edge_length;
+	Utility::VtkTriangulation(node->linked_nodes, connect_status, min_edge_length);
 
 	mwSize node_num = node->linked_nodes.size();
 	mwSize element_num = node_num * node_num - node_num;

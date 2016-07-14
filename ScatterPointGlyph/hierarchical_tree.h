@@ -20,10 +20,10 @@ public:
 	void SetExpectedClusterNum(int num);
 	void SetDistanceType(DistanceType type);
 
+    virtual void AutoConstructTree(float std_dev_threshold);
+
 protected:
-	virtual void BeginClustering() {}
-	virtual void GenerateClusters();
-	virtual void SplitNode(CBranch* node);
+    virtual void SplitNode(CBranch* node);
 
 private:
 	int expected_cluster_num_;

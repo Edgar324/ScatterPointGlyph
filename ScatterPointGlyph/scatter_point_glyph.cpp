@@ -226,10 +226,10 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     /*VolumeDataReader reader;
     scatter_point_dataset_ = reader.LoadFile("");*/
 
-    this->OnActionOpenVtkFileTriggered();
+    //this->OnActionOpenVtkFileTriggered();
 
-    /*PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/iris.sc");*/
+    PointDataReader point_reader;
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/iris.sc");
 
     this->InitExploration();
 }
@@ -394,12 +394,12 @@ void ScatterPointGlyph::InitExploration() {
 
     switch (clustering_mode_) {
 	case ScatterPointGlyph::HIER_MODE:
-        //cluster_tree_ = new HierarchicalTree(scatter_point_dataset_);
+        cluster_tree_ = new HierarchicalTree(scatter_point_dataset_);
 		break;
 	case ScatterPointGlyph::CHAMELEON_MODE:
 		break;
 	case ScatterPointGlyph::NCUTS_MODE:
-	    //cluster_tree_ = new NCutTree(scatter_point_dataset_);
+	    cluster_tree_ = new NCutTree(scatter_point_dataset_);
 		break;
 	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	    cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);

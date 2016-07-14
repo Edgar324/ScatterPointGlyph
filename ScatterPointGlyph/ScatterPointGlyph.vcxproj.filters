@@ -281,6 +281,12 @@
     <ClCompile Include="vtkPVScalarBarActor.cxx">
       <Filter>Source Files\Glyph</Filter>
     </ClCompile>
+    <ClCompile Include="ncut_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="hierarchical_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -455,6 +461,12 @@
     </ClInclude>
     <ClInclude Include="vtkPVScalarBarActor.h">
       <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="ncut_tree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="hierarchical_tree.h">
+      <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

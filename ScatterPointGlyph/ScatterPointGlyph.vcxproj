@@ -261,10 +261,12 @@
     <ClCompile Include="glyph_object.cpp" />
     <ClCompile Include="glyph_rendering_widget.cpp" />
     <ClCompile Include="glyph_widget.cpp" />
+    <ClCompile Include="hierarchical_tree.cpp" />
     <ClCompile Include="indicator_widget.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mds_projector.cpp" />
     <ClCompile Include="multi_label_processor.cpp" />
+    <ClCompile Include="ncut_tree.cpp" />
     <ClCompile Include="parallel_coordinate.cpp" />
     <ClCompile Include="parallel_dataset.cpp" />
     <ClCompile Include="parallel_dataset_builder.cpp" />
@@ -341,6 +343,8 @@
     <ClInclude Include="GeneratedFiles\ui_option_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />
     <ClInclude Include="glyph_dataset_builder.h" />
+    <ClInclude Include="hierarchical_tree.h" />
+    <ClInclude Include="ncut_tree.h" />
     <ClInclude Include="vtkPVScalarBarActor.h" />
     <CustomBuild Include="parallel_dataset.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

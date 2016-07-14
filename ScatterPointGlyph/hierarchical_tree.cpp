@@ -1,6 +1,7 @@
 #include "hierarchical_tree.h"
 #include <queue>
 #include "scatter_point_dataset.h"
+#include "utility.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
 	: TreeCommon(data), expected_cluster_num_(4096), type_(CENTER_DISTANCE) {
@@ -18,7 +19,11 @@ void HierarchicalTree::SetDistanceType(DistanceType type) {
 	this->type_ = type;
 }
 
-void HierarchicalTree::GenerateClusters() {
+void HierarchicalTree::SplitNode(CBranch* node) {
+
+}
+
+void HierarchicalTree::AutoConstructTree(float std_dev_threshold) {
     std::vector<CNode*> leaf_nodes = root_->linked_nodes;
     root_->linked_nodes.clear();
     for (int i = 0; i < leaf_nodes.size(); ++i) {
@@ -30,6 +35,8 @@ void HierarchicalTree::GenerateClusters() {
 
     // TODO: add connecting status
     std::vector<std::vector<bool>> connecting_status;
+    float min_edge_length;
+    Utility::VtkTriangulation(root_->linked_nodes, connecting_status, min_edge_length);
     //std::vector<std::vector<bool>> connecting_status = this->node_connecting_status_;
 
 	while (root_->linked_nodes.size() > expected_cluster_num_) {
@@ -86,8 +93,4 @@ void HierarchicalTree::GenerateClusters() {
             connecting_status.resize(connecting_status.size() - 1);
 		}
 	}
-}
-
-void HierarchicalTree::SplitNode(CBranch* node) {
-
 }

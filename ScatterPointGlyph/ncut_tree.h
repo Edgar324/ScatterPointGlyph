@@ -9,13 +9,9 @@ public:
 	NCutTree(ScatterPointDataset* data);
 	~NCutTree();
 
-	void SetUncertaintyThreshold(float un_threshold);
+	virtual void AutoConstructTree(float std_dev_threshold);
 
 protected:
-	float un_threshold_;
-
-	virtual void BeginClustering() {}
-	virtual void GenerateClusters();
 	virtual void SplitNode(CBranch* node);
 };
 
