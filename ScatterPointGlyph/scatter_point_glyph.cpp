@@ -78,22 +78,7 @@ void ScatterPointGlyph::InitWidget() {
 	tree_map_panel_ = new QDockWidget(QString("Tree Map"), this);
 	tree_map_panel_->setWidget(tree_map_);
 	this->tabifyDockWidget(var_selection_panel_, tree_map_panel_);
-	tree_map_panel_->setVisible(true);
-
-    table_lens_ = new TableLens;
-	table_lens_->setMinimumWidth(700);
-	table_lens_panel_ = new QDockWidget(QString("Table Lens"), this);
-	table_lens_panel_->setWidget(table_lens_);
-	this->tabifyDockWidget(var_selection_panel_, table_lens_panel_);
-	table_lens_panel_->setVisible(true);
-
-    parallel_coordinate_ = new ParallelCoordinate;
-    parallel_coordinate_->setFixedHeight(250);
-	parallel_dataset_ = new ParallelDataset;
-	parallel_coordinate_panel_ = new QDockWidget(QString("Parallel Coordinate"), this);
-	parallel_coordinate_panel_->setWidget(parallel_coordinate_);
-	this->addDockWidget(Qt::BottomDockWidgetArea, parallel_coordinate_panel_);
-	parallel_coordinate_panel_->setVisible(true);
+	tree_map_panel_->setVisible(false);
 
     detailed_data_tableview_ = new QTableView;
     detailed_data_tableview_->setMinimumWidth(700);
@@ -101,15 +86,29 @@ void ScatterPointGlyph::InitWidget() {
     data_table_panel_ = new QDockWidget(QString("Data"), this);
     data_table_panel_->setWidget(detailed_data_tableview_);
     this->tabifyDockWidget(var_selection_panel_, data_table_panel_);
-    data_table_panel_->setVisible(true);
-
+    data_table_panel_->setVisible(false);
 
     volume_renderer_ = new VolumeRenderer;
     volume_renderer_->setMinimumWidth(700);
     volume_render_panel_ = new QDockWidget(QString("Volume"), this);
     volume_render_panel_->setWidget(volume_renderer_);
     this->tabifyDockWidget(var_selection_panel_, volume_render_panel_);
-    volume_render_panel_->setVisible(true);
+    volume_render_panel_->setVisible(false);
+
+    table_lens_ = new TableLens;
+	table_lens_->setMinimumWidth(700);
+	table_lens_panel_ = new QDockWidget(QString("Table Lens"), this);
+	table_lens_panel_->setWidget(table_lens_);
+	this->tabifyDockWidget(var_selection_panel_, table_lens_panel_);
+	table_lens_panel_->setVisible(false);
+
+    parallel_coordinate_ = new ParallelCoordinate;
+    parallel_coordinate_->setFixedHeight(250);
+	parallel_dataset_ = new ParallelDataset;
+	parallel_coordinate_panel_ = new QDockWidget(QString("Parallel Coordinate"), this);
+	parallel_coordinate_panel_->setWidget(parallel_coordinate_);
+	this->addDockWidget(Qt::BottomDockWidgetArea, parallel_coordinate_panel_);
+	parallel_coordinate_panel_->setVisible(false);
 
     connect(glyph_widget_, SIGNAL(ViewportUpdated()), this, SLOT(OnGlyphViewportUpdated()));
     connect(glyph_widget_, SIGNAL(SelectionChanged()), this, SLOT(OnGlyphSelectionChanged()));
@@ -217,17 +216,17 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     PointDataReader point_reader;
     scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
 
-    QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
+    /*QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
 	if (file_path.length() == 0) return;
 
 	GeoPointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());
+    scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
 
 
     /*VolumeDataReader reader;
     scatter_point_dataset_ = reader.LoadFile("");*/
 
-    //this->OnActionOpenVtkFileTriggered();
+    this->OnActionOpenVtkFileTriggered();
 
     /*PointDataReader point_reader;
     scatter_point_dataset_ = point_reader.LoadFile("./TestData/iris.sc");*/
@@ -788,6 +787,7 @@ void ScatterPointGlyph::OnActionShowDensityMapTriggered() {
                 cluster_index.push_back(i);
             }
         }
+        if (point_pos[0].size() > 1000) return;
         glyph_widget_->SetPointDensityInfo(point_pos, cluster_index);
     }
     glyph_widget_->SetDensityMapVisibility(ui_.actionShow_Density_Map->isChecked());

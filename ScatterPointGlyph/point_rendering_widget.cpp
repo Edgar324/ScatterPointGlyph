@@ -39,6 +39,7 @@
 #include "vtkScalarBarActor.h"
 #include "vtkLookupTable.h"
 #include "vtkTextProperty.h"
+#include "vtkPVScalarBarActor.h"
 #include "scatter_point_dataset.h"
 
 vtkStandardNewMacro(PointRenderingWidget);
@@ -52,20 +53,24 @@ PointRenderingWidget::PointRenderingWidget() {
 	mapper_->SetInputData(poly_data_);
 	actor_->SetMapper(mapper_);
 	actor_->GetProperty()->SetPointSize(6);
-	actor_->GetProperty()->SetColor(0.5, 0.5, 0.5);
+	actor_->GetProperty()->SetColor(0.8, 0.8, 0.8);
 
-    bar_actor_ = vtkScalarBarActor::New();
-    bar_actor_->SetNumberOfLabels(4);
-    bar_actor_->SetMaximumWidthInPixels(60);
+    bar_actor_ = vtkPVScalarBarActor::New();
+    bar_actor_->SetNumberOfLabels(2);
+    bar_actor_->SetMaximumWidthInPixels(20);
+    bar_actor_->SetWidth(0.05);
     bar_actor_->GetLabelTextProperty()->SetFontFamilyToArial();
-    bar_actor_->GetLabelTextProperty()->SetBold(true);
     bar_actor_->GetLabelTextProperty()->SetShadow(false);
+    bar_actor_->GetLabelTextProperty()->SetBold(false);
     bar_actor_->GetLabelTextProperty()->SetColor(0.0, 0.0, 0.0);
+    bar_actor_->GetLabelTextProperty()->SetFontSize(5);
     bar_actor_->GetTitleTextProperty()->SetFontFamilyToArial();
     bar_actor_->GetTitleTextProperty()->SetBold(true);
     bar_actor_->GetTitleTextProperty()->SetShadow(false);
     bar_actor_->GetTitleTextProperty()->SetColor(0.0, 0.0, 0.0);
-    bar_actor_->SetPosition(0.9, 0.1);
+    bar_actor_->GetTitleTextProperty()->SetFontSize(10);
+    bar_actor_->SetPosition(0.91, 0.1);
+    bar_actor_->SetHeight(0.7);
     bar_actor_->SetVisibility(false);
 
     scalar_lookup_table_ = vtkLookupTable::New();
@@ -112,7 +117,7 @@ void PointRenderingWidget::BuildPointRepresentation() {
 		double new_pos[3];
 		new_pos[0] = dataset_->original_point_pos[0][i];
 		new_pos[1] = dataset_->original_point_pos[1][i];
-		new_pos[2] = 0;
+		new_pos[2] = -0.1;
 		original_points->InsertNextPoint(new_pos);
 	}
 
@@ -129,7 +134,7 @@ void PointRenderingWidget::BuildPointRepresentation() {
 	colors->SetNumberOfComponents(4);
 	for (int i = 0; i < dataset_->original_point_pos[0].size(); ++i) {
         if (!dataset_->is_valid[i]) continue;
-		colors->InsertNextTuple4(128, 128, 128, 150);
+		colors->InsertNextTuple4(200, 200, 200, 150);
 	}
 	poly_data_->GetPointData()->SetScalars(colors);
 
@@ -183,7 +188,7 @@ void PointRenderingWidget::SetSelectedIds(vector<vector<int>>& ids) {
     // clear previous selection
     for (int i = 0; i < selected_ids_.size(); ++i) 
         for (int j = 0; j < selected_ids_[i].size(); ++j) {
-            colors->SetTuple4(selected_ids_[i][j], 128, 128, 128, 255);
+            colors->SetTuple4(selected_ids_[i][j], 200, 200, 200, 255);
 	    }
 
     // add new selection
@@ -226,7 +231,7 @@ void PointRenderingWidget::SetColorMappingOff() {
     vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
     double rgb[3];
 	for (int i = 0; i < color_array->GetNumberOfTuples(); ++i) {
-		color_array->SetTuple4(i, 128, 128, 128, 255);
+		color_array->SetTuple4(i, 200, 200, 200, 255);
 	}
     color_array->Modified();
 

@@ -15,10 +15,13 @@
 #include "glyph_object.h"
 #include "glyph_dataset.h"
 #include "radar_band_widget.h"
+#include "regular_radar_widget.h"
+#include "radar_band_widget_no_saliency.h"
 #include "qvtk_rendering_widget.h"
 #include "point_rendering_widget.h"
 #include "arrow_widget.h"
 #include "density_rendering_widget.h"
+#include "indicator_widget.h"
 
 
 GlyphRenderingWidget::GlyphRenderingWidget() {
@@ -37,6 +40,9 @@ GlyphRenderingWidget::GlyphRenderingWidget() {
     density_widget_ = DensityRenderingWidget::New();
     density_widget_->SetInteractor(rendering_widget_->GetInteractor());
 
+    indicator_widget_ = IndicatorWidget::New();
+    indicator_widget_->SetInteractor(rendering_widget_->GetInteractor());
+
     QVBoxLayout* main_layout = new QVBoxLayout;
     main_layout->addWidget(rendering_widget_);
     this->setLayout(main_layout);
@@ -53,6 +59,10 @@ void GlyphRenderingWidget::SetPointData(ScatterPointDataset* point_dataset) {
     point_rendering_widget_->SetEnabled(true);
 
     arrow_widget_->SetEnabled(true);
+
+    indicator_widget_->SetRenderer(rendering_widget_->indicator_renderer());
+    indicator_widget_->SetData(0);
+    indicator_widget_->SetEnabled(true);
 
     rendering_widget_->main_renderer()->ResetCamera();
     rendering_widget_->update();
@@ -146,6 +156,7 @@ void GlyphRenderingWidget::GetBrushingPath(vector<float>& path) {
 void GlyphRenderingWidget::UpdateView() {
     this->BuildRepresentation();
     this->UpdateArrowWidget();
+    indicator_widget_->SetData(this->glyph_dataset_->max_point_count());
 }
 
 void GlyphRenderingWidget::BuildRepresentation() {
@@ -200,13 +211,14 @@ void GlyphRenderingWidget::OnDataUpdated() {
 
 void GlyphRenderingWidget::HighlightModified(GlyphObject* object) {
     int temp_index = object->highlight_index();
-    float temp_val = object->highlight_val();
+    float mean_val = object->highlight_val();
+    float std_val = object->std_devs()[temp_index];
 
     if (temp_index != -1) {
         QString tip;
-        tip += object->names()[temp_index];
-        tip += QString(": ");
-        tip += QString::number(temp_val);
+        tip += object->names()[temp_index] + QString(" Mean: ") + QString::number(mean_val) + QString("\t\n");
+        tip += object->names()[temp_index] + QString(" SD: ") + QString::number(std_val) + QString("\t\n");
+        tip += QString("Point Count: ") + QString::number(object->point_count());
         this->rendering_widget_->ShowTooltip(tip);
     } else {
         this->rendering_widget_->HideTooltip();
@@ -214,7 +226,7 @@ void GlyphRenderingWidget::HighlightModified(GlyphObject* object) {
 
     if (temp_index != highlight_index_) {
         highlight_index_ = temp_index;
-        highlight_val_ = temp_val;
+        highlight_val_ = mean_val;
 
         vector<GlyphObject*> glyph_objects;
         glyph_dataset_->GetAllGlyphObjects(glyph_objects);

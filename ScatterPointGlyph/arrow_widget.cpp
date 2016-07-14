@@ -32,7 +32,8 @@ ArrowWidget::ArrowWidget() {
 	this->arrow_data_mapper_ = vtkPolyDataMapper::New();
 	this->arrow_data_mapper_->SetInputData(this->arrow_poly_);
 	this->arrow_actor_->SetMapper(this->arrow_data_mapper_);
-    this->arrow_actor_->GetProperty()->SetColor(1.0, 0.55, 0.24);
+    //this->arrow_actor_->GetProperty()->SetColor(1.0, 0.55, 0.24);
+    this->arrow_actor_->GetProperty()->SetColor(1.0, 0.0, 0.0);
 }
 
 ArrowWidget::~ArrowWidget() {

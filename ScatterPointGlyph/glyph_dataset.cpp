@@ -24,6 +24,7 @@ void GlyphDataset::AddGlyphObject(GlyphObject* object) {
     map<int, GlyphObject*>::iterator iter = glyph_object_map_.find(object->cluster_id());
     if (iter == glyph_object_map_.end()) {
         glyph_object_map_.insert(map<int, GlyphObject*>::value_type(object->cluster_id(), object));
+        if (object->max_point_count() > max_point_count_) max_point_count_ = object->max_point_count();
     }
 }
 
@@ -51,6 +52,7 @@ void GlyphDataset::Clear() {
         iter++;
     }
     glyph_object_map_.clear();
+    max_point_count_ = 0;
 }
 
 void GlyphDataset::Modified() {

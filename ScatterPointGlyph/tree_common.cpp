@@ -206,7 +206,7 @@ void TreeCommon::ConstructLargeScaleRootNode() {
 
     id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
 
-    int reso_size = 500;
+    int reso_size = 1000;
     vector<vector<CLeaf*>> leaf_nodes;
     leaf_nodes.resize(reso_size);
     for (int i = 0; i < reso_size; ++i) leaf_nodes[i].resize(reso_size, NULL);

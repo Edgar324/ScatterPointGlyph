@@ -21,6 +21,7 @@ class QVtkRenderingWidget;
 class ScatterPointDataset;
 class GlyphWidget;
 class ArrowWidget;
+class IndicatorWidget;
 class PointRenderingWidget;
 class DensityRenderingWidget;
 
@@ -81,6 +82,8 @@ private:
     PointRenderingWidget* point_rendering_widget_ = NULL;
 
     ArrowWidget* arrow_widget_;
+
+    IndicatorWidget* indicator_widget_;
 
     DensityRenderingWidget* density_widget_;
 

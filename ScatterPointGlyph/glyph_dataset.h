@@ -30,6 +30,8 @@ public:
     GlyphObject* GetGlyphObject(int cluster_id);
     void GetAllGlyphObjects(vector<GlyphObject*>& objects);
 
+    int max_point_count() { return max_point_count_; }
+
     virtual void Clear();
     virtual void Modified();
 
@@ -39,6 +41,7 @@ signals:
 private:
     map<int, GlyphObject*> glyph_object_map_;
     int highlight_index_ = -1;
+    int max_point_count_ = 0;
 };
 
 #endif

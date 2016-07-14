@@ -21,6 +21,7 @@ class vtkActor;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkScalarBarActor;
+class vtkPVScalarBarActor;
 class vtkLookupTable;
 class vtkRenderer;
 
@@ -55,7 +56,7 @@ private:
 	vtkPolyDataMapper* mapper_;
 	vtkPolyData* poly_data_;
 
-    vtkScalarBarActor* bar_actor_;
+    vtkPVScalarBarActor* bar_actor_;
     vtkLookupTable* scalar_lookup_table_;
 
     void BuildPointRepresentation();

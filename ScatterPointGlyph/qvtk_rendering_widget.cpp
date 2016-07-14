@@ -26,12 +26,18 @@ QVtkRenderingWidget::QVtkRenderingWidget()
 	main_renderer_->SetViewport(0.0, 0.0, 1.0, 1.0);
 	main_renderer_->SetBackground(1.0, 1.0, 1.0);
 
+    indicator_renderer_ = vtkRenderer::New();
+    indicator_renderer_->SetViewport(0.85, 0.8, 1.0, 1.0);
+	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
+    this->GetRenderWindow()->AddRenderer(indicator_renderer_);
+
     main_renderer_->GetActiveCamera()->SetParallelProjection(0);
 
 	vtkSmartPointer<vtkInteractorStyleImage> imageStyle =
 		vtkSmartPointer<vtkInteractorStyleImage>::New();
 	this->GetRenderWindow()->GetInteractor()->SetInteractorStyle(imageStyle);
-	this->GetRenderWindow()->PointSmoothingOff();
+	this->GetRenderWindow()->SetPointSmoothing(1);
+    this->GetRenderWindow()->SetLineSmoothing(1);
 
     this->selection_brush_poly = vtkPolyData::New();
 	this->selection_brush_mapper = vtkPolyDataMapper::New();

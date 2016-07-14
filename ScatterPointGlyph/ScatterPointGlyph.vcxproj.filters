@@ -269,6 +269,18 @@
     <ClCompile Include="density_rendering_widget.cpp">
       <Filter>Source Files\Glyph</Filter>
     </ClCompile>
+    <ClCompile Include="regular_radar_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="radar_band_widget_no_saliency.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="indicator_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="vtkPVScalarBarActor.cxx">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -430,6 +442,18 @@
       <Filter>Header Files\Glyph</Filter>
     </ClInclude>
     <ClInclude Include="density_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="regular_radar_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="radar_band_widget_no_saliency.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="indicator_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="vtkPVScalarBarActor.h">
       <Filter>Header Files\Glyph</Filter>
     </ClInclude>
   </ItemGroup>

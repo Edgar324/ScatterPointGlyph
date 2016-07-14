@@ -8,16 +8,16 @@
  All rights reserved.
 */
 
-#include "radar_band_widget.h"
+#include "regular_radar_widget.h"
 #include <vtkRenderer.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkCommand.h>
 #include <vtkCallbackCommand.h>
 #include "glyph_object.h"
 
-vtkStandardNewMacro(RadarBandWidget);
+vtkStandardNewMacro(RegularRadarWidget);
 
-RadarBandWidget::RadarBandWidget() 
+RegularRadarWidget::RegularRadarWidget() 
     : GlyphWidget() {
     this->glyph_actor_ = vtkActor::New();
 	this->glyph_poly_ = vtkPolyData::New();
@@ -38,11 +38,11 @@ RadarBandWidget::RadarBandWidget()
     this->picker_->AddPickList(this->glyph_actor_);
 }
 
-RadarBandWidget::~RadarBandWidget() {
+RegularRadarWidget::~RegularRadarWidget() {
 
 }
 
-void RadarBandWidget::SetEnabled(int enabling) {
+void RegularRadarWidget::SetEnabled(int enabling) {
     if (!this->Interactor) {
 		vtkErrorMacro(<< "The interactor must be set prior to enabling/disabling widget");
 		return;
@@ -93,7 +93,7 @@ void RadarBandWidget::SetEnabled(int enabling) {
 	//this->Interactor->Render();
 }
 
-void RadarBandWidget::BuildRepresentation() {
+void RegularRadarWidget::BuildRepresentation() {
     if (glyph_object_ == NULL) return;
 
     if (glyph_object_->point_count() > 5) 
@@ -105,7 +105,7 @@ void RadarBandWidget::BuildRepresentation() {
     this->highlight_actor_->Modified();
 }
 
-void RadarBandWidget::BuildLargeGlyph() {
+void RegularRadarWidget::BuildLargeGlyph() {
     vector<QString>& names_ = glyph_object_->names();
     vector<QColor>& colors_ = glyph_object_->colors();
     vector<float>& means_ = glyph_object_->means();
@@ -141,8 +141,8 @@ void RadarBandWidget::BuildLargeGlyph() {
 
     // paint background
     vector<vtkIdType > background_ids;
-	for (int j = 0; j <= SEG_PER_CIRCLE; ++j) {
-		float end_arc = j * 3.14159 * 2 / SEG_PER_PIE;
+	for (int i = 0; i <= SEG_PER_CIRCLE; ++i) {
+		float end_arc = i * 3.14159 * 2 / SEG_PER_PIE;
 		float x = node_radius_ * cos(end_arc) * 1.0;
 		float y = node_radius_ * sin(end_arc) * 1.0;
 
@@ -156,8 +156,8 @@ void RadarBandWidget::BuildLargeGlyph() {
     float point_rate = (float)point_count_ / max_point_count_;
     int seg_num = (SEG_PER_CIRCLE - 1) * point_rate;
     std::vector<vtkIdType > num_inner_ids, num_outer_ids;
-    for (int j = 0; j <= seg_num; ++j) {
-        float end_arc = -1 * j * 3.14159 * 2 / SEG_PER_CIRCLE + 3.14159 * 0.5;
+    for (int i = 0; i <= seg_num; ++i) {
+        float end_arc = -1 * i * 3.14159 * 2 / SEG_PER_CIRCLE + 3.14159 * 0.5;
         float cos_value = cos(end_arc);
         float sin_value = sin(end_arc);
         float x = node_radius_ * cos_value * 1.05;
@@ -175,15 +175,15 @@ void RadarBandWidget::BuildLargeGlyph() {
     }
 
     vtkIdType cell_ids[3];
-    for (int j = 0; j < num_outer_ids.size() - 1; ++j) {
-        cell_ids[0] = num_outer_ids[j];
-        cell_ids[1] = num_outer_ids[j + 1];
-        cell_ids[2] = num_inner_ids[j];
+    for (int i = 0; i < num_outer_ids.size() - 1; ++i) {
+        cell_ids[0] = num_outer_ids[i];
+        cell_ids[1] = num_outer_ids[i + 1];
+        cell_ids[2] = num_inner_ids[i];
         glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 
-        cell_ids[0] = num_outer_ids[j + 1];
-        cell_ids[1] = num_inner_ids[j + 1];
-        cell_ids[2] = num_inner_ids[j];
+        cell_ids[0] = num_outer_ids[i + 1];
+        cell_ids[1] = num_inner_ids[i + 1];
+        cell_ids[2] = num_inner_ids[i];
         glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
     }
 
@@ -199,71 +199,75 @@ void RadarBandWidget::BuildLargeGlyph() {
 	glyph_poly_->InsertNextCell(VTK_POLYGON, SEG_PER_PIE + 1, center_cirlce_ids.data());*/
 
     // paint glyph
-    std::vector<vtkIdType> outer_band_ids;
-    std::vector<vtkIdType> inner_band_ids;
-    std::vector<vtkIdType> gray_region_ids;
+    std::vector<vtkIdType > value_pos_ids;
+	value_pos_ids.resize(var_num);
 
-    outer_band_ids.resize(2 * SEG_PER_PIE);
-    inner_band_ids.resize(2 * SEG_PER_PIE);
-    gray_region_ids.resize(SEG_PER_PIE + 1);
+	std::vector<int> var_point_ids;
+	var_point_ids.resize(var_num * 2);
+	for (int i = 0; i < var_num; ++i) {
+		float end_arc = i * 3.14159 * 2 / var_num;
 
-    for (int i = 0; i < var_num; ++i) {
-        float begin_arc = i * PIE_VAL * 2 / var_num;
-        float end_arc = (i + 1) * PIE_VAL * 2 / var_num;
-        float step_arc = (end_arc - begin_arc) / (SEG_PER_PIE - 1);
+		float temp_radius = node_radius_ * (means_[i] - std_devs_[i]) * 0.9 + node_radius_ * 0.1;
+		if (temp_radius < 0) temp_radius = 0;
+		float x = temp_radius * cos(end_arc);
+		float y = temp_radius * sin(end_arc);
 
-        QColor pie_color = colors_[i];
+		vtkIdType id_one = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.0000002);
+		glyph_colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 128);
 
-        float temp_arc = begin_arc;
-        for (int j = 0; j < SEG_PER_PIE; ++j) {
-            float cos_value = cos(temp_arc);
-            float sin_value = sin(temp_arc);
-            float std_dev = std_devs_[i] < 0.03 ? 0.03 : std_devs_[i];
+        temp_radius = node_radius_ * means_[i] * 0.9 + node_radius_ * 0.1;
+		x = temp_radius * cos(end_arc);
+		y = temp_radius * sin(end_arc);
 
-            // insert the outer polygon
-            float temp_radius = node_radius_ * (means_[i] + std_dev) * 0.7 + node_radius_ * 0.3;
-            if (temp_radius > node_radius_) temp_radius = node_radius_;
-            float x = temp_radius * cos_value;
-            float y = temp_radius * sin_value;
-            vtkIdType id_one = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0);
-            glyph_colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 64);
-            outer_band_ids[2 * j + 1] = id_one;
+		value_pos_ids[i] = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.00003);
+		glyph_colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 255);
 
-            // insert the inner polygon
-            temp_radius = node_radius_ * (means_[i] - std_dev) * 0.7 + node_radius_ * 0.3;
-            if (temp_radius < 0.3 * node_radius_) temp_radius = 0.3 * node_radius_;
-            x = temp_radius * cos_value;
-            y = temp_radius * sin_value;
+		temp_radius = node_radius_ * (means_[i] + std_devs_[i]) * 0.9 + node_radius_ * 0.1;
+		if (temp_radius > node_radius_) temp_radius = node_radius_;
+		x = temp_radius * cos(end_arc);
+		y = temp_radius * sin(end_arc);
 
-            vtkIdType id_two = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0);
-            glyph_colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 64);
-            inner_band_ids[2 * j + 1] = id_two;
+		vtkIdType id_two = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.0000002);
+		glyph_colors->InsertNextTuple4(255, 0.55 * 255, 0.24 * 255, 128);
 
-            // insert the gray polygon
-            vtkIdType id_four = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0);
-            glyph_colors->InsertNextTuple4(240, 240, 240, 255);
-            gray_region_ids[j] = id_four;
+		var_point_ids[i * 2] = id_one;
+		var_point_ids[i * 2 + 1] = id_two;
+	}
 
-            // insert the average value
-            temp_radius = node_radius_ * means_[i] * 0.7 + node_radius_ * 0.3;
-            x = temp_radius * cos_value;
-            y = temp_radius * sin_value;
-            vtkIdType id_three = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0);
-            glyph_colors->InsertNextTuple4(pie_color.red(), pie_color.green(), pie_color.blue(), 255);
-            outer_band_ids[2 * j] = id_three;
-            inner_band_ids[2 * j] = id_three;
+	for (int i = 0; i < var_num; ++i) {
+		cell_ids[0] = var_point_ids[2 * i];
+		cell_ids[1] = value_pos_ids[i];
+		cell_ids[2] = var_point_ids[2 * ((i + 1) % var_num)];
+		glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+        cell_ids[0] = value_pos_ids[(i + 1) % var_num];
+		cell_ids[1] = value_pos_ids[i];
+		cell_ids[2] = var_point_ids[2 * ((i + 1) % var_num)];
+		glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
 
-            temp_arc += step_arc;
-        }
+		cell_ids[0] = var_point_ids[2 * i + 1];
+		cell_ids[1] = value_pos_ids[i];
+		cell_ids[2] = var_point_ids[2 * ((i + 1) % var_num) + 1];
+		glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+        cell_ids[0] = value_pos_ids[(i + 1) % var_num];
+		cell_ids[1] = value_pos_ids[i];
+		cell_ids[2] = var_point_ids[2 * ((i + 1) % var_num) + 1];
+		glyph_poly_->InsertNextCell(VTK_TRIANGLE, 3, cell_ids);
+	}
 
-        vtkIdType center_id = glyph_points->InsertNextPoint(center_x_, center_y_, 0);
-        glyph_colors->InsertNextTuple4(240, 240, 240, 255);
-        gray_region_ids[SEG_PER_PIE] = center_id;
+    vtkIdType center_id = glyph_points->InsertNextPoint(center_x_, center_y_, 0.00004);
+	glyph_colors->InsertNextTuple4(200, 200, 200, 255);
+	for (int j = 0; j < var_num; ++j) {
+		float end_arc = j * 3.14159 * 2 / var_num;
+		float x = node_radius_ * cos(end_arc);
+		float y = node_radius_ * sin(end_arc);
 
-        glyph_poly_->InsertNextCell(VTK_POLYGON, (int)gray_region_ids.size(), gray_region_ids.data());
-        glyph_poly_->InsertNextCell(VTK_TRIANGLE_STRIP, (int)outer_band_ids.size(), outer_band_ids.data());
-        glyph_poly_->InsertNextCell(VTK_TRIANGLE_STRIP, (int)inner_band_ids.size(), inner_band_ids.data());
-    }
+		vtkIdType pre_id = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.00004);
+		glyph_colors->InsertNextTuple4(200, 200, 200, 255);
+
+		cell_ids[0] = center_id;
+		cell_ids[1] = pre_id;
+		glyph_poly_->InsertNextCell(VTK_LINE, 2, cell_ids);
+	}
 
     std::vector<vtkIdType > range_outer_ids, range_inner_ids, saliency_ids;
     for (int j = 0; j < SEG_PER_CIRCLE; ++j) {
@@ -273,26 +277,12 @@ void RadarBandWidget::BuildLargeGlyph() {
 
         float x = node_radius_ * cos_value;
         float y = node_radius_ * sin_value;
-        vtkIdType id_three = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.0001);
-		glyph_colors->InsertNextTuple4(150, 150, 150, 255);
+        vtkIdType id_three = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.00004);
+		glyph_colors->InsertNextTuple4(200, 200, 200, 255);
         range_outer_ids.push_back(id_three);
-
-        x = node_radius_ * cos_value * 0.28;
-        y = node_radius_ * sin_value * 0.28;
-        vtkIdType id_four = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.0001);
-		glyph_colors->InsertNextTuple4(150, 150, 150, 255);
-        range_inner_ids.push_back(id_four);
-
-        x = node_radius_ * cos_value * 0.3;
-        y = node_radius_ * sin_value * 0.3;
-        vtkIdType id_five = glyph_points->InsertNextPoint(center_x_ + x, center_y_ + y, 0.0);
-		glyph_colors->InsertNextTuple4(saliency_gray_value, saliency_gray_value, saliency_gray_value, 255);
-        saliency_ids.push_back(id_five);
     }
 
     glyph_poly_->InsertNextCell(VTK_POLY_LINE, range_outer_ids.size(), range_outer_ids.data());
-    glyph_poly_->InsertNextCell(VTK_POLYGON, saliency_ids.size(), saliency_ids.data());
-    glyph_poly_->InsertNextCell(VTK_POLY_LINE, range_inner_ids.size(), range_inner_ids.data());
 
     // update highlight actor
     vtkPoints* highlight_points = vtkPoints::New();
@@ -392,7 +382,7 @@ void RadarBandWidget::BuildLargeGlyph() {
     }
 }
 
-void RadarBandWidget::BuildSmallGlyph() {
+void RegularRadarWidget::BuildSmallGlyph() {
     vtkPoints* glyph_points = vtkPoints::New();
 	vtkUnsignedCharArray* glyph_colors = vtkUnsignedCharArray::New();
 	glyph_colors->SetNumberOfComponents(4);
@@ -483,7 +473,7 @@ void RadarBandWidget::BuildSmallGlyph() {
     }
 }
 
-void RadarBandWidget::OnMouseMove() {
+void RegularRadarWidget::OnMouseMove() {
     int pos_x = this->Interactor->GetEventPosition()[0];
     int pos_y = this->Interactor->GetEventPosition()[1];
 
@@ -523,7 +513,7 @@ void RadarBandWidget::OnMouseMove() {
     this->Interactor->Render();
 } 
 
-void RadarBandWidget::OnLeftButtonDown() {
+void RegularRadarWidget::OnLeftButtonDown() {
     int pos_x = this->Interactor->GetEventPosition()[0];
     int pos_y = this->Interactor->GetEventPosition()[1];
 
@@ -548,14 +538,14 @@ void RadarBandWidget::OnLeftButtonDown() {
     }
 }
 
-void RadarBandWidget::OnLeftButtonUp() {
+void RegularRadarWidget::OnLeftButtonUp() {
     this->glyph_state_ = GlyphWidget::NORMAL;
 }
 
-void RadarBandWidget::OnRightButtonDown() {
+void RegularRadarWidget::OnRightButtonDown() {
 
 }
 
-void RadarBandWidget::OnRightButtonUp() {
+void RegularRadarWidget::OnRightButtonUp() {
 
 }
