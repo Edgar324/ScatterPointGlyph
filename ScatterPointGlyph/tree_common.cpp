@@ -316,6 +316,12 @@ void TreeCommon::SplitNodeOnce(int node_id) {
 		}
     if (is_children_all_leaf && branch->linked_nodes.size() > 2) {
         SplitNode(branch);
+
+        vector<vector<float>> center_pos;
+        for (int i = 0; i < branch->linked_nodes.size(); ++i)
+            center_pos.push_back(branch->linked_nodes[i]->center_pos);
+        branch->average_dis = Utility::GetAverageDistance(center_pos);
+
         for (int i = 0; i < branch->linked_nodes.size(); ++i) {
             id_node_map_.insert(map<int, CNode*>::value_type(branch->linked_nodes[i]->id(), branch->linked_nodes[i]));
         }
@@ -339,6 +345,12 @@ void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
 			}
             if (branch == root_ || accu_std_dev > std_dev_threshold) {
                 SplitNode(branch);
+
+                vector<vector<float>> center_pos;
+                for (int i = 0; i < branch->linked_nodes.size(); ++i)
+                    center_pos.push_back(branch->linked_nodes[i]->center_pos);
+                branch->average_dis = Utility::GetAverageDistance(center_pos);
+
                 for (int i = 0; i < branch->linked_nodes.size(); ++i) {
                     id_node_map_.insert(map<int, CNode*>::value_type(branch->linked_nodes[i]->id(), branch->linked_nodes[i]));
                 }

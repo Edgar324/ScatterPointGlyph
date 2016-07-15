@@ -27,11 +27,6 @@ void MultiLabelTree::SplitNode(CBranch* node) {
     } else {
         DirectSplit(node);
     }
-
-    vector<vector<float>> center_pos;
-    for (int i = 0; i < node->linked_nodes.size(); ++i)
-        center_pos.push_back(node->linked_nodes[i]->center_pos);
-    node->average_dis = Utility::GetAverageDistance(center_pos);
 }
 
 void MultiLabelTree::SplitOnSlic(CBranch* node) {
