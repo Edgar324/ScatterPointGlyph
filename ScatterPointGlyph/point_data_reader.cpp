@@ -60,7 +60,7 @@ ScatterPointDataset* PointDataReader::LoadFile(const char* file_name) {
 	}
 	input_file.close();
 
-    TsneProjector projector;
+    MdsProjector projector;
     projector.Project(dataset->original_point_values, dataset->original_point_pos);
 
     dataset->DirectConstruct();

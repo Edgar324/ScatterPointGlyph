@@ -24,7 +24,7 @@ private:
 	std::vector<std::vector<float>> edge_weights_;
 	std::vector<std::vector<float>> point_dis_;
 
-	const float data_dis_scale_ = { 0.0 };
+	const float data_dis_scale_ = { 0.5 };
 
 	float max_radius_;
 	int sample_num_;

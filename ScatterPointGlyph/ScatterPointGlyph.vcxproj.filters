@@ -302,6 +302,9 @@
     <ClCompile Include="tsne_projector.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
+    <ClCompile Include="quality_metric.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -494,6 +497,9 @@
     </ClInclude>
     <ClInclude Include="tsne_projector.h">
       <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="quality_metric.h">
+      <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

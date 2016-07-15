@@ -275,6 +275,7 @@
     <ClCompile Include="pca_projector.cpp" />
     <ClCompile Include="point_data_reader.cpp" />
     <ClCompile Include="point_rendering_widget.cpp" />
+    <ClCompile Include="quality_metric.cpp" />
     <ClCompile Include="radar_band_widget.cpp" />
     <ClCompile Include="radar_band_widget_no_saliency.cpp" />
     <ClCompile Include="regular_radar_widget.cpp" />
@@ -351,6 +352,7 @@
     <ClInclude Include="glyph_dataset_builder.h" />
     <ClInclude Include="hierarchical_tree.h" />
     <ClInclude Include="ncut_tree.h" />
+    <ClInclude Include="quality_metric.h" />
     <ClInclude Include="tsne_projector.h" />
     <ClInclude Include="vtkPVScalarBarActor.h" />
     <CustomBuild Include="parallel_dataset.h">

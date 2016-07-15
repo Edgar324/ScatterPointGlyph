@@ -56,7 +56,7 @@ PointRenderingWidget::PointRenderingWidget() {
 	actor_->GetProperty()->SetColor(0.8, 0.8, 0.8);
 
     bar_actor_ = vtkPVScalarBarActor::New();
-    bar_actor_->SetNumberOfLabels(2);
+    //bar_actor_->SetNumberOfLabels(2);
     bar_actor_->SetMaximumWidthInPixels(20);
     bar_actor_->SetWidth(0.05);
     bar_actor_->GetLabelTextProperty()->SetFontFamilyToArial();
@@ -68,7 +68,7 @@ PointRenderingWidget::PointRenderingWidget() {
     bar_actor_->GetTitleTextProperty()->SetBold(true);
     bar_actor_->GetTitleTextProperty()->SetShadow(false);
     bar_actor_->GetTitleTextProperty()->SetColor(0.0, 0.0, 0.0);
-    bar_actor_->GetTitleTextProperty()->SetFontSize(10);
+    bar_actor_->GetTitleTextProperty()->SetFontSize(5);
     bar_actor_->SetPosition(0.91, 0.1);
     bar_actor_->SetHeight(0.7);
     bar_actor_->SetVisibility(false);

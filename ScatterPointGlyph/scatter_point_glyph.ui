@@ -78,6 +78,7 @@
     <addaction name="actionNCuts"/>
     <addaction name="actionMulti_Label"/>
     <addaction name="separator"/>
+    <addaction name="actionEvaluate_Quality"/>
     <addaction name="actionClusterOptions"/>
    </widget>
    <widget class="QMenu" name="menuAbout">
@@ -636,6 +637,11 @@
    </property>
    <property name="text">
     <string>Show Volume</string>
+   </property>
+  </action>
+  <action name="actionEvaluate_Quality">
+   <property name="text">
+    <string>Evaluate Quality</string>
    </property>
   </action>
  </widget>

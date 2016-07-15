@@ -293,6 +293,7 @@ void RadarBandWidget::BuildLargeGlyph() {
     glyph_poly_->InsertNextCell(VTK_POLY_LINE, range_outer_ids.size(), range_outer_ids.data());
     glyph_poly_->InsertNextCell(VTK_POLYGON, saliency_ids.size(), saliency_ids.data());
     glyph_poly_->InsertNextCell(VTK_POLY_LINE, range_inner_ids.size(), range_inner_ids.data());
+    glyph_poly_->Modified();
 
     // update highlight actor
     vtkPoints* highlight_points = vtkPoints::New();
@@ -390,6 +391,8 @@ void RadarBandWidget::BuildLargeGlyph() {
 
         highlight_poly_->InsertNextCell(VTK_POLY_LINE, comp_ids.size(), comp_ids.data());
     }
+
+    highlight_poly_->Modified();
 }
 
 void RadarBandWidget::BuildSmallGlyph() {

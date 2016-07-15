@@ -38,6 +38,7 @@
 #include "volume_renderer.h"
 #include "table_lens.h"
 #include "glyph_object.h"
+#include "quality_metric.h"
 #include "utility.h"
 
 //#define USE_QUALITY_METRIC
@@ -160,6 +161,8 @@ void ScatterPointGlyph::InitWidget() {
     connect(ui_.actionShow_Map, SIGNAL(triggered()), this, SLOT(OnActionShowMapTriggered()));
     connect(ui_.actionShow_Volume, SIGNAL(triggered()), this, SLOT(OnActionShowVolumeRendererTriggered()));
 
+    connect(ui_.actionEvaluate_Quality, SIGNAL(triggered()), this, SLOT(OnActionEvaluateQualityTriggered()));
+
 	//
 	//connect(parallel_coordinate_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnPcpHighlightVarChanged(int)));
 	//connect(tree_map_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTreemapHighlightVarChagned(int)));
@@ -229,7 +232,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     //this->OnActionOpenVtkFileTriggered();
 
     PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/iris.sc");
 
     this->InitExploration();
 }
@@ -815,6 +818,14 @@ void ScatterPointGlyph::OnActionShowMapTriggered() {
 
 void ScatterPointGlyph::OnActionShowVolumeRendererTriggered() {
     volume_render_panel_->setVisible(ui_.actionShow_Volume->isChecked());
+}
+
+void ScatterPointGlyph::OnActionEvaluateQualityTriggered() {
+    if (cluster_tree_ == NULL) return;
+
+    QualityMetric quality_metric;
+    quality_metric.GenerateQualityMeasures(cluster_tree_);
+    quality_metric.SaveMeasures("quality.txt");
 }
 
 //void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)

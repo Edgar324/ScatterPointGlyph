@@ -221,6 +221,8 @@ private slots:
     void OnActionShowMapTriggered();
     void OnActionShowDataTableTriggered();
 
+    void OnActionEvaluateQualityTriggered();
+
 
 	/*void OnBeginClusteringTriggered();
 	void OnClusterFinished();
