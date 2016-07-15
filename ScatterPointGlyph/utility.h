@@ -31,6 +31,7 @@ public:
 
     static void GenerateAxisOrder(vector<vector<float>>& values, vector<int>& axis_order);
     static float GetAverageDistance(vector<vector<float>>& pos);
+    static float GetDirectAverageDistance(vector<vector<float>>& pos);
 
     static bool CheckInside(vector<float>& path, float x, float y);
 };

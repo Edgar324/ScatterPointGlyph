@@ -75,6 +75,12 @@
     <Filter Include="Source Files\Glyph">
       <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\tSNE">
+      <UniqueIdentifier>{63825fc7-e937-4636-ac24-c7adba778f91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\tSNE">
+      <UniqueIdentifier>{dd7b17b6-21f5-4b88-b744-531b8d5c7751}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -287,6 +293,15 @@
     <ClCompile Include="hierarchical_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="bhtsne\sptree.cpp">
+      <Filter>Source Files\tSNE</Filter>
+    </ClCompile>
+    <ClCompile Include="bhtsne\tsne.cpp">
+      <Filter>Source Files\tSNE</Filter>
+    </ClCompile>
+    <ClCompile Include="tsne_projector.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -467,6 +482,18 @@
     </ClInclude>
     <ClInclude Include="hierarchical_tree.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="bhtsne\sptree.h">
+      <Filter>Header Files\tSNE</Filter>
+    </ClInclude>
+    <ClInclude Include="bhtsne\tsne.h">
+      <Filter>Header Files\tSNE</Filter>
+    </ClInclude>
+    <ClInclude Include="bhtsne\vptree.h">
+      <Filter>Header Files\tSNE</Filter>
+    </ClInclude>
+    <ClInclude Include="tsne_projector.h">
+      <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

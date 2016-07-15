@@ -229,7 +229,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     //this->OnActionOpenVtkFileTriggered();
 
     PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/iris.sc");
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");
 
     this->InitExploration();
 }

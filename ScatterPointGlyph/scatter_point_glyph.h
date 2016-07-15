@@ -107,7 +107,7 @@ private:
     QActionGroup* clustering_mode_action_group_;
     QActionGroup* glyph_view_interaction_mode_group_;
 
-    ClusteringMode clustering_mode_ = NCUTS_MODE;
+    ClusteringMode clustering_mode_ = MULTI_LABEL_MODE;
     // thresholds for each cluster method
 	float multi_label_threshold_ = 0.2;
 	float ncuts_threshold_ = 0.2;

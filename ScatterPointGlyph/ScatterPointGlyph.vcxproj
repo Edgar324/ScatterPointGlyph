@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>
@@ -125,7 +125,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>
       </RuntimeLibrary>
@@ -142,6 +142,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arrow_widget.cpp" />
+    <ClCompile Include="bhtsne\sptree.cpp" />
+    <ClCompile Include="bhtsne\tsne.cpp" />
     <ClCompile Include="cnode.cpp" />
     <ClCompile Include="color_mapping_generator.cpp" />
     <ClCompile Include="density_rendering_widget.cpp" />
@@ -287,6 +289,7 @@
     <ClCompile Include="multi_label_tree.cpp" />
     <ClCompile Include="tree_map_item.cpp" />
     <ClCompile Include="tree_map.cpp" />
+    <ClCompile Include="tsne_projector.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="variable_item.cpp" />
     <ClCompile Include="var_selection_widget.cpp" />
@@ -335,6 +338,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arrow_widget.h" />
+    <ClInclude Include="bhtsne\sptree.h" />
+    <ClInclude Include="bhtsne\tsne.h" />
+    <ClInclude Include="bhtsne\vptree.h" />
     <ClInclude Include="cnode.h" />
     <ClInclude Include="color_mapping_generator.h" />
     <ClInclude Include="density_rendering_widget.h" />
@@ -345,6 +351,7 @@
     <ClInclude Include="glyph_dataset_builder.h" />
     <ClInclude Include="hierarchical_tree.h" />
     <ClInclude Include="ncut_tree.h" />
+    <ClInclude Include="tsne_projector.h" />
     <ClInclude Include="vtkPVScalarBarActor.h" />
     <CustomBuild Include="parallel_dataset.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>

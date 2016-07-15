@@ -366,6 +366,11 @@ void Utility::GenerateAxisOrder(vector<vector<float>>& values, vector<int>& axis
 }
 
 float Utility::GetAverageDistance(vector<vector<float>>& pos) {
+    int edge_count = 0;
+    float average_distance = 0;
+
+    if (pos.size() < 5) return GetDirectAverageDistance(pos);
+
     vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < pos.size(); ++i) {
 		points->InsertNextPoint(pos[i][0], pos[i][1], 0);
@@ -379,11 +384,9 @@ float Utility::GetAverageDistance(vector<vector<float>>& pos) {
 	delaunay->Update();
 	vtkPolyData* triangle_out = delaunay->GetOutput();
 
-	int edge_count = 0;
-    float average_distance = 0;
+    if (triangle_out->GetNumberOfPolys() <= 0) return GetDirectAverageDistance(pos);
 
     vector<float> distances;
-
 	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
 	float min_dis = 1e10;
 	for (int i = 0; i < triangle_out->GetNumberOfPolys(); ++i){
@@ -440,4 +443,28 @@ bool Utility::CheckInside(vector<float>& path, float x, float y) {
 		return true;
 	else
 		return false;
+}
+
+float Utility::GetDirectAverageDistance(vector<vector<float>>& pos) {
+    int edge_count = 0;
+    float average_distance = 0;
+
+    for (int i = 0; i < pos.size(); ++i) {
+        float min_dis = 1e10;
+        for (int j = 0; j < pos.size(); ++j) {
+            if (j == i) continue;
+            float temp_dis = sqrt(pow(pos[i][0] - pos[j][0], 2)
+			            + pow(pos[i][1] - pos[j][1], 2));
+            min_dis = min(min_dis, temp_dis);
+        }
+        average_distance += min_dis;
+        edge_count++;
+    }
+
+    if (edge_count != 0) {
+        return average_distance / edge_count;
+    }
+    else {
+        return 1;
+    }
 }

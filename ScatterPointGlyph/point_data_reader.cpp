@@ -13,6 +13,7 @@
 using namespace std;
 #include "scatter_point_dataset.h"
 #include "mds_projector.h"
+#include "tsne_projector.h"
 
 PointDataReader::PointDataReader() {
 
@@ -59,7 +60,7 @@ ScatterPointDataset* PointDataReader::LoadFile(const char* file_name) {
 	}
 	input_file.close();
 
-    MdsProjector projector;
+    TsneProjector projector;
     projector.Project(dataset->original_point_values, dataset->original_point_pos);
 
     dataset->DirectConstruct();
