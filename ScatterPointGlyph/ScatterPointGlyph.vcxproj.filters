@@ -305,6 +305,9 @@
     <ClCompile Include="quality_metric.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="view_dependent_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -499,6 +502,9 @@
       <Filter>Header Files\Data</Filter>
     </ClInclude>
     <ClInclude Include="quality_metric.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="view_dependent_tree.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>

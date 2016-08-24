@@ -14,7 +14,7 @@ public:
     virtual void AutoConstructTree(float std_dev_threshold);
 
 protected:
-	virtual void SplitNode(CBranch* node);
+	void SplitNode(CBranch* node);
     void SplitOnSlic(CBranch* node);
     void DirectSplit(CBranch* node);
 
@@ -25,6 +25,7 @@ protected:
 	float max_radius_threshold_ = 0.5;
 	float factor_ = 2.0;
     int SLIC_PIXEL_THRESHOLD = 500;
+    const int EXPECTED_CLUSTER_NUM = 20;
 };
 
 #endif

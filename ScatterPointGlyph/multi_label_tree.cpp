@@ -40,14 +40,7 @@ void MultiLabelTree::SplitOnSlic(CBranch* node) {
     vector<vector<vector<float>>> pixel_data;
     vector<vector<int>> node_count;
     int imw = (int)sqrt(node->linked_nodes.size()), imh = 200;
-    float minx = 1e10, maxx = -1e10, miny = 1e10, maxy = -1e10;
-    for (int i = 0; i < pos.size(); ++i) {
-        if (pos[i][0] > maxx) maxx = pos[i][0];
-        if (pos[i][0] < minx) minx = pos[i][0];
-        if (pos[i][1] > maxy) maxy = pos[i][1];
-        if (pos[i][1] < miny) miny = pos[i][1];
-    }
-    imh = (maxy - miny) / (maxx - minx) * imw;
+    imh = (node->top - node->bottom) / (node->right - node->left) * imw;
     while (imw * imh < 16 * SLIC_PIXEL_THRESHOLD) {
         imh *= 2;
         imw *= 2;
@@ -62,9 +55,11 @@ void MultiLabelTree::SplitOnSlic(CBranch* node) {
             pixel_data[i][j].resize(point_dataset_->var_num, 0);
     }
 
+    float node_width = node->right - node->left;
+    float node_height = node->top - node->bottom;
     for (int i = 0; i < pos.size(); i++) {
-        int xi = (int)((pos[i][0] - minx) / (maxx - minx) * (imw - 1));
-        int yi = (int)((pos[i][1] - miny) / (maxy - miny) * (imh - 1));
+        int xi = (int)((pos[i][0] - node->left) / node_width * (imw - 1));
+        int yi = (int)((pos[i][1] - node->bottom) / node_height * (imh - 1));
         node_count[yi][xi]++;
         for (int j = 0; j < point_dataset_->var_num; j++)
             pixel_data[yi][xi][j] += value[i][j];
@@ -97,9 +92,10 @@ void MultiLabelTree::SplitOnSlic(CBranch* node) {
     vector<vector<float>> new_value;
     vector<int> spixel_to_node_index;
 
+    float scale_rate = node->right - node->left;
     for (int i = 0; i < spixel_count.size(); ++i)
         if (spixel_count[i] != 0) {
-            new_pos.push_back(vector<float>{spixel_centers[i][0] / (imw - 1), spixel_centers[i][1] / (imh - 1)});
+            new_pos.push_back(vector<float>{spixel_centers[i][0] / (imw - 1) * scale_rate, spixel_centers[i][1] / (imh - 1) * scale_rate});
             vector<float> temp_value;
             for (int j = 2; j < spixel_centers[i].size(); ++j)
                 temp_value.push_back(spixel_centers[i][j]);
@@ -112,19 +108,23 @@ void MultiLabelTree::SplitOnSlic(CBranch* node) {
 
 
     vector<int> clusters;
-    SplitPoints(new_pos, new_value, node->radius, clusters);
+    //float child_radius = max((node->right - node->left), (node->top - node->bottom)) / 2;
+    //float child_radius = ((node->right - node->left) + (node->top - node->bottom)) / 4;
+    //float child_radius = node->radius / factor_;
+    float child_radius = sqrt((node->right - node->left) * (node->top - node->bottom) / EXPECTED_CLUSTER_NUM);
+    SplitPoints(new_pos, new_value, child_radius, clusters);
 
     vector<CBranch*> label_nodes;
 	label_nodes.resize(clusters.size(), NULL);
     for (int i = 0; i < pos.size(); i++) {
-        int xi = (int)((pos[i][0] - minx) / (maxx - minx) * (imw - 1));
-        int yi = (int)((pos[i][1] - miny) / (maxy - miny) * (imh - 1));
+        int xi = (int)((pos[i][0] - node->left) / node_width * (imw - 1));
+        int yi = (int)((pos[i][1] - node->bottom) / node_height * (imh - 1));
         int label = clusters[spixel_to_node_index[spixel_index[xi][yi]]];
 
         if (label_nodes[label] == NULL) {
 			label_nodes[label] = new CBranch;
 			label_nodes[label]->set_level(node->level() + 1);
-			label_nodes[label]->radius = node->radius / factor_;
+			label_nodes[label]->radius = child_radius;
 			label_nodes[label]->parent = node;
 		}
 
@@ -157,7 +157,11 @@ void MultiLabelTree::DirectSplit(CBranch* node) {
 	}
 
     vector<int> clusters;
-    SplitPoints(pos, value, node->radius, clusters);
+    //float child_radius = min((node->right - node->left), (node->top - node->bottom)) / 2;
+    //float child_radius = ((node->right - node->left) + (node->top - node->bottom)) / 4;
+    //float child_radius = node->radius / factor_;
+    float child_radius = sqrt((node->right - node->left) * (node->top - node->bottom) / EXPECTED_CLUSTER_NUM);
+    SplitPoints(pos, value, child_radius, clusters);
 
     vector<CBranch*> label_nodes;
 	label_nodes.resize(node->linked_nodes.size(), NULL);
@@ -167,7 +171,7 @@ void MultiLabelTree::DirectSplit(CBranch* node) {
 		if (label_nodes[label] == NULL) {
 			label_nodes[label] = new CBranch;
 			label_nodes[label]->set_level(node->level() + 1);
-			label_nodes[label]->radius = node->radius / factor_;
+			label_nodes[label]->radius = child_radius;
 			label_nodes[label]->parent = node;
 		}
 		label_nodes[label]->linked_nodes.push_back(node->linked_nodes[i]);
@@ -206,7 +210,7 @@ void MultiLabelTree::SplitPoints(vector<vector<float>>& pos, vector<vector<float
 			}
 
     bool is_splitted = false;
-    float temp_radius = radius / factor_;
+    float temp_radius = radius;
 
 	// as long as the node is not split, split again with a smaller radius for the label estimation
     while (!is_splitted) {

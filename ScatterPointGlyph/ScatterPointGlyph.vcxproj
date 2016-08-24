@@ -294,6 +294,7 @@
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="variable_item.cpp" />
     <ClCompile Include="var_selection_widget.cpp" />
+    <ClCompile Include="view_dependent_tree.cpp" />
     <ClCompile Include="volume_data_reader.cpp" />
     <ClCompile Include="vtkPVScalarBarActor.cxx" />
   </ItemGroup>
@@ -354,6 +355,7 @@
     <ClInclude Include="ncut_tree.h" />
     <ClInclude Include="quality_metric.h" />
     <ClInclude Include="tsne_projector.h" />
+    <ClInclude Include="view_dependent_tree.h" />
     <ClInclude Include="vtkPVScalarBarActor.h" />
     <CustomBuild Include="parallel_dataset.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
