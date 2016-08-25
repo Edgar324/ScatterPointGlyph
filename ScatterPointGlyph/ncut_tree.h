@@ -10,6 +10,7 @@ public:
 	~NCutTree();
 
 	virtual void AutoConstructTree(float std_dev_threshold);
+    virtual TreeType type() { return TreeCommon::NCUTS_TREE; }
 
 protected:
 	virtual void SplitNode(CBranch* node);

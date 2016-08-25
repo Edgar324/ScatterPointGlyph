@@ -12,6 +12,13 @@ public:
 	TreeCommon(ScatterPointDataset* data);
 	virtual ~TreeCommon();
 
+    enum TreeType {
+        HIERARCHICAL_TREE = 0x0,
+        NCUTS_TREE,
+        MULTI_LABEL_TREE,
+        VIEW_DEPENDENT_TREE
+    };
+
 	CBranch* root() { return root_; }
 	ScatterPointDataset* data() { return point_dataset_; }
 
@@ -29,6 +36,8 @@ public:
 
     virtual void AutoConstructTree(float std_dev_threshold) = 0;
     virtual void SplitNode(CBranch* node) = 0;
+    virtual TreeType type() = 0;
+    virtual void ConstructTree(float left, float right, float bottom, float top, float glyph_radius) {}
 
 protected:
     ScatterPointDataset* point_dataset_ = NULL;

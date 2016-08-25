@@ -25,6 +25,7 @@
 #include "hierarchical_tree.h"
 #include "multi_label_tree.h"
 #include "ncut_tree.h"
+#include "view_dependent_tree.h"
 
 #include "glyph_rendering_widget.h"
 #include "parallel_coordinate.h"
@@ -407,6 +408,9 @@ void ScatterPointGlyph::InitExploration() {
 	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	    cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
 		break;
+    case ScatterPointGlyph::VIEW_DEPENDENT_MODE:
+        cluster_tree_ = new ViewDependentTree(scatter_point_dataset_);
+        break;
 	default:
 		break;
 	}

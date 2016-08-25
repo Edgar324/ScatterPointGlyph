@@ -12,6 +12,7 @@ public:
 	virtual ~MultiLabelTree();
 
     virtual void AutoConstructTree(float std_dev_threshold);
+    virtual TreeType type() { return TreeCommon::MULTI_LABEL_TREE; }
 
 protected:
 	void SplitNode(CBranch* node);

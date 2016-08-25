@@ -59,7 +59,8 @@ public:
 		HIER_MODE = 0x0,
 		CHAMELEON_MODE,
 		NCUTS_MODE,
-		MULTI_LABEL_MODE
+		MULTI_LABEL_MODE,
+        VIEW_DEPENDENT_MODE
 	};
 
 protected:
@@ -107,7 +108,7 @@ private:
     QActionGroup* clustering_mode_action_group_;
     QActionGroup* glyph_view_interaction_mode_group_;
 
-    ClusteringMode clustering_mode_ = MULTI_LABEL_MODE;
+    ClusteringMode clustering_mode_ = VIEW_DEPENDENT_MODE;
     // thresholds for each cluster method
 	float multi_label_threshold_ = 0.2;
 	float ncuts_threshold_ = 0.2;

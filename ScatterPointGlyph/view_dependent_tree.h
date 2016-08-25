@@ -12,6 +12,8 @@
 #define VIEW_DEPENDENT_TREE_H_
 
 #include "multi_label_tree.h"
+#include <vector>
+using namespace std;
 
 class ScatterPointDataset;
 
@@ -21,7 +23,11 @@ public:
     ViewDependentTree(ScatterPointDataset* data);
     virtual ~ViewDependentTree();
 
-    virtual void AutoConstructTree(float std_dev_threshold);
+    virtual TreeType type() { return TreeCommon::VIEW_DEPENDENT_TREE; }
+    virtual void ConstructTree(float left, float right, float bottom, float top, float glyph_radius);
+
+private:
+    vector<CNode*> leaf_nodes;
 };
 
 #endif

@@ -5,6 +5,7 @@
 #include "scatter_point_dataset.h"
 #include "scatter_grid_dataset.h"
 #include "utility.h"
+#include "view_dependent_tree.h"
 
 TreeCommon::TreeCommon(ScatterPointDataset* data) {
     this->point_dataset_ = data;
@@ -22,6 +23,11 @@ TreeCommon::~TreeCommon() {
 
 void TreeCommon::GetNodes(float left, float right, float bottom, float top, float glyph_radius,
     vector<CNode*>& pre_level_nodes, vector<CNode*>& current_level_nodes) {
+
+    if (this->type() == VIEW_DEPENDENT_TREE) {
+        this->ConstructTree(left, right, bottom, top, glyph_radius);
+    }
+
     // Get nodes according to the average distance among all child nodes!!!
     pre_level_nodes.clear();
     current_level_nodes.clear();
@@ -45,11 +51,11 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
         float center_x = node->center_pos[0] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[0][0];
         float center_y = node->center_pos[1] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[1][0];
         float node_width = (node->right - node->left) * point_dataset_->max_pos_range;
-        float node_heigh = (node->top - node->bottom) * point_dataset_->max_pos_range;
+        float node_height = (node->top - node->bottom) * point_dataset_->max_pos_range;
 
 
         if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
-            && abs(view_center_y - center_y) < (node_heigh / 2 + view_height / 2)) {
+            && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
             node->is_expanded = true;
             if (node->average_dis < expected_radius * 4) {
                 pre_level_nodes.push_back(node);
@@ -70,8 +76,18 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
                 break;
             }
         if (!is_children_leaf && branch->radius > expected_radius) {
-            for (int j = 0; j < branch->linked_nodes.size(); ++j)
-                current_level_nodes.push_back(branch->linked_nodes[j]);
+            for (int j = 0; j < branch->linked_nodes.size(); ++j) {
+                CNode* node = branch->linked_nodes[j];
+
+                float center_x = node->center_pos[0] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[0][0];
+                float center_y = node->center_pos[1] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[1][0];
+                float node_width = (node->right - node->left) * point_dataset_->max_pos_range;
+                float node_height = (node->top - node->bottom) * point_dataset_->max_pos_range;
+
+                if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
+                    && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2))
+                    current_level_nodes.push_back(branch->linked_nodes[j]);
+            }
         } else {
             current_level_nodes.push_back(branch);
         }
@@ -161,7 +177,7 @@ void TreeCommon::ConstructRootNode() {
     root_->set_level(0);
     root_->radius = 0.5;
 	root_->linked_nodes.clear();
-    root_->average_dis = FLT_MIN;
+    root_->average_dis = 1.0;
 
     id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
 
@@ -202,7 +218,7 @@ void TreeCommon::ConstructLargeScaleRootNode() {
     root_->set_level(0);
     root_->radius = 0.5;
 	root_->linked_nodes.clear();
-    root_->average_dis = FLT_MIN;
+    root_->average_dis = 1.0;
 
     id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
 

@@ -21,6 +21,7 @@ public:
 	void SetDistanceType(DistanceType type);
 
     virtual void AutoConstructTree(float std_dev_threshold);
+    virtual TreeType type() { return TreeCommon::HIERARCHICAL_TREE; }
 
 protected:
     virtual void SplitNode(CBranch* node);
