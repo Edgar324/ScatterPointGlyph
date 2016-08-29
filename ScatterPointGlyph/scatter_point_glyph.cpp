@@ -236,13 +236,13 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
 
 
-    /*VolumeDataReader reader;
-    scatter_point_dataset_ = reader.LoadFile("");*/
+    VolumeDataReader reader;
+    scatter_point_dataset_ = reader.LoadFile("");
 
     //this->OnActionOpenVtkFileTriggered();
 
-    PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/auto-mpg.sc");
+    /*PointDataReader point_reader;
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/auto-mpg.sc");*/
 
     this->UpdateMenus();
 }
@@ -660,7 +660,8 @@ void ScatterPointGlyph::OnGlyphSelectionChanged() {
     if (scatter_point_dataset_->type() == ScatterPointDataset::VOLUME_DATA)
         this->UpdateVolumeRender();
 
-    this->glyph_widget_->SetSelectedPointIds(selected_point_ids_);
+    if (scatter_point_dataset_->point_num < 1e5)
+        this->glyph_widget_->SetSelectedPointIds(selected_point_ids_);
     this->UpdatePcp();
     this->UpdateTableLens();
     this->UpdateTreemap();
