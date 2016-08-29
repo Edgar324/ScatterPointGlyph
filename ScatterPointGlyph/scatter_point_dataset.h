@@ -46,12 +46,10 @@ public:
 
     vector<bool> is_valid;
 
-	void ManualSelectDim(vector<bool>& is_dim_selected);
-	// TODO: Add automatic dimension reduction method
-	void AutoDimReduction(int dim_num);
-
 	
-	void ExecMds();
+	void ApplyMds();
+    void ApplyTsne();
+    void ApplyNormal(int axis_one, int axis_two);
 
 	// Direct use the normalized original point positions and variable values
 	// TODO: Provide sampling methods for large scale data

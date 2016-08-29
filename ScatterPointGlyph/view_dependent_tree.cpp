@@ -62,6 +62,7 @@ void ViewDependentTree::ConstructTree(float left, float right, float bottom, flo
     root_->linked_nodes.clear();
     root_->linked_nodes.push_back(view_node);
     root_->linked_nodes.push_back(out_node);
+    root_->average_dis = 1.0;
 
     SplitNodeOnce(view_node->id());
 }

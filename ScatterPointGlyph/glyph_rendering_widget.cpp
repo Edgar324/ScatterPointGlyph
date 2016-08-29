@@ -55,6 +55,7 @@ GlyphRenderingWidget::~GlyphRenderingWidget() {
 void GlyphRenderingWidget::SetPointData(ScatterPointDataset* point_dataset) {
     this->point_dataset_ = point_dataset;
     // initialize the point rendering layer
+    point_rendering_widget_->SetEnabled(false);
     point_rendering_widget_->SetData(point_dataset);
     point_rendering_widget_->SetEnabled(true);
 

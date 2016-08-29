@@ -5,6 +5,7 @@
 #include "ui_scatter_point_glyph.h"
 #include "ui_map_controller.h"
 #include "ui_option_dialog.h"
+#include "ui_projection_control.h"
 
 #include <string>
 #include <vector>
@@ -60,7 +61,8 @@ public:
 		CHAMELEON_MODE,
 		NCUTS_MODE,
 		MULTI_LABEL_MODE,
-        VIEW_DEPENDENT_MODE
+        VIEW_DEPENDENT_MODE,
+        CLUSTER_PROJECTION_MODE
 	};
 
 protected:
@@ -68,10 +70,14 @@ protected:
 
 private:
 	Ui::ScatterPointGlyphClass ui_;
+    Ui::ProjectionControlWidget ui_projection_control_;
 
     // main view for glyph rendering
     GlyphRenderingWidget* glyph_widget_;
     GlyphDataset* glyph_dataset_;
+
+    // Projection control widget
+    QWidget* projection_control_widget_;
 
     // parallel coordinate widget
     ParallelCoordinate* parallel_coordinate_;
@@ -108,7 +114,7 @@ private:
     QActionGroup* clustering_mode_action_group_;
     QActionGroup* glyph_view_interaction_mode_group_;
 
-    ClusteringMode clustering_mode_ = VIEW_DEPENDENT_MODE;
+    ClusteringMode clustering_mode_ = MULTI_LABEL_MODE;
     // thresholds for each cluster method
 	float multi_label_threshold_ = 0.2;
 	float ncuts_threshold_ = 0.2;
@@ -196,6 +202,9 @@ private slots:
 	void OnActionCloseTriggered();
 	void OnActionExitTriggered();
 	void OnActionOpenExampleDataTriggered();
+
+    void OnApplyProjectionTriggered();
+    void OnProjectionMethodChanged();
 
 	void OnClusteringModeChanged();
     void OnClusteringOptionTriggered();

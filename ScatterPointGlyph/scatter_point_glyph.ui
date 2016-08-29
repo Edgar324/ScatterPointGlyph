@@ -77,6 +77,7 @@
     <addaction name="actionChameleon_Clustering"/>
     <addaction name="actionNCuts"/>
     <addaction name="actionMulti_Label"/>
+    <addaction name="actionView_Dependent_Clustering"/>
     <addaction name="separator"/>
     <addaction name="actionEvaluate_Quality"/>
     <addaction name="actionClusterOptions"/>
@@ -522,7 +523,7 @@
     <bool>true</bool>
    </property>
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="icon">
     <iconset resource="scatter_point_glyph.qrc">
@@ -642,6 +643,14 @@
   <action name="actionEvaluate_Quality">
    <property name="text">
     <string>Evaluate Quality</string>
+   </property>
+  </action>
+  <action name="actionView_Dependent_Clustering">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>View Dependent Clustering</string>
    </property>
   </action>
  </widget>

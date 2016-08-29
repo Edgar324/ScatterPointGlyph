@@ -24,6 +24,7 @@ void TsneProjector::Project(vector<vector<float>>& values, vector<vector<float>>
     int D = values.size();
     int no_dims = 2;
     double perplexity = 30;
+    if (perplexity > values[0].size() / 5) perplexity = values[0].size() / 5;
     double theta = 0.5;
     int rand_seed = 12345;
     bool skip_random_init = false;
@@ -50,7 +51,7 @@ void TsneProjector::Project(vector<vector<float>>& values, vector<vector<float>>
     accu_count = 0;
     for (int i = 0; i < N; ++i) {
         for (int j = 0; j < no_dims; ++j) {
-            proj_values[j][i] = Y[accu_count];
+            proj_values[j][i] = Y[accu_count] * 1000;
             accu_count++;
         }
     }

@@ -26,6 +26,7 @@
 #include "multi_label_tree.h"
 #include "ncut_tree.h"
 #include "view_dependent_tree.h"
+#include "cluster_projection_tree.h"
 
 #include "glyph_rendering_widget.h"
 #include "parallel_coordinate.h"
@@ -63,9 +64,14 @@ void ScatterPointGlyph::InitWidget() {
 
     glyph_widget_ = new GlyphRenderingWidget;
     glyph_dataset_ = new GlyphDataset;
+    
+    projection_control_widget_ = new QWidget;
+    ui_projection_control_.setupUi(projection_control_widget_);
+    ui_projection_control_.axisSelectionWidget->setVisible(false);
 
     QVBoxLayout* central_layout = new QVBoxLayout;
 	central_layout->addWidget(glyph_widget_);
+    central_layout->addWidget(projection_control_widget_);
 	ui_.centralWidget->setLayout(central_layout);
 
     variable_selection_widget_ = new VariableSelectionWidget;
@@ -119,6 +125,8 @@ void ScatterPointGlyph::InitWidget() {
     connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.action_close, SIGNAL(triggered()), this, SLOT(OnActionCloseTriggered()));
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(OnActionExitTriggered()));
+    connect(ui_projection_control_.applyProjectionButton, SIGNAL(clicked()), this, SLOT(OnApplyProjectionTriggered()));
+    connect(ui_projection_control_.projectionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnProjectionMethodChanged()));
 
     connect(variable_selection_widget_, SIGNAL(SelectionChanged()), this, SLOT(OnVariableSelectionChanged()));
 
@@ -137,6 +145,7 @@ void ScatterPointGlyph::InitWidget() {
 	clustering_mode_action_group_->addAction(ui_.actionChameleon_Clustering);
 	clustering_mode_action_group_->addAction(ui_.actionNCuts);
 	clustering_mode_action_group_->addAction(ui_.actionMulti_Label);
+    clustering_mode_action_group_->addAction(ui_.actionView_Dependent_Clustering);
 	clustering_mode_action_group_->setExclusive(true);
 	ui_.actionMulti_Label->setChecked(true);
 	connect(clustering_mode_action_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnClusteringModeChanged()));
@@ -233,9 +242,9 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     //this->OnActionOpenVtkFileTriggered();
 
     PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/wine.sc");
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/auto-mpg.sc");
 
-    this->InitExploration();
+    this->UpdateMenus();
 }
 
 void ScatterPointGlyph::OnActionOpenGscFileTriggered() {
@@ -381,6 +390,33 @@ void ScatterPointGlyph::OnActionExitTriggered() {
 	exit(0);
 }
 
+void ScatterPointGlyph::OnApplyProjectionTriggered() {
+    if (scatter_point_dataset_->type() == ScatterPointDataset::POINT_DATA && scatter_point_dataset_->point_num < 1000) {
+        QString projection_method = ui_projection_control_.projectionComboBox->currentText();
+        if (projection_method.compare(QString("TSNE")) == 0) {
+            scatter_point_dataset_->ApplyTsne();
+        }
+        else if (projection_method.compare(QString("MDS")) == 0) {
+            scatter_point_dataset_->ApplyMds();
+        }
+        else if (projection_method.compare(QString("NORMAL")) == 0) {
+            int axis_one = ui_projection_control_.xAxisComboBox->currentIndex();
+            int axis_two = ui_projection_control_.yAxisComboBox->currentIndex();
+            scatter_point_dataset_->ApplyNormal(axis_one, axis_two);
+        }
+    }
+    this->InitExploration();
+}
+
+void ScatterPointGlyph::OnProjectionMethodChanged() {
+    QString projection_method = ui_projection_control_.projectionComboBox->currentText();
+    if (projection_method.compare(QString("NORMAL")) == 0) {
+        ui_projection_control_.axisSelectionWidget->setVisible(true);
+    } else {
+        ui_projection_control_.axisSelectionWidget->setVisible(false);
+    }
+}
+
 void ScatterPointGlyph::InitExploration() {
     if (scatter_point_dataset_ == NULL) {
         cout << "Point dataset is not loaded before exploration!" << endl;
@@ -389,7 +425,7 @@ void ScatterPointGlyph::InitExploration() {
 
     if (cluster_tree_ != NULL) {
         cout << "Cluster tree is not cleared before exploration!" << endl;
-        return;
+        cluster_tree_->Clear();
     }
 
     selected_var_index_.resize(scatter_point_dataset_->var_num);
@@ -407,9 +443,13 @@ void ScatterPointGlyph::InitExploration() {
 		break;
 	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	    cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
+        cluster_tree_->SplitNodeOnce(cluster_tree_->root()->id());
 		break;
     case ScatterPointGlyph::VIEW_DEPENDENT_MODE:
         cluster_tree_ = new ViewDependentTree(scatter_point_dataset_);
+        break;
+    case ScatterPointGlyph::CLUSTER_PROJECTION_MODE:
+        cluster_tree_ = new ClusterProjectionTree(scatter_point_dataset_);
         break;
 	default:
 		break;
@@ -420,7 +460,6 @@ void ScatterPointGlyph::InitExploration() {
         return;
     }*/
 
-    this->UpdateMenus();
     this->InitAllViews();
     this->UpdateAllViews();
 }
@@ -531,8 +570,10 @@ void ScatterPointGlyph::OnClusteringModeChanged() {
 				current_mode = CHAMELEON_MODE;
 			else if (ui_.actionNCuts->isChecked())
 				current_mode = NCUTS_MODE;
-			else if (ui_.actionMulti_Label)
+			else if (ui_.actionMulti_Label->isChecked())
 				current_mode = MULTI_LABEL_MODE;
+            else if (ui_.actionView_Dependent_Clustering->isChecked())
+                current_mode = VIEW_DEPENDENT_MODE;
 			break;
 		default:
 			switch (current_mode)
@@ -549,6 +590,9 @@ void ScatterPointGlyph::OnClusteringModeChanged() {
 			case ScatterPointGlyph::MULTI_LABEL_MODE:
 				ui_.actionMulti_Label->setChecked(true);
 				break;
+            case ScatterPointGlyph::VIEW_DEPENDENT_MODE:
+                ui_.actionView_Dependent_Clustering->setChecked(true);
+                break;
 			default:
 				break;
 			}
@@ -561,8 +605,10 @@ void ScatterPointGlyph::OnClusteringModeChanged() {
 			current_mode = CHAMELEON_MODE;
 		else if (ui_.actionNCuts->isChecked())
 			current_mode = NCUTS_MODE;
-		else if (ui_.actionMulti_Label)
+		else if (ui_.actionMulti_Label->isChecked())
 			current_mode = MULTI_LABEL_MODE;
+        else if (ui_.actionView_Dependent_Clustering->isChecked())
+            current_mode = VIEW_DEPENDENT_MODE;
 	}
 
 	if (current_mode != clustering_mode_) {
@@ -574,7 +620,7 @@ void ScatterPointGlyph::OnClusteringModeChanged() {
 		clustering_mode_ = current_mode;
 	}
 
-    if (scatter_point_dataset_ != NULL) this->InitExploration();
+    //if (scatter_point_dataset_ != NULL) this->InitExploration();
 }
 
 void ScatterPointGlyph::OnClusteringOptionTriggered() {
@@ -744,6 +790,16 @@ void ScatterPointGlyph::UpdateMenus() {
 		action->setChecked(false);
 		color_mapping_group_->addAction(action);
 	}
+
+    // update axis names
+    ui_projection_control_.xAxisComboBox->clear();
+    ui_projection_control_.yAxisComboBox->clear();
+    for (int i = 0; i < scatter_point_dataset_->var_names.size(); ++i) {
+        ui_projection_control_.xAxisComboBox->addItem(scatter_point_dataset_->var_names[i]);
+        ui_projection_control_.yAxisComboBox->addItem(scatter_point_dataset_->var_names[i]);
+    }
+    ui_projection_control_.xAxisComboBox->setCurrentIndex(0);
+    ui_projection_control_.yAxisComboBox->setCurrentIndex(1);
 }
 
 

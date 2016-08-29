@@ -144,6 +144,7 @@
     <ClCompile Include="arrow_widget.cpp" />
     <ClCompile Include="bhtsne\sptree.cpp" />
     <ClCompile Include="bhtsne\tsne.cpp" />
+    <ClCompile Include="cluster_projection_tree.cpp" />
     <ClCompile Include="cnode.cpp" />
     <ClCompile Include="color_mapping_generator.cpp" />
     <ClCompile Include="density_rendering_widget.cpp" />
@@ -343,12 +344,14 @@
     <ClInclude Include="bhtsne\sptree.h" />
     <ClInclude Include="bhtsne\tsne.h" />
     <ClInclude Include="bhtsne\vptree.h" />
+    <ClInclude Include="cluster_projection_tree.h" />
     <ClInclude Include="cnode.h" />
     <ClInclude Include="color_mapping_generator.h" />
     <ClInclude Include="density_rendering_widget.h" />
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_map_controller.h" />
     <ClInclude Include="GeneratedFiles\ui_option_dialog.h" />
+    <ClInclude Include="GeneratedFiles\ui_projection_control.h" />
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />
     <ClInclude Include="glyph_dataset_builder.h" />
     <ClInclude Include="hierarchical_tree.h" />
@@ -742,6 +745,26 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="option_dialog.ui">
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Uic%27ing %(Identity)...</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\uic.exe" -o ".\GeneratedFiles\ui_%(Filename).h" "%(FullPath)"</Command>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="projection_control.ui">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\uic.exe;%(AdditionalInputs)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Uic%27ing %(Identity)...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.\GeneratedFiles\ui_%(Filename).h;%(Outputs)</Outputs>

@@ -24,7 +24,7 @@ TreeCommon::~TreeCommon() {
 void TreeCommon::GetNodes(float left, float right, float bottom, float top, float glyph_radius,
     vector<CNode*>& pre_level_nodes, vector<CNode*>& current_level_nodes) {
 
-    if (this->type() == VIEW_DEPENDENT_TREE) {
+    if (this->type() == VIEW_DEPENDENT_TREE || this->type() == CLUSTER_PROJECTION_TREE) {
         this->ConstructTree(left, right, bottom, top, glyph_radius);
     }
 
@@ -57,7 +57,7 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
         if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
             && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
             node->is_expanded = true;
-            if (node->average_dis < expected_radius * 4) {
+            if (node->average_dis < expected_radius * 2) {
                 pre_level_nodes.push_back(node);
             } else {
                 CBranch* branch = (CBranch*)node;
@@ -75,7 +75,7 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
                 is_children_leaf = true;
                 break;
             }
-        if (!is_children_leaf && branch->radius > expected_radius) {
+        if (!is_children_leaf) {
             for (int j = 0; j < branch->linked_nodes.size(); ++j) {
                 CNode* node = branch->linked_nodes[j];
 
@@ -384,6 +384,19 @@ void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
 
 void TreeCommon::run() {
 	
+}
+
+void TreeCommon::Clear() {
+    delete root_;
+    root_ = NULL;
+    max_level_ = -1;
+
+    id_node_map_.clear();
+
+    if (this->point_dataset_->type() == ScatterPointDataset::VOLUME_DATA)
+        this->ConstructLargeScaleRootNode();
+    else
+        this->ConstructRootNode();
 }
 
 // ABOVE IS What we really need!

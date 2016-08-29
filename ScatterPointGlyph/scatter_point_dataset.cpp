@@ -1,7 +1,9 @@
 #include "scatter_point_dataset.h"
 #include <assert.h>
-
 #include "color_mapping_generator.h"
+#include "mds_projector.h"
+#include "pca_projector.h"
+#include "tsne_projector.h"
 
 ScatterPointDataset::ScatterPointDataset() {
 	
@@ -80,33 +82,36 @@ void ScatterPointDataset::NormalizePos() {
 	NormalizePosition(this->normalized_point_pos, this->original_pos_ranges);
 }
 
-void ScatterPointDataset::AutoDimReduction(int dim_num) {
+void ScatterPointDataset::ApplyMds() {
+	MdsProjector projector;
+    projector.Project(this->original_point_values, this->original_point_pos);
 
+    this->DirectConstruct();
 }
 
-void ScatterPointDataset::ManualSelectDim(vector<bool>& is_dim_selected) {
-    selected_vars.clear();
-    for (int i = 0; i < is_dim_selected.size(); ++i)
-        if (is_dim_selected[i]) selected_vars.push_back(i);
-        else var_weights[i] = 0.0;
+void ScatterPointDataset::ApplyTsne() {
+    TsneProjector projector;
+    projector.Project(this->original_point_values, this->original_point_pos);
 
-	/*int accu_num = 0;
-	for (int i = 0; i < is_dim_selected.size(); ++i) {
-		if (is_dim_selected[i]) {
-			for (int j = 0; j < original_point_values.size(); ++j)
-				original_point_values[j][accu_num] = original_point_values[j][i];
-			var_names[accu_num] = var_names[i];
-			accu_num++;
-		}
-	}
-
-	for (int i = 0; i < original_point_values.size(); ++i)
-		original_point_values[i].resize(accu_num);
-	var_names.resize(accu_num);*/
+    this->DirectConstruct();
 }
 
-void ScatterPointDataset::ExecMds() {
-	
+void ScatterPointDataset::ApplyNormal(int axis_one, int axis_two) {
+    int point_num = this->original_point_values[0].size();
+    this->original_point_pos.resize(2);
+    this->original_point_pos[0].resize(point_num);
+    this->original_point_pos[1].resize(point_num);
+
+    is_valid.resize(point_num, true);
+    normalized_point_values = original_point_values;
+    NormalizeValues(this->normalized_point_values, this->original_value_ranges);
+
+    for (int i = 0; i < point_num; i++) {
+        this->original_point_pos[0][i] = this->normalized_point_values[axis_one][i] * 1000;
+        this->original_point_pos[1][i] = this->normalized_point_values[axis_two][i] * 1000;
+    }
+
+    this->DirectConstruct();
 }
 
 void ScatterPointDataset::NormalizeValues(vector<vector<float>>& vec, vector<vector<float>>& ranges){

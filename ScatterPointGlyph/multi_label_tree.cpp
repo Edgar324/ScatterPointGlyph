@@ -9,7 +9,8 @@
 MultiLabelTree::MultiLabelTree(ScatterPointDataset* data)
 	: TreeCommon(data) {
 	processor_ = new MultiLabelProcessor;
-    //this->SplitNodeOnce(root_->id());
+    /*if (this->type() == TreeCommon::MULTI_LABEL_TREE)
+        this->SplitNodeOnce(root_->id());*/
 }
 
 MultiLabelTree::~MultiLabelTree() {

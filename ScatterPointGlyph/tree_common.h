@@ -16,7 +16,8 @@ public:
         HIERARCHICAL_TREE = 0x0,
         NCUTS_TREE,
         MULTI_LABEL_TREE,
-        VIEW_DEPENDENT_TREE
+        VIEW_DEPENDENT_TREE,
+        CLUSTER_PROJECTION_TREE
     };
 
 	CBranch* root() { return root_; }
@@ -33,6 +34,8 @@ public:
     void MergeNodes(vector<int>& node_ids);
     void SplitNodeOnce(int node_id);
     void SplitNodeRecursively(int node_id, float std_dev_threshold);
+
+    void Clear();
 
     virtual void AutoConstructTree(float std_dev_threshold) = 0;
     virtual void SplitNode(CBranch* node) = 0;
