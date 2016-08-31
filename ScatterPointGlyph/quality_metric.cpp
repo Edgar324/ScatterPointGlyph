@@ -14,7 +14,7 @@ QualityMetric::~QualityMetric() {
 void QualityMetric::GenerateQualityMeasures(TreeCommon* tree) {
 	int max_level = tree->GetMaxLevel();
 
-    if (max_level > 6) max_level = 6;
+    if (max_level > 10) max_level = 10;
 
 	quality_measures_.clear();
 	quality_measures_.resize(max_level + 1);
@@ -49,7 +49,8 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 		if (temp_index != -1) {
 			float value_dis = 0;
 			for (int j = 0; j < dataset->var_num; ++j)
-				value_dis += abs(cluster_nodes[temp_index]->mean_values[j] - dataset->normalized_point_values[j][i]) * dataset->var_weights[j];
+				value_dis += pow(cluster_nodes[temp_index]->mean_values[j] - dataset->normalized_point_values[j][i], 2);
+            value_dis = sqrt(value_dis / dataset->var_num);
 			nnm += value_dis;
 		}
 	}
@@ -68,7 +69,7 @@ void QualityMetric::GenerateLvelMeasure(TreeCommon* tree, int level, std::vector
 
 	measures.resize(3);
 	measures[0] = cluster_nodes.size();
-	//measures[1] = nnm;
+	measures[1] = nnm;
 	measures[2] = sqrerr / tree->root()->point_count;
 }
 

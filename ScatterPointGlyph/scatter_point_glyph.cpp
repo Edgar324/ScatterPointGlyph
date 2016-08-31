@@ -193,14 +193,14 @@ void ScatterPointGlyph::InitWidget() {
 	//transmap_tip_mode_group_->setExclusive(true);
 	//connect(transmap_tip_mode_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnShowVarTrendTriggered()));
 
-	//example_action_group_ = new QActionGroup(this);
-	//example_action_group_->addAction(ui_.actionIris);
-	//example_action_group_->addAction(ui_.actionWine);
-	//example_action_group_->addAction(ui_.actionAuto_MPG);
-	//example_action_group_->addAction(ui_.actionWdbc);
-	//example_action_group_->addAction(ui_.actionMeteo_Case);
-	//example_action_group_->setExclusive(true);
-	//connect(example_action_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnActionOpenExampleDataTriggered()));
+	example_action_group_ = new QActionGroup(this);
+	example_action_group_->addAction(ui_.actionIris);
+	example_action_group_->addAction(ui_.actionWine);
+	example_action_group_->addAction(ui_.actionAuto_MPG);
+	example_action_group_->addAction(ui_.actionWdbc);
+	example_action_group_->addAction(ui_.actionMeteo_Case);
+	example_action_group_->setExclusive(true);
+	connect(example_action_group_, SIGNAL(triggered(QAction*)), this, SLOT(OnActionOpenExampleDataTriggered()));
 
 	//// actions for tips on the cluster transition map
  
@@ -236,10 +236,10 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
 
 
-    VolumeDataReader reader;
-    scatter_point_dataset_ = reader.LoadFile("");
+    /*VolumeDataReader reader;
+    scatter_point_dataset_ = reader.LoadFile("");*/
 
-    //this->OnActionOpenVtkFileTriggered();
+    this->OnActionOpenVtkFileTriggered();
 
     /*PointDataReader point_reader;
     scatter_point_dataset_ = point_reader.LoadFile("./TestData/auto-mpg.sc");*/
@@ -327,48 +327,48 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 void ScatterPointGlyph::OnActionOpenExampleDataTriggered() {
 	//this->OnActionCloseTriggered();
 
-	//QString file_path = "./TestData/";
-	//if (ui_.actionIris->isChecked())
-	//	file_path += "iris.sc";
-	//else if (ui_.actionAuto_MPG->isChecked())
-	//	file_path += "auto-mpg.sc";
-	//else if (ui_.actionWine->isChecked())
-	//	file_path += "wine.sc";
-	//else if (ui_.actionWdbc->isChecked())
-	//	file_path += "wdbc.sc";
-	//else if (ui_.actionMeteo_Case->isChecked())
- //       //file_path += "plot.gsc";
-	//	file_path += "agent_step100_status.gsc";
+	QString file_path = "./TestData/";
+	if (ui_.actionIris->isChecked())
+		file_path += "iris.sc";
+	else if (ui_.actionAuto_MPG->isChecked())
+		file_path += "auto-mpg.sc";
+	else if (ui_.actionWine->isChecked())
+		file_path += "wine.sc";
+	else if (ui_.actionWdbc->isChecked())
+		file_path += "wdbc.sc";
+	else if (ui_.actionMeteo_Case->isChecked())
+        file_path += "plot.gsc";
+		//file_path += "agent_step100_status.gsc";
 
-	//if (!ui_.actionMeteo_Case->isChecked()) {
-	//	LoadScData(file_path);
+	if (!ui_.actionMeteo_Case->isChecked()) {
+		PointDataReader point_reader;
+        scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());
 
-	//	QString mds_path = file_path.left(file_path.length() - 2);
-	//	mds_path = mds_path + QString("mds");
-	//	ifstream input(mds_path.toLocal8Bit().data());
-	//	if (input.good()) {
-	//		for (int i = 0; i < scatter_point_dataset_->original_point_pos.size(); ++i)
-	//			for (int j = 0; j < scatter_point_dataset_->original_point_pos[i].size(); ++j)
-	//				input >> scatter_point_dataset_->original_point_pos[i][j];
-	//	}
-	//	input.close();
-	//	
-	//	scatter_point_dataset_->DirectConstruct();
+	    QString mds_path = file_path.left(file_path.length() - 2);
+	    mds_path = mds_path + QString("mds");
+	    ifstream input(mds_path.toLocal8Bit().data());
+	    if (input.good()) {
+		    for (int i = 0; i < scatter_point_dataset_->original_point_pos[0].size(); ++i)
+			    for (int j = 0; j < scatter_point_dataset_->original_point_pos.size(); ++j)
+				    input >> scatter_point_dataset_->original_point_pos[j][i];
+	    }
+	    input.close();
+	    scatter_point_dataset_->DirectConstruct();
 
-	//	this->UpdateMenus();
+	    this->UpdateMenus();
+
+        this->InitExploration();
 
 	//	this->AddPointData2View();
 
 	//	this->label_size_factor_ = 3.0;
-	//} else {
-	//	LoadGscData(file_path);
+	} else {
+		GeoPointDataReader point_reader;
+        scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());
 
-	//	this->UpdateMenus();
-
-	//	this->AddPointData2View();
-
-	//	this->label_size_factor_ = 5.0;
-	//}
+		this->UpdateMenus();
+        this->InitExploration();
+	}
 
  //   var_selection_widget_->SetData(scatter_point_dataset_->var_names, scatter_point_dataset_->var_colors);
  //   selected_var_index_.resize(scatter_point_dataset_->var_num);
@@ -435,15 +435,18 @@ void ScatterPointGlyph::InitExploration() {
     switch (clustering_mode_) {
 	case ScatterPointGlyph::HIER_MODE:
         cluster_tree_ = new HierarchicalTree(scatter_point_dataset_);
+        cluster_tree_->AutoConstructTree(multi_label_threshold_);
 		break;
 	case ScatterPointGlyph::CHAMELEON_MODE:
 		break;
 	case ScatterPointGlyph::NCUTS_MODE:
 	    cluster_tree_ = new NCutTree(scatter_point_dataset_);
+        cluster_tree_->AutoConstructTree(ncuts_threshold_);
 		break;
 	case ScatterPointGlyph::MULTI_LABEL_MODE:
 	    cluster_tree_ = new MultiLabelTree(scatter_point_dataset_);
-        cluster_tree_->SplitNodeOnce(cluster_tree_->root()->id());
+        //cluster_tree_->SplitNodeOnce(cluster_tree_->root()->id());
+        cluster_tree_->AutoConstructTree(multi_label_threshold_);
 		break;
     case ScatterPointGlyph::VIEW_DEPENDENT_MODE:
         cluster_tree_ = new ViewDependentTree(scatter_point_dataset_);

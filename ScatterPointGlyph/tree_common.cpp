@@ -33,16 +33,25 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
     current_level_nodes.clear();
 
     float expected_radius = glyph_radius * 2;
-
-    queue<CNode*> node_queue;
-    node_queue.push(root_);
-
     float view_center_x = (left + right) / 2;
     float view_center_y = (top + bottom) / 2;
     float view_width = right - left;
     float view_height = top - bottom;
 
-    while (!node_queue.empty()) {
+    if (this->type() == HIERARCHICAL_TREE) {
+        pre_level_nodes.push_back(root_);
+    } else if (this->type() == NCUTS_TREE) {
+        int temp_level = 0;
+        vector<CNode*> level_nodes;
+        do {
+            temp_level++;
+            GetNodes(temp_level, level_nodes);
+        } while (level_nodes.size() < 8);
+        GetNodes(temp_level - 1, pre_level_nodes);
+    } else {
+        queue<CNode*> node_queue;
+        node_queue.push(root_);
+        while (!node_queue.empty()) {
         CNode* node = node_queue.front();
         node->is_visible = false;
         node_queue.pop();
@@ -57,7 +66,7 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
         if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
             && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
             node->is_expanded = true;
-            if (node->average_dis < expected_radius * 2) {
+            if (node->average_dis < expected_radius * 4) {
                 pre_level_nodes.push_back(node);
             } else {
                 CBranch* branch = (CBranch*)node;
@@ -65,6 +74,7 @@ void TreeCommon::GetNodes(float left, float right, float bottom, float top, floa
                     node_queue.push(branch->linked_nodes[i]);
             }
         }
+    }
     }
 
     for (int i = 0; i < pre_level_nodes.size(); ++i) {
@@ -361,7 +371,7 @@ void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
 			for (int i = 0; i < point_dataset_->var_num; ++i) {
 				accu_std_dev += branch->std_deviations[i] * point_dataset_->var_weights[i];
 			}
-            if (branch == root_ || accu_std_dev > std_dev_threshold) {
+            if ((branch == root_ || accu_std_dev > std_dev_threshold) && branch->point_count > 10) {
                 SplitNode(branch);
 
                 vector<vector<float>> center_pos;
@@ -384,6 +394,21 @@ void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
 
 void TreeCommon::run() {
 	
+}
+
+
+void TreeCommon::ResetLevel(CNode* node, int level) {
+	if (node == NULL) return;
+	node->set_level(level);
+	if (level > max_level_) max_level_ = level;
+
+	if (node->type() == CNode::BRANCH) {
+		CBranch* branch = dynamic_cast<CBranch*>(node);
+		if (branch != NULL) {
+			for (int i = 0; i < branch->linked_nodes.size(); ++i)
+				ResetLevel(branch->linked_nodes[i], level + 1);
+		}
+	}
 }
 
 void TreeCommon::Clear() {
@@ -561,20 +586,7 @@ void TreeCommon::Clear() {
 //		}
 //	}
 //}
-//
-//void TreeCommon::ResetLevel(CNode* node, int level) {
-//	if (node == NULL) return;
-//	node->set_level(level);
-//	if (level > max_level_) max_level_ = level;
-//
-//	if (node->type() == CNode::BRANCH) {
-//		CBranch* branch = dynamic_cast<CBranch*>(node);
-//		if (branch != NULL) {
-//			for (int i = 0; i < branch->linked_nodes.size(); ++i)
-//				ResetLevel(branch->linked_nodes[i], level + 1);
-//		}
-//	}
-//}
+
 //
 //void TreeCommon::SortTree(std::vector<int>& node_ids) {
 //	int node_count = 0;

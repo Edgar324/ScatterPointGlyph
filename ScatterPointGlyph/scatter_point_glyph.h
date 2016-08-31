@@ -110,14 +110,15 @@ private:
 	ScatterPointDataset* scatter_point_dataset_ = NULL;
     vector<int> selected_var_index_;
 
+    QActionGroup* example_action_group_;
     QActionGroup* color_mapping_group_;
     QActionGroup* clustering_mode_action_group_;
     QActionGroup* glyph_view_interaction_mode_group_;
 
     ClusteringMode clustering_mode_ = MULTI_LABEL_MODE;
     // thresholds for each cluster method
-	float multi_label_threshold_ = 0.2;
-	float ncuts_threshold_ = 0.2;
+	float multi_label_threshold_ = 0.1;
+	float ncuts_threshold_ = 0.1;
 	int hier_number_threshold_ = 1;
     float glyph_size_ = 50;
 
@@ -161,7 +162,7 @@ private:
 
 	
 	//QActionGroup* transmap_tip_mode_group_;
-	//QActionGroup* example_action_group_;
+	
 
 	//QProgressDialog* progress_dialog_;
 

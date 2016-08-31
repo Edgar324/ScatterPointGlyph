@@ -1,10 +1,13 @@
 #include "hierarchical_tree.h"
 #include <queue>
+#include <iostream>
+#include <fstream>
 #include "scatter_point_dataset.h"
 #include "utility.h"
+#include "quality_metric.h"
 
 HierarchicalTree::HierarchicalTree(ScatterPointDataset* data) 
-	: TreeCommon(data), expected_cluster_num_(4096), type_(CENTER_DISTANCE) {
+	: TreeCommon(data), expected_cluster_num_(6), type_(CENTER_DISTANCE) {
 }
 
 HierarchicalTree::~HierarchicalTree() {
@@ -31,6 +34,8 @@ void HierarchicalTree::AutoConstructTree(float std_dev_threshold) {
         branch->linked_nodes.push_back(leaf_nodes[i]);
         ProgressNodeData(branch);
         root_->linked_nodes.push_back(branch);
+
+        id_node_map_.insert(std::map< int, CNode*>::value_type(branch->id(), branch));
     }
 
     // TODO: add connecting status
@@ -39,8 +44,30 @@ void HierarchicalTree::AutoConstructTree(float std_dev_threshold) {
     Utility::VtkTriangulation(root_->linked_nodes, connecting_status, min_edge_length);
     //std::vector<std::vector<bool>> connecting_status = this->node_connecting_status_;
 
+    vector<int> cluster_num = vector<int>{1, 2, 4, 8, 16, 32, 64, 128};
+    vector<vector<float>> quality_results;
+    quality_results.resize(cluster_num.size());
+
 	while (root_->linked_nodes.size() > expected_cluster_num_) {
         cout << "Cluster Number: " << root_->linked_nodes.size() << endl;
+
+        bool is_exist = false;
+        int existing_index = -1;
+        for (int i = cluster_num.size() - 1; i >= 0; --i) {
+            if (root_->linked_nodes.size() > cluster_num[i]) break;
+            if (root_->linked_nodes.size() == cluster_num[i]) {
+                is_exist = true;
+                existing_index = i;
+                break;
+            }
+        }
+        if (is_exist) {
+            this->ResetLevel(root_, 0);
+            QualityMetric metric;
+            vector<float> temp_quality;
+            metric.GenerateLvelMeasure(this, 1, temp_quality);
+            quality_results[existing_index] = temp_quality;
+        }
 
 		int min_node_index[2];
 		float min_node_dis = 1e20;
@@ -73,6 +100,8 @@ void HierarchicalTree::AutoConstructTree(float std_dev_threshold) {
 			branch->linked_nodes.push_back(root_->linked_nodes[min_node_index[1]]);
 			ProgressNodeData(branch);
 
+            id_node_map_.insert(std::map< int, CNode*>::value_type(branch->id(), branch));
+
 			root_->linked_nodes[min_node_index[0]] = branch;
 			for (int i = min_node_index[1]; i < root_->linked_nodes.size() - 1; ++i)
 				root_->linked_nodes[i] = root_->linked_nodes[i + 1];
@@ -93,4 +122,13 @@ void HierarchicalTree::AutoConstructTree(float std_dev_threshold) {
             connecting_status.resize(connecting_status.size() - 1);
 		}
 	}
+
+    /*std::ofstream output("quality.txt");
+
+	if (output.good()) {
+		output << quality_results.size() << std::endl;
+		for (int i = 1; i < quality_results.size(); ++i)
+			output << quality_results[i][0] << " " << quality_results[i][1] << " " << quality_results[i][2] << std::endl;
+		output.close();
+	}*/
 }

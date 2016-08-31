@@ -134,7 +134,7 @@ void PointRenderingWidget::BuildPointRepresentation() {
 	colors->SetNumberOfComponents(4);
 	for (int i = 0; i < dataset_->original_point_pos[0].size(); ++i) {
         if (!dataset_->is_valid[i]) continue;
-		colors->InsertNextTuple4(200, 200, 200, 150);
+		colors->InsertNextTuple4(64, 64, 64, 150);
 	}
 	poly_data_->GetPointData()->SetScalars(colors);
 
@@ -189,7 +189,7 @@ void PointRenderingWidget::SetSelectedIds(vector<vector<int>>& ids) {
     // clear previous selection
     for (int i = 0; i < selected_ids_.size(); ++i) 
         for (int j = 0; j < selected_ids_[i].size(); ++j) {
-            colors->SetTuple4(selected_ids_[i][j], 200, 200, 200, 255);
+            colors->SetTuple4(selected_ids_[i][j], 64, 64, 64, 255);
 	    }
 
     // add new selection
@@ -232,7 +232,7 @@ void PointRenderingWidget::SetColorMappingOff() {
     vtkUnsignedCharArray* color_array = vtkUnsignedCharArray::SafeDownCast(poly_data_->GetPointData()->GetScalars());
     double rgb[3];
 	for (int i = 0; i < color_array->GetNumberOfTuples(); ++i) {
-		color_array->SetTuple4(i, 200, 200, 200, 255);
+		color_array->SetTuple4(i, 64, 64, 64, 255);
 	}
     color_array->Modified();
 

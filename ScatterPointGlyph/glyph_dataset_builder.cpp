@@ -82,8 +82,8 @@ void GlyphDatasetBuilder::Build(ScatterPointDataset* point_dataset, vector<int>&
             //std_devs.push_back(node->std_deviations[selected_vars[j]] * (value_ranges[var_index][1] - value_ranges[var_index][0]));
         }
 
-        float center_x = node->center_pos[0] * (pos_ranges[0][1] - pos_ranges[0][0]) + pos_ranges[0][0];
-        float center_y = node->center_pos[1] * (pos_ranges[1][1] - pos_ranges[1][0]) + pos_ranges[1][0];
+        float center_x = node->mean_pos[0] * (pos_ranges[0][1] - pos_ranges[0][0]) + pos_ranges[0][0];
+        float center_y = node->mean_pos[1] * (pos_ranges[1][1] - pos_ranges[1][0]) + pos_ranges[1][0];
 
         bool is_expandable = false;
         if (node->type() == CNode::BRANCH) {

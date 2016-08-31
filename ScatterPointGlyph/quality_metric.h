@@ -13,10 +13,10 @@ public:
 	void GenerateQualityMeasures(TreeCommon* tree);
 	void SaveMeasures(const char* file_path);
 
+    void GenerateLvelMeasure(TreeCommon* tree, int level, std::vector<float>& measures);
+
 private:
 	std::vector<std::vector<float>> quality_measures_;
-
-	void GenerateLvelMeasure(TreeCommon* tree, int level, std::vector<float>& measures);
 };
 
 #endif

@@ -48,7 +48,7 @@ protected:
 	int max_level_ = -1;
     float data_dis_scale_ = 0.5;
 
-    const int MAX_ALLOWED_LEVEL = 5;
+    const int MAX_ALLOWED_LEVEL = 7;
 
     map<int, CNode*> id_node_map_;
 
@@ -59,6 +59,9 @@ protected:
     void ConstructLargeScaleRootNode();
 	// Update node parameters
 	void ProgressNodeData(CNode* node);
+
+   	// Update the level of the node and its children
+	void ResetLevel(CNode* node, int level);
 
 
 //public:
@@ -95,8 +98,7 @@ protected:
 //
 //    void GetConnectionStatus(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, float& min_edge_length);
 //
-//	// Update the level of the node and its children
-//	void ResetLevel(CNode* node, int level);
+
 //
 //	void AssignLeafLevel(CNode* node, int level);
 //
