@@ -24,6 +24,7 @@ class ArrowWidget;
 class IndicatorWidget;
 class PointRenderingWidget;
 class DensityRenderingWidget;
+class MapRenderingWidget;
 
 class GlyphRenderingWidget : public QWidget
 {
@@ -86,6 +87,8 @@ private:
     IndicatorWidget* indicator_widget_;
 
     DensityRenderingWidget* density_widget_;
+
+    MapRenderingWidget* map_widget_;
 
     WidgetState widget_state_ = NORMAL;
     bool is_multiple_selection = false;

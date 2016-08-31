@@ -21,6 +21,7 @@
 #include "point_rendering_widget.h"
 #include "arrow_widget.h"
 #include "density_rendering_widget.h"
+#include "map_rendering_widget.h"
 #include "indicator_widget.h"
 
 
@@ -30,6 +31,9 @@ GlyphRenderingWidget::GlyphRenderingWidget() {
 
     connect(rendering_widget_, SIGNAL(ViewUpdated()), this, SIGNAL(ViewportUpdated()));
     connect(rendering_widget_, SIGNAL(SelectionChanged()), this, SIGNAL(BrushSelectionChanged()));
+
+    map_widget_ = MapRenderingWidget::New();
+    map_widget_->SetInteractor(rendering_widget_->GetInteractor());
 
     point_rendering_widget_ = PointRenderingWidget::New();
     point_rendering_widget_->SetInteractor(rendering_widget_->GetInteractor());
@@ -54,6 +58,7 @@ GlyphRenderingWidget::~GlyphRenderingWidget() {
 
 void GlyphRenderingWidget::SetPointData(ScatterPointDataset* point_dataset) {
     this->point_dataset_ = point_dataset;
+
     // initialize the point rendering layer
     point_rendering_widget_->SetEnabled(false);
     point_rendering_widget_->SetData(point_dataset);
@@ -100,7 +105,8 @@ void GlyphRenderingWidget::SetGlyphVisibility(bool visible) {
 }
 
 void GlyphRenderingWidget::SetGeoMapVisibility(bool visible) {
-
+    map_widget_->SetEnabled(visible);
+    rendering_widget_->update();
 }
 
 void GlyphRenderingWidget::SetWidgetState(WidgetState state) {

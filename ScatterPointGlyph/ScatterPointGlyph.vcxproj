@@ -267,6 +267,7 @@
     <ClCompile Include="hierarchical_tree.cpp" />
     <ClCompile Include="indicator_widget.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="map_rendering_widget.cpp" />
     <ClCompile Include="mds_projector.cpp" />
     <ClCompile Include="multi_label_processor.cpp" />
     <ClCompile Include="ncut_tree.cpp" />
@@ -355,6 +356,7 @@
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />
     <ClInclude Include="glyph_dataset_builder.h" />
     <ClInclude Include="hierarchical_tree.h" />
+    <ClInclude Include="map_rendering_widget.h" />
     <ClInclude Include="ncut_tree.h" />
     <ClInclude Include="quality_metric.h" />
     <ClInclude Include="tsne_projector.h" />

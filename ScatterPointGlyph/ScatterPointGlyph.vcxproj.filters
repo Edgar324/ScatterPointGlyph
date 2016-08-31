@@ -311,6 +311,9 @@
     <ClCompile Include="cluster_projection_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
+    <ClCompile Include="map_rendering_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -518,6 +521,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_projection_control.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="map_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

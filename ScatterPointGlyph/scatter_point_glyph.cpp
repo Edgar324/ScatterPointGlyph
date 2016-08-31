@@ -877,7 +877,7 @@ void ScatterPointGlyph::OnActionShowDataTableTriggered() {
 }
 
 void ScatterPointGlyph::OnActionShowMapTriggered() {
-    
+    glyph_widget_->SetGeoMapVisibility(ui_.actionShow_Map->isChecked());
 }
 
 void ScatterPointGlyph::OnActionShowVolumeRendererTriggered() {
