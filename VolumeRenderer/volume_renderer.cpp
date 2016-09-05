@@ -27,7 +27,7 @@ void VolumeRenderer::SetData(int* sizes_t, float* spacings_t, GLenum data_format
     win_width_slider->setRange(1, transfer_function_1d_widget_->max_value() - transfer_function_1d_widget_->min_value());
     win_width_slider->setValue(transfer_function_1d_widget_->max_value() - transfer_function_1d_widget_->min_value());
 
-    //OnTransferFunctionChanged();
+    OnTransferFunctionChanged();
     float min_val = transfer_function_1d_widget_->min_value();
     float max_val = transfer_function_1d_widget_->max_value();
     int class_num = (int)((max_val - min_val) / 255 + 0.4);
@@ -110,11 +110,11 @@ void VolumeRenderer::InitializeWidget(){
     parameter_widget->setLayout(parameter_layout);
     parameter_widget->setFixedWidth(400);
 
-    /*QHBoxLayout* function_layout = new QHBoxLayout;
+    QHBoxLayout* function_layout = new QHBoxLayout;
     function_layout->addWidget(parameter_widget);
     function_layout->addWidget(transfer_function_1d_widget_);
     function_widget->setLayout(function_layout);
-    function_widget->setFixedHeight(250);*/
+    function_widget->setFixedHeight(250);
 
     QVBoxLayout* main_layout = new QVBoxLayout;
     main_layout->addWidget(volume_render_widget_);

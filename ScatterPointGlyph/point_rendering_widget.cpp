@@ -165,7 +165,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 1;
 
 		this->CurrentRenderer->AddActor(this->actor_);
-        //this->CurrentRenderer->AddActor(this->bar_actor_);
+        this->CurrentRenderer->AddActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::EnableEvent,NULL);
 	}
@@ -175,7 +175,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->CurrentRenderer->RemoveActor(this->actor_);
-        //this->CurrentRenderer->RemoveActor(this->bar_actor_);
+        this->CurrentRenderer->RemoveActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::DisableEvent,NULL);
         this->SetCurrentRenderer(NULL);

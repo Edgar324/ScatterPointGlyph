@@ -23,7 +23,7 @@ TransferFunction1DWidget::TransferFunction1DWidget(){
 	this->setFocusPolicy(Qt::ClickFocus);
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	this->setMinimumHeight(200);
-	this->setMinimumWidth(500);
+	this->setMinimumWidth(400);
 
 	InitWidget();
 }

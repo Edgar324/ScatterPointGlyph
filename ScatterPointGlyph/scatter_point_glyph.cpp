@@ -96,12 +96,12 @@ void ScatterPointGlyph::InitWidget() {
     this->tabifyDockWidget(var_selection_panel_, data_table_panel_);
     data_table_panel_->setVisible(false);
 
-    volume_renderer_ = new VolumeRenderer;
+    /*volume_renderer_ = new VolumeRenderer;
     volume_renderer_->setMinimumWidth(700);
     volume_render_panel_ = new QDockWidget(QString("Volume"), this);
     volume_render_panel_->setWidget(volume_renderer_);
     this->tabifyDockWidget(var_selection_panel_, volume_render_panel_);
-    volume_render_panel_->setVisible(false);
+    volume_render_panel_->setVisible(false);*/
 
     table_lens_ = new TableLens;
 	table_lens_->setMinimumWidth(700);
@@ -235,14 +235,15 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
 	GeoPointDataReader point_reader;
     scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
 
-
     /*VolumeDataReader reader;
     scatter_point_dataset_ = reader.LoadFile("");*/
 
     this->OnActionOpenVtkFileTriggered();
 
     /*PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/auto-mpg.sc");*/
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");*/
+
+    cout << "Point number: " << scatter_point_dataset_->point_num << endl;
 
     this->UpdateMenus();
 }
@@ -287,7 +288,10 @@ void ScatterPointGlyph::OnActionOpenVtkFileTriggered() {
 	double bounds[6];
 	scatter_point_data->GetBounds(bounds);
 
-    scatter_point_dataset_->var_names.resize(3, QString("var"));
+    //scatter_point_dataset_->var_names.resize(3, QString("var"));
+    scatter_point_dataset_->var_names.push_back("velocities");
+    scatter_point_dataset_->var_names.push_back("effective_velocity_ratio");
+    scatter_point_dataset_->var_names.push_back("distance");
     scatter_point_dataset_->var_weights.resize(3, 1.0 / 3);
 
     scatter_point_dataset_->original_point_pos.resize(2);

@@ -47,7 +47,7 @@ ScatterPointDataset* VolumeDataReader::LoadFile(const char* file_name) {
     string path_names[] = {"CLOUDf25", "Pf25", "PRECIPf25", "QCLOUDf25", "QGRAUPf25", "QRAINf25", "QSNOWf25", "QVAPORf25", "TCf25", "Uf25", "Vf25", "Wf25"};
 
     //vector<int> temp_index{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-    vector<int> temp_index{0, 1, 2, 7};
+    vector<int> temp_index{0, 1, 2, 8};
     int var_num = temp_index.size();
     for (int i = 0; i < var_num; ++i)
         volume->var_names.push_back(QString(path_names[i].c_str()));
