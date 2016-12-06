@@ -238,10 +238,10 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     /*VolumeDataReader reader;
     scatter_point_dataset_ = reader.LoadFile("");*/
 
-    this->OnActionOpenVtkFileTriggered();
+    //this->OnActionOpenVtkFileTriggered();
 
-    /*PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");*/
+    PointDataReader point_reader;
+    scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");
 
     cout << "Point number: " << scatter_point_dataset_->point_num << endl;
 

@@ -181,6 +181,8 @@ void QVtkRenderingWidget::mouseReleaseEvent(QMouseEvent* event) {
 
         this->update();
     } else {
+        if (event->button() == Qt::MidButton)
+            emit ViewUpdated();
         QVTKWidget::mouseReleaseEvent(event);
     }
 }
