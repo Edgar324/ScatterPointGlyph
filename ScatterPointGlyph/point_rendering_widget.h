@@ -16,7 +16,7 @@ using namespace std;
 #include <vtk3DWidget.h>
 #include <QtGui/QColor>
 
-class ScatterPointDataset;
+class MultivariateDataset;
 class vtkActor;
 class vtkPolyData;
 class vtkPolyDataMapper;
@@ -36,7 +36,7 @@ public:
 	virtual void SetEnabled(int);
 	virtual void PlaceWidget(double bounds[6]) {}
 
-	void SetData(ScatterPointDataset* data);
+	void SetData(MultivariateDataset* data);
     void SetViewpot(float left, float right, float bottom, float top);
     void SetSelectedIds(vector<vector<int>>& ids);
     void SetColorMappingOn(QString name, vector<float>& vals, float min_val, float max_val);
@@ -47,7 +47,7 @@ protected:
 	~PointRenderingWidget();
 
 private:
-	ScatterPointDataset* dataset_ = NULL;
+	MultivariateDataset* dataset_ = NULL;
     vector<vector<int>> selected_ids_;
 
     float view_left_ = 0, view_right_ = 1, view_bottom_ = 0, view_top_ = 1;

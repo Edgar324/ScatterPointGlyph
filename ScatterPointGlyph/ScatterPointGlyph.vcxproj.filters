@@ -75,11 +75,11 @@
     <Filter Include="Source Files\Glyph">
       <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\tSNE">
-      <UniqueIdentifier>{63825fc7-e937-4636-ac24-c7adba778f91}</UniqueIdentifier>
+    <Filter Include="Header Files\Data Oriented">
+      <UniqueIdentifier>{086bacdf-a8f5-4d8f-a2b2-8ff093afb748}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\tSNE">
-      <UniqueIdentifier>{dd7b17b6-21f5-4b88-b744-531b8d5c7751}</UniqueIdentifier>
+    <Filter Include="Source Files\Data Oriented">
+      <UniqueIdentifier>{2a8ccda9-f262-429b-b0c8-4ce7a13efa4d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,17 +110,11 @@
     <ClCompile Include="tree_common.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
-    <ClCompile Include="scatter_point_dataset.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_parallel_coordinate.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
     <ClCompile Include="GeneratedFiles\Release\moc_parallel_coordinate.cpp">
       <Filter>Generated Files\Release</Filter>
-    </ClCompile>
-    <ClCompile Include="multi_label_processor.cpp">
-      <Filter>Source Files\Tree</Filter>
     </ClCompile>
     <ClCompile Include="parallel_coordinate.cpp">
       <Filter>Source Files\Views</Filter>
@@ -167,23 +161,8 @@
     <ClCompile Include="GeneratedFiles\Release\moc_glyph_dataset.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="glyph_dataset.cpp">
-      <Filter>Source Files\Glyph</Filter>
-    </ClCompile>
-    <ClCompile Include="point_data_reader.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="mds_projector.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="geo_point_data_reader.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_glyph_object.cpp">
       <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="glyph_object.cpp">
-      <Filter>Source Files\Glyph</Filter>
     </ClCompile>
     <ClCompile Include="glyph_dataset_builder.cpp">
       <Filter>Source Files\Glyph</Filter>
@@ -221,9 +200,6 @@
     <ClCompile Include="tree_map.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
-    <ClCompile Include="qvtk_rendering_widget.cpp">
-      <Filter>Source Files\Glyph</Filter>
-    </ClCompile>
     <ClCompile Include="GeneratedFiles\Debug\moc_var_selection_widget.cpp">
       <Filter>Generated Files\Debug</Filter>
     </ClCompile>
@@ -232,15 +208,6 @@
     </ClCompile>
     <ClCompile Include="var_selection_widget.cpp">
       <Filter>Source Files\Views</Filter>
-    </ClCompile>
-    <ClCompile Include="scatter_volume_dataset.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="volume_data_reader.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="pca_projector.cpp">
-      <Filter>Source Files\Data</Filter>
     </ClCompile>
     <ClCompile Include="parallel_dataset_builder.cpp">
       <Filter>Source Files\Views</Filter>
@@ -293,26 +260,53 @@
     <ClCompile Include="hierarchical_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
-    <ClCompile Include="bhtsne\sptree.cpp">
-      <Filter>Source Files\tSNE</Filter>
-    </ClCompile>
-    <ClCompile Include="bhtsne\tsne.cpp">
-      <Filter>Source Files\tSNE</Filter>
-    </ClCompile>
-    <ClCompile Include="tsne_projector.cpp">
-      <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="quality_metric.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
     <ClCompile Include="view_dependent_tree.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
-    <ClCompile Include="cluster_projection_tree.cpp">
       <Filter>Source Files\Tree</Filter>
     </ClCompile>
     <ClCompile Include="map_rendering_widget.cpp">
       <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="qvtk_rendering_widget.cpp">
+      <Filter>Source Files\Views</Filter>
+    </ClCompile>
+    <ClCompile Include="image_widget.cpp">
+      <Filter>Source Files\Data Oriented</Filter>
+    </ClCompile>
+    <ClCompile Include="connector_widget.cpp">
+      <Filter>Source Files\Data Oriented</Filter>
+    </ClCompile>
+    <ClCompile Include="multivariate_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="edge_node.cpp">
+      <Filter>Source Files\Data Oriented</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussian_tree.cpp">
+      <Filter>Source Files\Data Oriented</Filter>
+    </ClCompile>
+    <ClCompile Include="gmm.cpp">
+      <Filter>Source Files\Data Oriented</Filter>
+    </ClCompile>
+    <ClCompile Include="geo_multivariate_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="data_projector.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="leaf_builder.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_object.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="glyph_dataset.cpp">
+      <Filter>Source Files\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="multi_label_processor.cpp">
+      <Filter>Source Files\GcOpt</Filter>
+    </ClCompile>
+    <ClCompile Include="quality_metric.cpp">
+      <Filter>Source Files\Utility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -352,20 +346,11 @@
     <CustomBuild Include="glyph_rendering_widget.h">
       <Filter>Header Files\Glyph</Filter>
     </CustomBuild>
-    <CustomBuild Include="glyph_dataset.h">
-      <Filter>Header Files\Glyph</Filter>
-    </CustomBuild>
-    <CustomBuild Include="glyph_object.h">
-      <Filter>Header Files\Glyph</Filter>
-    </CustomBuild>
     <CustomBuild Include="tree_map_item.h">
       <Filter>Header Files\Views</Filter>
     </CustomBuild>
     <CustomBuild Include="tree_map.h">
       <Filter>Header Files\Views</Filter>
-    </CustomBuild>
-    <CustomBuild Include="qvtk_rendering_widget.h">
-      <Filter>Header Files\Glyph</Filter>
     </CustomBuild>
     <CustomBuild Include="var_selection_widget.h">
       <Filter>Header Files\Views</Filter>
@@ -381,6 +366,15 @@
     </CustomBuild>
     <CustomBuild Include="projection_control.ui">
       <Filter>Form Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="qvtk_rendering_widget.h">
+      <Filter>Header Files\Views</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </CustomBuild>
+    <CustomBuild Include="glyph_object.h">
+      <Filter>Header Files\Data</Filter>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
@@ -405,17 +399,8 @@
     <ClInclude Include="tree_common.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="scatter_point_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SimpleMatrix.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="multi_label_processor.h">
-      <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="tour_path_generator.h">
       <Filter>Header Files\Utility</Filter>
@@ -429,9 +414,6 @@
     <ClInclude Include="GeneratedFiles\ui_map_controller.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="scatter_grid_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
@@ -444,15 +426,6 @@
     <ClInclude Include="slic\slic_vf.h">
       <Filter>Header Files\Slic</Filter>
     </ClInclude>
-    <ClInclude Include="point_data_reader.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="mds_projector.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="geo_point_data_reader.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="glyph_dataset_builder.h">
       <Filter>Header Files\Glyph</Filter>
     </ClInclude>
@@ -461,15 +434,6 @@
     </ClInclude>
     <ClInclude Include="table_lens.h">
       <Filter>Header Files\Views</Filter>
-    </ClInclude>
-    <ClInclude Include="scatter_volume_dataset.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="volume_data_reader.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="pca_projector.h">
-      <Filter>Header Files\Data</Filter>
     </ClInclude>
     <ClInclude Include="parallel_dataset_builder.h">
       <Filter>Header Files\Views</Filter>
@@ -498,25 +462,10 @@
     <ClInclude Include="hierarchical_tree.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
-    <ClInclude Include="bhtsne\sptree.h">
-      <Filter>Header Files\tSNE</Filter>
-    </ClInclude>
-    <ClInclude Include="bhtsne\tsne.h">
-      <Filter>Header Files\tSNE</Filter>
-    </ClInclude>
-    <ClInclude Include="bhtsne\vptree.h">
-      <Filter>Header Files\tSNE</Filter>
-    </ClInclude>
-    <ClInclude Include="tsne_projector.h">
-      <Filter>Header Files\Data</Filter>
-    </ClInclude>
     <ClInclude Include="quality_metric.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="view_dependent_tree.h">
-      <Filter>Header Files\Tree</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster_projection_tree.h">
       <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_projection_control.h">
@@ -524,6 +473,39 @@
     </ClInclude>
     <ClInclude Include="map_rendering_widget.h">
       <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="image_widget.h">
+      <Filter>Header Files\Data Oriented</Filter>
+    </ClInclude>
+    <ClInclude Include="connector_widget.h">
+      <Filter>Header Files\Data Oriented</Filter>
+    </ClInclude>
+    <ClInclude Include="multivariate_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="gaussian_tree.h">
+      <Filter>Header Files\Data Oriented</Filter>
+    </ClInclude>
+    <ClInclude Include="edge_node.h">
+      <Filter>Header Files\Data Oriented</Filter>
+    </ClInclude>
+    <ClInclude Include="gmm.h">
+      <Filter>Header Files\Data Oriented</Filter>
+    </ClInclude>
+    <ClInclude Include="geo_multivariate_dataset.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="data_projector.h">
+      <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="leaf_builder.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="multi_label_processor.h">
+      <Filter>Header Files\GcOpt</Filter>
+    </ClInclude>
+    <ClInclude Include="data_core.h">
+      <Filter>Header Files\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

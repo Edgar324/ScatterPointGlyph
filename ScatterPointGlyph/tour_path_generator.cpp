@@ -70,7 +70,7 @@ TourPathGenerator::~TourPathGenerator() {
 
 
 bool TourPathGenerator::GenerateRoundPath(std::vector<CNode*>& nodes, std::vector<int>& tour_list) {
-	if (nodes.size() < 3) {
+	/*if (nodes.size() < 3) {
 		for (int i = 0; i < nodes.size(); ++i) tour_list.push_back(i);
 		return true;
 	}
@@ -98,42 +98,6 @@ bool TourPathGenerator::GenerateRoundPath(std::vector<CNode*>& nodes, std::vecto
 	WeightMap weight_map(get(edge_weight, g));
 	VertexMap v_map = get(vertex_index, g);
 	connectAllEuclidean(g, position_vec, weight_map, v_map, ncount);
-
-
-	//typedef graph_traits<Graph>::edge_descriptor Edge;
-	//typedef graph_traits<Graph>::vertex_iterator VItr;
-
-	//Edge e;
-	//bool inserted;
-
-	//pair<VItr, VItr> verts(vertices(g));
-	//int i = 0, j = 0;
-	//for (VItr src(verts.first); src != verts.second; src++)
-	//{
-	//	j = 0;
-	//	for (VItr dest(src); dest != verts.second; dest++)
-	//	{
-	//		if (dest != src)
-	//		{
-	//			double weight = 0;
-	//			for (int v = 0; v < varcount; ++v) {
-	//				weight += pow(nodes[i]->average_values[v] - nodes[j]->average_values[v], 2);
-	//			}
-	//			weight = sqrt(weight / varcount);
-	//			/*double weight(sqrt(pow(
-	//				static_cast<double>(points[vmap[*src]].x -
-	//				points[vmap[*dest]].x), 2.0) +
-	//				pow(static_cast<double>(points[vmap[*dest]].y -
-	//				points[vmap[*src]].y), 2.0)));*/
-
-	//			boost::tie(e, inserted) = add_edge(*src, *dest, g);
-
-	//			weight_map[e] = weight;
-	//		}
-	//		j++;
-	//	}
-	//	i++;
-	//}
 
 	Container c;
 
@@ -172,7 +136,7 @@ bool TourPathGenerator::GenerateRoundPath(std::vector<CNode*>& nodes, std::vecto
 	for (int i = max_index + 1; i < temp_list.size() - 1; ++i)
 		tour_list.push_back(temp_list[i]);
 	for (int i = 0; i <= max_index; ++i)
-		tour_list.push_back(temp_list[i]);
+		tour_list.push_back(temp_list[i]);*/
 
 	return true;
 }

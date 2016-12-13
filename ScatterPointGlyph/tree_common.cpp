@@ -1,19 +1,13 @@
 #include "tree_common.h"
+#include <iostream>
 #include <queue>
 #include <time.h>
 
-#include "scatter_point_dataset.h"
-#include "scatter_grid_dataset.h"
-#include "utility.h"
-#include "view_dependent_tree.h"
+#include "multivariate_dataset.h"
 
-TreeCommon::TreeCommon(ScatterPointDataset* data) {
-    this->point_dataset_ = data;
-
-    if (this->point_dataset_->type() == ScatterPointDataset::VOLUME_DATA)
-        this->ConstructLargeScaleRootNode();
-    else
-        this->ConstructRootNode();
+TreeCommon::TreeCommon(MultivariateDataset* dataset)
+    : mv_dataset_(dataset) {
+    Initialize();
 }
 
 TreeCommon::~TreeCommon() {
@@ -21,91 +15,107 @@ TreeCommon::~TreeCommon() {
     id_node_map_.clear();
 }
 
-void TreeCommon::GetNodes(float left, float right, float bottom, float top, float glyph_radius,
-    vector<CNode*>& pre_level_nodes, vector<CNode*>& current_level_nodes) {
+void TreeCommon::Initialize() {
+    // Construct root node using leaf_nodes_
+    vector<CNode*> temp_nodes(leaf_nodes_.size());
+    for (int i = 0; i < leaf_nodes_.size(); i++) 
+        temp_nodes[i] = leaf_nodes_[i];
+    root_ = new CBranch(mv_dataset_, temp_nodes);
+    root_->set_level(0);
+    id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
 
-    if (this->type() == VIEW_DEPENDENT_TREE || this->type() == CLUSTER_PROJECTION_TREE) {
-        this->ConstructTree(left, right, bottom, top, glyph_radius);
+    for (int i = 0; i < leaf_nodes_.size(); i++) {
+        id_node_map_.insert(map<int, CNode*>::value_type(leaf_nodes_[i]->id(), leaf_nodes_[i]));
     }
+    root_->Update();
 
-    // Get nodes according to the average distance among all child nodes!!!
-    pre_level_nodes.clear();
-    current_level_nodes.clear();
+    max_level_ = 1;
+}
 
-    float expected_radius = glyph_radius * 2;
-    float view_center_x = (left + right) / 2;
-    float view_center_y = (top + bottom) / 2;
-    float view_width = right - left;
-    float view_height = top - bottom;
+void TreeCommon::GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) {
 
-    if (this->type() == HIERARCHICAL_TREE) {
-        pre_level_nodes.push_back(root_);
-    } else if (this->type() == NCUTS_TREE) {
-        int temp_level = 0;
-        vector<CNode*> level_nodes;
-        do {
-            temp_level++;
-            GetNodes(temp_level, level_nodes);
-        } while (level_nodes.size() < 8);
-        GetNodes(temp_level - 1, pre_level_nodes);
-    } else {
-        queue<CNode*> node_queue;
-        node_queue.push(root_);
-        while (!node_queue.empty()) {
-        CNode* node = node_queue.front();
-        node->is_visible = false;
-        node_queue.pop();
-        if (node->type() != CNode::BRANCH) continue;
+    //if (this->type() == GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE || this->type() == KNN_MULTI_LABEL_TREE) {
+    //    this->ConstructTree(left, right, bottom, top, glyph_radius);
+    //}
 
-        float center_x = node->center_pos[0] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[0][0];
-        float center_y = node->center_pos[1] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[1][0];
-        float node_width = (node->right - node->left) * point_dataset_->max_pos_range;
-        float node_height = (node->top - node->bottom) * point_dataset_->max_pos_range;
+    //// Get nodes according to the average distance among all child nodes!!!
+    //pre_level_nodes.clear();
+    //current_level_nodes.clear();
+
+    //float expected_radius = glyph_radius * 2;
+    //float view_center_x = (left + right) / 2;
+    //float view_center_y = (top + bottom) / 2;
+    //float view_width = right - left;
+    //float view_height = top - bottom;
+
+    //if (this->type() == GEO_HIERARCHICAL_TREE) {
+    //    pre_level_nodes.push_back(root_);
+    //} else if (this->type() == GEO_NCUTS_TREE) {
+    //    int temp_level = 0;
+    //    vector<CNode*> level_nodes;
+    //    do {
+    //        temp_level++;
+    //        GetNodes(temp_level, level_nodes);
+    //    } while (level_nodes.size() < 8);
+    //    GetNodes(temp_level - 1, pre_level_nodes);
+    //} else {
+    //    queue<CNode*> node_queue;
+    //    node_queue.push(root_);
+    //    while (!node_queue.empty()) {
+    //    CNode* node = node_queue.front();
+    //    node->is_visible = false;
+    //    node_queue.pop();
+    //    if (node->type() != CNode::BRANCH) continue;
+
+    //    float center_x = node->center_pos[0] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[0][0];
+    //    float center_y = node->center_pos[1] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[1][0];
+    //    float node_width = (node->right - node->left) * mv_dataset_->max_pos_range;
+    //    float node_height = (node->top - node->bottom) * mv_dataset_->max_pos_range;
 
 
-        if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
-            && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
-            node->is_expanded = true;
-            if (node->average_dis < expected_radius * 4) {
-                pre_level_nodes.push_back(node);
-            } else {
-                CBranch* branch = (CBranch*)node;
-                for (int i = 0; i < branch->linked_nodes.size(); ++i)
-                    node_queue.push(branch->linked_nodes[i]);
-            }
-        }
-    }
-    }
+    //    if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
+    //        && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
+    //        node->is_expanded = true;
+    //        if (node->average_dis < expected_radius * 4) {
+    //            pre_level_nodes.push_back(node);
+    //        } else {
+    //            CBranch* branch = (CBranch*)node;
+    //            for (int i = 0; i < branch->children.size(); ++i)
+    //                node_queue.push(branch->children[i]);
+    //        }
+    //    }
+    //}
+    //}
 
-    for (int i = 0; i < pre_level_nodes.size(); ++i) {
-        CBranch* branch = (CBranch*)pre_level_nodes[i];
-        bool is_children_leaf = false;
-        for (int j = 0; j < branch->linked_nodes.size(); ++j)
-            if (branch->linked_nodes[j]->type() == CNode::LEAF) {
-                is_children_leaf = true;
-                break;
-            }
-        if (!is_children_leaf) {
-            for (int j = 0; j < branch->linked_nodes.size(); ++j) {
-                CNode* node = branch->linked_nodes[j];
+    //for (int i = 0; i < pre_level_nodes.size(); ++i) {
+    //    CBranch* branch = (CBranch*)pre_level_nodes[i];
+    //    bool is_children_leaf = false;
+    //    for (int j = 0; j < branch->children.size(); ++j)
+    //        if (branch->children[j]->type() == CNode::LEAF) {
+    //            is_children_leaf = true;
+    //            break;
+    //        }
+    //    if (!is_children_leaf) {
+    //        for (int j = 0; j < branch->children.size(); ++j) {
+    //            CNode* node = branch->children[j];
 
-                float center_x = node->center_pos[0] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[0][0];
-                float center_y = node->center_pos[1] * point_dataset_->max_pos_range + point_dataset_->original_pos_ranges[1][0];
-                float node_width = (node->right - node->left) * point_dataset_->max_pos_range;
-                float node_height = (node->top - node->bottom) * point_dataset_->max_pos_range;
+    //            float center_x = node->center_pos[0] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[0][0];
+    //            float center_y = node->center_pos[1] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[1][0];
+    //            float node_width = (node->right - node->left) * mv_dataset_->max_pos_range;
+    //            float node_height = (node->top - node->bottom) * mv_dataset_->max_pos_range;
 
-                if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
-                    && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2))
-                    current_level_nodes.push_back(branch->linked_nodes[j]);
-            }
-        } else {
-            current_level_nodes.push_back(branch);
-        }
-    }
-    for (int i = 0; i < current_level_nodes.size(); ++i) {
-        current_level_nodes[i]->is_expanded = false;
-        current_level_nodes[i]->is_visible = true;
-    }
+    //            if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
+    //                && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2))
+    //                current_level_nodes.push_back(branch->children[j]);
+    //        }
+    //    } else {
+    //        current_level_nodes.push_back(branch);
+    //    }
+    //}
+    //for (int i = 0; i < current_level_nodes.size(); ++i) {
+    //    current_level_nodes[i]->is_expanded = false;
+    //    current_level_nodes[i]->is_visible = true;
+    //}
 }
 
 void TreeCommon::GetNodes(int level, vector<CNode*>& level_nodes) {
@@ -123,16 +133,16 @@ void TreeCommon::GetNodes(int level, vector<CNode*>& level_nodes) {
         } else if (temp_node->type() == CNode::BRANCH) {
             CBranch* branch_node = (CBranch*)temp_node;
             bool is_children_all_leaf = true;
-            for (int i = 0; i < branch_node->linked_nodes.size(); ++i)
-                if (branch_node->linked_nodes[i]->type() == CNode::BRANCH) {
+            for (int i = 0; i < branch_node->children().size(); ++i)
+                if (branch_node->children()[i]->type() == CNode::BRANCH) {
                     is_children_all_leaf = false;
                     break;
                 }
             if (is_children_all_leaf) {
                 level_nodes.push_back(temp_node);
             } else {
-                for (int i = 0; i < branch_node->linked_nodes.size(); ++i)
-                node_queue.push(branch_node->linked_nodes[i]);
+                for (int i = 0; i < branch_node->children().size(); ++i)
+                node_queue.push(branch_node->children()[i]);
             }
         }
     }
@@ -144,285 +154,277 @@ CNode* TreeCommon::GetNode(int node_id) {
     else return NULL;
 }
 
-void TreeCommon::GetNodePoints(int node_id, vector<int>& point_ids) {
-    point_ids.clear();
-
-    CNode* node = this->GetNode(node_id);
-    if (node != NULL) this->GetNodePoints(node, point_ids);
-}
-
-void TreeCommon::GetNodePoints(CNode* node, std::vector<int>& point_ids) {
-    point_ids.clear();
-
-	std::queue<CNode*> node_queue;
-	node_queue.push(node);
-
-	while (node_queue.size() != 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-
-		if (temp_node->type() == CNode::BRANCH) {
-			CBranch* branch = dynamic_cast< CBranch* >(temp_node);
-			if (branch != NULL) {
-				for (int i = 0; i < branch->linked_nodes.size(); ++i)
-					node_queue.push(branch->linked_nodes[i]);
-			}
-		}
-		else if (temp_node->type() == CNode::LEAF) {
-			CLeaf* leaf = dynamic_cast< CLeaf* >(temp_node);
-			if (leaf != NULL) {
-				for (int i = 0; i < leaf->linked_points.size(); ++i)
-					point_ids.push_back(leaf->linked_points[i]);
-			}
-		}
-	}
-}
-
-void TreeCommon::ConstructRootNode() {
-#ifdef DEBUG_ON
-    cout << "Constructing root node" << endl;
-#endif
-    
-    root_ = new CBranch;
-    root_->set_level(0);
-    root_->radius = 0.5;
-	root_->linked_nodes.clear();
-    root_->average_dis = 1.0;
-
-    id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
-
-	float temp_min = 1e10;
-    for (int i = 0; i < point_dataset_->normalized_point_pos[0].size(); ++i) {
-        if (!point_dataset_->is_valid[i]) continue;
-
-        CLeaf* temp_leaf = new CLeaf();
-        temp_leaf->point_count = 1;
-        temp_leaf->mean_pos = vector<float>{point_dataset_->normalized_point_pos[0][i], point_dataset_->normalized_point_pos[1][i]};
-        temp_leaf->mean_values.resize(point_dataset_->var_num);
-        for (int j = 0; j < point_dataset_->var_num; ++j)
-            temp_leaf->mean_values[j] = point_dataset_->normalized_point_values[j][i];
-        //temp_leaf->mean_values = point_dataset_->normalized_point_values[i];
-        temp_leaf->std_deviations.resize(point_dataset_->var_num, 0);
-        temp_leaf->parent = root_;
-        temp_leaf->set_level(1);
-        temp_leaf->left = temp_leaf->right = temp_leaf->mean_pos[0];
-        temp_leaf->bottom = temp_leaf->top = temp_leaf->mean_pos[1];
-        temp_leaf->average_dis = FLT_MAX;
-        temp_leaf->linked_points.push_back(i);
-
-        root_->linked_nodes.push_back(temp_leaf);
-    }
-	this->ProgressNodeData(root_);
-
-#ifdef DEBUG_ON
-    cout << "Root node construction finished!" << endl;
-#endif
-}
-
-void TreeCommon::ConstructLargeScaleRootNode() {
-    #ifdef DEBUG_ON
-    cout << "Constructing root node" << endl;
-#endif
-    
-    root_ = new CBranch;
-    root_->set_level(0);
-    root_->radius = 0.5;
-	root_->linked_nodes.clear();
-    root_->average_dis = 1.0;
-
-    id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
-
-    int reso_size = 1000;
-    vector<vector<CLeaf*>> leaf_nodes;
-    leaf_nodes.resize(reso_size);
-    for (int i = 0; i < reso_size; ++i) leaf_nodes[i].resize(reso_size, NULL);
-
-	float temp_min = 1e10;
-    for (int i = 0; i < point_dataset_->normalized_point_pos[0].size(); ++i) {
-        if (!point_dataset_->is_valid[i]) continue;
-
-        int x = (int)(point_dataset_->normalized_point_pos[0][i] * (reso_size - 1));
-        int y = (int)(point_dataset_->normalized_point_pos[1][i] * (reso_size - 1));
-        CLeaf* temp_leaf = leaf_nodes[y][x];
-        if (temp_leaf == NULL) {
-            temp_leaf = new CLeaf();
-            leaf_nodes[y][x] = temp_leaf;
-            temp_leaf->parent = root_;
-            temp_leaf->set_level(1);
-            root_->linked_nodes.push_back(temp_leaf);
-        }
-
-        temp_leaf->linked_points.push_back(i);
-    }
-
-    for (int y = 0; y < reso_size; ++y)
-        for (int x = 0; x < reso_size; ++x) 
-            if (leaf_nodes[y][x] != NULL) this->ProgressNodeData(leaf_nodes[y][x]);
-
-	this->ProgressNodeData(root_);
-
-#ifdef DEBUG_ON
-    cout << "Root node construction finished!" << endl;
-#endif
-}
-
-void TreeCommon::ProgressNodeData(CNode* node) {
-	if (node == NULL) return;
-
-	std::vector<int> point_index;
-	this->GetNodePoints(node, point_index);
-
-    if (point_index.size() == 0) {
-        cout << "Error: Node " << node->id() << " have 0 points!" << endl;
-        return;
-    }
-
-    node->point_count = point_index.size();
-	node->mean_values.resize(point_dataset_->var_num, 0);
-    node->mean_values.assign(point_dataset_->var_num, 0);
-	node->std_deviations.resize(point_dataset_->var_num, 0);
-    node->std_deviations.assign(point_dataset_->var_num, 0);
-	node->mean_pos.resize(2, 0);
-    node->mean_pos.assign(2, 0);
-    node->left = INT_MAX;
-    node->right = INT_MIN;
-    node->top = INT_MIN;
-    node->bottom = INT_MAX;
-
-    float x, y;
-	for (int i = 0; i < point_index.size(); ++i) {
-        x = point_dataset_->normalized_point_pos[0][point_index[i]];
-        y = point_dataset_->normalized_point_pos[1][point_index[i]];
-		node->mean_pos[0] += x;
-		node->mean_pos[1] += y;
-        if (x > node->right) node->right = x;
-        if (x < node->left) node->left = x;
-        if (y > node->top) node->top = y;
-        if (y < node->bottom) node->bottom = y;
-
-		for (int j = 0; j < point_dataset_->var_num; ++j)
-			node->mean_values[j] += point_dataset_->normalized_point_values[j][point_index[i]];
-	}
-	for (int i = 0; i < point_dataset_->var_num; ++i)
-		node->mean_values[i] /= point_index.size();
-	node->mean_pos[0] /= point_index.size();
-	node->mean_pos[1] /= point_index.size();
-
-    node->center_pos.resize(2);
-    node->center_pos[0] = (node->left + node->right) / 2;
-    node->center_pos[1] = (node->top + node->bottom) / 2;
-
-	for (int i = 0; i < point_index.size(); ++i)
-		for (int j = 0; j < point_dataset_->var_num; ++j)
-			node->std_deviations[j] += pow(point_dataset_->normalized_point_values[j][point_index[i]] - node->mean_values[j], 2);
-	for (int i = 0; i < point_dataset_->var_num; ++i)
-        if (point_index.size() > 1)
-            node->std_deviations[i] = sqrt(node->std_deviations[i] / (point_index.size() - 1));
-        else
-		    node->std_deviations[i] = sqrt(node->std_deviations[i] / point_index.size());
-}
-
-void TreeCommon::MergeNodes(vector<int>& node_ids) {
-
-}
-
-void TreeCommon::SplitNodeOnce(int node_id) {
-    CNode* node = this->GetNode(node_id);
-    if (node == NULL || node->type() != CNode::BRANCH) {
-        cout << "Error Split Node: " << node_id << endl;
-        return;
-    }
-    CBranch* branch = (CBranch*)node;
-
-	bool is_children_all_leaf = true;
-	for (int i = 0; i < branch->linked_nodes.size(); ++i)
-		if (branch->linked_nodes[i]->type() != CNode::LEAF) {
-			is_children_all_leaf = false;
-			break;
-		}
-    if (is_children_all_leaf && branch->linked_nodes.size() > 2) {
-        SplitNode(branch);
-
-        vector<vector<float>> center_pos;
-        for (int i = 0; i < branch->linked_nodes.size(); ++i)
-            center_pos.push_back(branch->linked_nodes[i]->center_pos);
-        branch->average_dis = Utility::GetAverageDistance(center_pos);
-
-        if (branch->level() + 1 > this->max_level_) this->max_level_ = branch->level() + 1;
-
-        for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-            id_node_map_.insert(map<int, CNode*>::value_type(branch->linked_nodes[i]->id(), branch->linked_nodes[i]));
-        }
-    }
-}
-
-void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
-    queue<CNode*> node_queue;
-	node_queue.push(this->GetNode(node_id));
-	while (node_queue.size() > 0) {
-		CNode* temp_node = node_queue.front();
-		node_queue.pop();
-
-		if (temp_node->type() == CNode::BRANCH) {
-			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
-			if (branch == NULL || branch->level() > MAX_ALLOWED_LEVEL) continue;
-
-			float accu_std_dev = 0.0;
-			for (int i = 0; i < point_dataset_->var_num; ++i) {
-				accu_std_dev += branch->std_deviations[i] * point_dataset_->var_weights[i];
-			}
-            if ((branch == root_ || accu_std_dev > std_dev_threshold) && branch->point_count > 10) {
-                SplitNode(branch);
-
-                vector<vector<float>> center_pos;
-                for (int i = 0; i < branch->linked_nodes.size(); ++i)
-                    center_pos.push_back(branch->linked_nodes[i]->center_pos);
-                branch->average_dis = Utility::GetAverageDistance(center_pos);
-
-                if (branch->level() + 1 > this->max_level_) this->max_level_ = branch->level() + 1;
-
-                for (int i = 0; i < branch->linked_nodes.size(); ++i) {
-                    id_node_map_.insert(map<int, CNode*>::value_type(branch->linked_nodes[i]->id(), branch->linked_nodes[i]));
-                }
-            }
-
-			for (int i = 0; i < branch->linked_nodes.size(); ++i)
-				node_queue.push(branch->linked_nodes[i]);
-		}
-	}
-}
-
 void TreeCommon::run() {
-	
-}
-
-
-void TreeCommon::ResetLevel(CNode* node, int level) {
-	if (node == NULL) return;
-	node->set_level(level);
-	if (level > max_level_) max_level_ = level;
-
-	if (node->type() == CNode::BRANCH) {
-		CBranch* branch = dynamic_cast<CBranch*>(node);
-		if (branch != NULL) {
-			for (int i = 0; i < branch->linked_nodes.size(); ++i)
-				ResetLevel(branch->linked_nodes[i], level + 1);
-		}
-	}
+    cout << "Currently not implemented!" << endl;
 }
 
 void TreeCommon::Clear() {
-    delete root_;
-    root_ = NULL;
-    max_level_ = -1;
-
-    id_node_map_.clear();
-
-    if (this->point_dataset_->type() == ScatterPointDataset::VOLUME_DATA)
-        this->ConstructLargeScaleRootNode();
-    else
-        this->ConstructRootNode();
+    if (root_ == NULL) return;
+    /// TODO: implement the clear action
 }
+
+//void TreeCommon::GetNodePoints(int node_id, vector<int>& point_ids) {
+//    point_ids.clear();
+//
+//    CNode* node = this->GetNode(node_id);
+//    if (node != NULL) this->GetNodePoints(node, point_ids);
+//}
+//
+//void TreeCommon::GetNodePoints(CNode* node, std::vector<int>& point_ids) {
+//    point_ids.clear();
+//
+//	std::queue<CNode*> node_queue;
+//	node_queue.push(node);
+//
+//	while (node_queue.size() != 0) {
+//		CNode* temp_node = node_queue.front();
+//		node_queue.pop();
+//
+//		if (temp_node->type() == CNode::BRANCH) {
+//			CBranch* branch = dynamic_cast< CBranch* >(temp_node);
+//			if (branch != NULL) {
+//				for (int i = 0; i < branch->children.size(); ++i)
+//					node_queue.push(branch->children[i]);
+//			}
+//		}
+//		else if (temp_node->type() == CNode::LEAF) {
+//			CLeaf* leaf = dynamic_cast< CLeaf* >(temp_node);
+//			if (leaf != NULL) {
+//				for (int i = 0; i < leaf->point_ids.size(); ++i)
+//					point_ids.push_back(leaf->point_ids[i]);
+//			}
+//		}
+//	}
+//}
+//
+//void TreeCommon::ConstructRootNode() {
+//#ifdef DEBUG_ON
+//    cout << "Constructing root node" << endl;
+//#endif
+//    
+//    root_ = new CBranch;
+//    root_->set_level(0);
+//    root_->radius = 0.5;
+//	root_->children.clear();
+//    root_->average_dis = 1.0;
+//
+//    id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
+//
+//	float temp_min = 1e10;
+//    for (int i = 0; i < mv_dataset_->normalized_point_pos[0].size(); ++i) {
+//        if (!mv_dataset_->is_valid[i]) continue;
+//
+//        CLeaf* temp_leaf = new CLeaf();
+//        temp_leaf->point_count = 1;
+//        temp_leaf->mean_pos = vector<float>{mv_dataset_->normalized_point_pos[0][i], mv_dataset_->normalized_point_pos[1][i]};
+//        temp_leaf->mean_values.resize(mv_dataset_->var_num);
+//        for (int j = 0; j < mv_dataset_->var_num; ++j)
+//            temp_leaf->mean_values[j] = mv_dataset_->normalized_point_values[j][i];
+//        //temp_leaf->mean_values = point_dataset_->normalized_point_values[i];
+//        temp_leaf->std_deviations.resize(mv_dataset_->var_num, 0);
+//        temp_leaf->parent = root_;
+//        temp_leaf->set_level(1);
+//        temp_leaf->left = temp_leaf->right = temp_leaf->mean_pos[0];
+//        temp_leaf->bottom = temp_leaf->top = temp_leaf->mean_pos[1];
+//        temp_leaf->average_dis = FLT_MAX;
+//        temp_leaf->point_ids.push_back(i);
+//
+//        root_->children.push_back(temp_leaf);
+//    }
+//	this->ProgressNodeData(root_);
+//
+//#ifdef DEBUG_ON
+//    cout << "Root node construction finished!" << endl;
+//#endif
+//}
+//
+//void TreeCommon::ConstructLargeScaleRootNode() {
+//    #ifdef DEBUG_ON
+//    cout << "Constructing root node" << endl;
+//#endif
+//    
+//    root_ = new CBranch;
+//    root_->set_level(0);
+//    root_->radius = 0.5;
+//	root_->children.clear();
+//    root_->average_dis = 1.0;
+//
+//    id_node_map_.insert(map<int, CNode*>::value_type(root_->id(), root_));
+//
+//    int reso_size = 1000;
+//    vector<vector<CLeaf*>> leaf_nodes;
+//    leaf_nodes.resize(reso_size);
+//    for (int i = 0; i < reso_size; ++i) leaf_nodes[i].resize(reso_size, NULL);
+//
+//	float temp_min = 1e10;
+//    for (int i = 0; i < mv_dataset_->normalized_point_pos[0].size(); ++i) {
+//        if (!mv_dataset_->is_valid[i]) continue;
+//
+//        int x = (int)(mv_dataset_->normalized_point_pos[0][i] * (reso_size - 1));
+//        int y = (int)(mv_dataset_->normalized_point_pos[1][i] * (reso_size - 1));
+//        CLeaf* temp_leaf = leaf_nodes[y][x];
+//        if (temp_leaf == NULL) {
+//            temp_leaf = new CLeaf();
+//            leaf_nodes[y][x] = temp_leaf;
+//            temp_leaf->parent = root_;
+//            temp_leaf->set_level(1);
+//            root_->children.push_back(temp_leaf);
+//        }
+//
+//        temp_leaf->point_ids.push_back(i);
+//    }
+//
+//    for (int y = 0; y < reso_size; ++y)
+//        for (int x = 0; x < reso_size; ++x) 
+//            if (leaf_nodes[y][x] != NULL) this->ProgressNodeData(leaf_nodes[y][x]);
+//
+//	this->ProgressNodeData(root_);
+//
+//#ifdef DEBUG_ON
+//    cout << "Root node construction finished!" << endl;
+//#endif
+//}
+//
+//void TreeCommon::ProgressNodeData(CNode* node) {
+//	if (node == NULL) return;
+//
+//	std::vector<int> point_index;
+//	this->GetNodePoints(node, point_index);
+//
+//    if (point_index.size() == 0) {
+//        cout << "Error: Node " << node->id() << " have 0 points!" << endl;
+//        return;
+//    }
+//
+//    node->point_count = point_index.size();
+//	node->mean_values.resize(mv_dataset_->var_num, 0);
+//    node->mean_values.assign(mv_dataset_->var_num, 0);
+//	node->std_deviations.resize(mv_dataset_->var_num, 0);
+//    node->std_deviations.assign(mv_dataset_->var_num, 0);
+//	node->mean_pos.resize(2, 0);
+//    node->mean_pos.assign(2, 0);
+//    node->left = INT_MAX;
+//    node->right = INT_MIN;
+//    node->top = INT_MIN;
+//    node->bottom = INT_MAX;
+//
+//    float x, y;
+//	for (int i = 0; i < point_index.size(); ++i) {
+//        x = mv_dataset_->normalized_point_pos[0][point_index[i]];
+//        y = mv_dataset_->normalized_point_pos[1][point_index[i]];
+//		node->mean_pos[0] += x;
+//		node->mean_pos[1] += y;
+//        if (x > node->right) node->right = x;
+//        if (x < node->left) node->left = x;
+//        if (y > node->top) node->top = y;
+//        if (y < node->bottom) node->bottom = y;
+//
+//		for (int j = 0; j < mv_dataset_->var_num; ++j)
+//			node->mean_values[j] += mv_dataset_->normalized_point_values[j][point_index[i]];
+//	}
+//	for (int i = 0; i < mv_dataset_->var_num; ++i)
+//		node->mean_values[i] /= point_index.size();
+//	node->mean_pos[0] /= point_index.size();
+//	node->mean_pos[1] /= point_index.size();
+//
+//    node->center_pos.resize(2);
+//    node->center_pos[0] = (node->left + node->right) / 2;
+//    node->center_pos[1] = (node->top + node->bottom) / 2;
+//
+//	for (int i = 0; i < point_index.size(); ++i)
+//		for (int j = 0; j < mv_dataset_->var_num; ++j)
+//			node->std_deviations[j] += pow(mv_dataset_->normalized_point_values[j][point_index[i]] - node->mean_values[j], 2);
+//	for (int i = 0; i < mv_dataset_->var_num; ++i)
+//        if (point_index.size() > 1)
+//            node->std_deviations[i] = sqrt(node->std_deviations[i] / (point_index.size() - 1));
+//        else
+//		    node->std_deviations[i] = sqrt(node->std_deviations[i] / point_index.size());
+//}
+//
+//void TreeCommon::MergeNodes(vector<int>& node_ids) {
+//
+//}
+//
+//void TreeCommon::SplitNodeOnce(int node_id) {
+//    CNode* node = this->GetNode(node_id);
+//    if (node == NULL || node->type() != CNode::BRANCH) {
+//        cout << "Error Split Node: " << node_id << endl;
+//        return;
+//    }
+//    CBranch* branch = (CBranch*)node;
+//
+//	bool is_children_all_leaf = true;
+//	for (int i = 0; i < branch->children.size(); ++i)
+//		if (branch->children[i]->type() != CNode::LEAF) {
+//			is_children_all_leaf = false;
+//			break;
+//		}
+//    if (is_children_all_leaf && branch->children.size() > 2) {
+//        SplitNode(branch);
+//
+//        vector<vector<float>> center_pos;
+//        for (int i = 0; i < branch->children.size(); ++i)
+//            center_pos.push_back(branch->children[i]->center_pos);
+//        branch->average_dis = Utility::GetAverageDistance(center_pos);
+//
+//        if (branch->level() + 1 > this->max_level_) this->max_level_ = branch->level() + 1;
+//
+//        for (int i = 0; i < branch->children.size(); ++i) {
+//            id_node_map_.insert(map<int, CNode*>::value_type(branch->children[i]->id(), branch->children[i]));
+//        }
+//    }
+//}
+//
+//void TreeCommon::SplitNodeRecursively(int node_id, float std_dev_threshold) {
+//    queue<CNode*> node_queue;
+//	node_queue.push(this->GetNode(node_id));
+//	while (node_queue.size() > 0) {
+//		CNode* temp_node = node_queue.front();
+//		node_queue.pop();
+//
+//		if (temp_node->type() == CNode::BRANCH) {
+//			CBranch* branch = dynamic_cast<CBranch*>(temp_node);
+//			if (branch == NULL || branch->level() > MAX_ALLOWED_LEVEL) continue;
+//
+//			float accu_std_dev = 0.0;
+//			for (int i = 0; i < mv_dataset_->var_num; ++i) {
+//				accu_std_dev += branch->std_deviations[i] * mv_dataset_->var_weights[i];
+//			}
+//            if ((branch == root_ || accu_std_dev > std_dev_threshold) && branch->point_count > 10) {
+//                SplitNode(branch);
+//
+//                vector<vector<float>> center_pos;
+//                for (int i = 0; i < branch->children.size(); ++i)
+//                    center_pos.push_back(branch->children[i]->center_pos);
+//                branch->average_dis = Utility::GetAverageDistance(center_pos);
+//
+//                if (branch->level() + 1 > this->max_level_) this->max_level_ = branch->level() + 1;
+//
+//                for (int i = 0; i < branch->children.size(); ++i) {
+//                    id_node_map_.insert(map<int, CNode*>::value_type(branch->children[i]->id(), branch->children[i]));
+//                }
+//            }
+//
+//			for (int i = 0; i < branch->children.size(); ++i)
+//				node_queue.push(branch->children[i]);
+//		}
+//	}
+//}
+//
+//
+//void TreeCommon::ResetLevel(CNode* node, int level) {
+//	if (node == NULL) return;
+//	node->set_level(level);
+//	if (level > max_level_) max_level_ = level;
+//
+//	if (node->type() == CNode::BRANCH) {
+//		CBranch* branch = dynamic_cast<CBranch*>(node);
+//		if (branch != NULL) {
+//			for (int i = 0; i < branch->children.size(); ++i)
+//				ResetLevel(branch->children[i], level + 1);
+//		}
+//	}
+//}
 
 // ABOVE IS What we really need!
 

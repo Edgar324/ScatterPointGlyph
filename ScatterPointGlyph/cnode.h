@@ -2,51 +2,43 @@
 #define CNODE_H_
 
 #include <vector>
-#include <iostream>
-#include <map>
 using namespace std;
-#include <QtGui/QColor>
 
-class CBranch;
+class MultivariateDataset;
 
 class CNode
 {
 public:
-	CNode();
+	CNode(MultivariateDataset* dataset_t);
 	virtual ~CNode();
 
 	enum NodeType {
 		LEAF = 0x0,
-		BRANCH,
-		UNKNOWN
+		BRANCH
 	};
 
-	virtual NodeType type() { return UNKNOWN; }
-
-	CBranch* parent = NULL;
-
-    // Bounding rect of each node
-    float left = 0, right = 0, bottom = 0, top = 0;
-    vector<float> center_pos;
-
-    // Statistics of each node
-	int point_count = 0;
-	vector<float> mean_pos;
-	vector<float> mean_values;
-	vector<float> std_deviations;
-
-	// The parameter for generating this node using multi-label clustering method
-	float radius = 0;
-
-    //
-    float average_dis = 0;
-
-    bool is_expanded = false;
-    bool is_visible = false;
+	virtual NodeType type() = 0;
 
 	int level() { return level_; }
 	void set_level(int l) { level_ = l; }
 	int id() { return id_; }
+    unsigned int point_count() { return point_count_; }
+
+    const vector<double>& mean_pos() { return mean_pos_; }
+    const vector<double>& mean_values() { return mean_values_; }
+    const vector<double>& std_deviations() { return std_deviations_; }
+
+    // Update the statistics for the cluster of data
+    void Update(bool value = true, bool pos = true, bool std_dev = true);
+
+protected:
+    MultivariateDataset* mv_dataset_ = NULL;
+
+    // Statistics for the cluster of data
+	unsigned int point_count_ = 0;
+	vector<double> mean_pos_;
+	vector<double> mean_values_;
+	vector<double> std_deviations_;
 
 private:
 	int level_;
@@ -58,23 +50,33 @@ private:
 class CLeaf : public CNode
 {
 public:
-	CLeaf();
+	CLeaf(MultivariateDataset* dataset_t, vector<int>& point_ids_t);
+    CLeaf(MultivariateDataset* dataset_t, int point_id_t);
 	virtual ~CLeaf();
 
 	virtual CNode::NodeType type() { return CNode::LEAF; }
 
-	vector<int> linked_points;
+    const vector<int>& point_ids() { return point_ids_; }
+
+protected:
+	vector<int> point_ids_;
 };
 
 class CBranch : public CNode
 {
 public:
-	CBranch();
+	CBranch(MultivariateDataset* dataset_t, vector<CNode*>& children_t);
 	virtual ~CBranch();
 
 	virtual CNode::NodeType type() { return CNode::BRANCH; }
 
-	vector<CNode*> linked_nodes;
+    const vector<CNode*>& children() { return children_; }
+    void ClearChildren();
+    void AppendChild(CNode* node);
+    void AppendChildren(vector<CNode*>& nodes);
+
+protected:
+	vector<CNode*> children_;
 };
 
 #endif

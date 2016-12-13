@@ -40,7 +40,7 @@
 #include "vtkLookupTable.h"
 #include "vtkTextProperty.h"
 #include "vtkPVScalarBarActor.h"
-#include "scatter_point_dataset.h"
+#include "multivariate_dataset.h"
 
 vtkStandardNewMacro(PointRenderingWidget);
 
@@ -84,14 +84,14 @@ PointRenderingWidget::~PointRenderingWidget() {
 
 }
 
-void PointRenderingWidget::SetData(ScatterPointDataset* data) {
+void PointRenderingWidget::SetData(MultivariateDataset* data) {
 	dataset_ = data;
 
     this->BuildPointRepresentation();
 }
 
 void PointRenderingWidget::SetViewpot(float left, float right, float bottom, float top) {
-    int point_count = 0;
+    /*int point_count = 0;
     for (int i = 0; i < dataset_->point_num; ++i)
         if ((dataset_->original_point_pos[0][i] - left) * (dataset_->original_point_pos[0][i] - right) < 0
             && (dataset_->original_point_pos[1][i] - top) * (dataset_->original_point_pos[1][i] - bottom) < 0)
@@ -105,11 +105,11 @@ void PointRenderingWidget::SetViewpot(float left, float right, float bottom, flo
     if (false)
         this->BuildDensityRepresentation();
     else
-        this->BuildPointRepresentation();
+        this->BuildPointRepresentation();*/
 }
 
 void PointRenderingWidget::BuildPointRepresentation() {
-    vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
+    /*vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
 	original_point_poly->SetPoints(original_points);
 	for (int i = 0; i < dataset_->original_point_pos[0].size(); ++i){
@@ -139,7 +139,7 @@ void PointRenderingWidget::BuildPointRepresentation() {
 	poly_data_->GetPointData()->SetScalars(colors);
 
     poly_data_->Modified();
-	actor_->Modified();
+	actor_->Modified();*/
 }
 
 void PointRenderingWidget::BuildDensityRepresentation() {

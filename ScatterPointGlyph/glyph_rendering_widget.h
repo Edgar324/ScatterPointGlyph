@@ -18,7 +18,7 @@ using namespace std;
 #include "glyph_dataset.h"
 
 class QVtkRenderingWidget;
-class ScatterPointDataset;
+class MultivariateDataset;
 class GlyphWidget;
 class ArrowWidget;
 class IndicatorWidget;
@@ -45,7 +45,7 @@ public:
     void SetGlyphVisibility(bool visible);
     void SetGeoMapVisibility(bool visible);
 
-    void SetPointData(ScatterPointDataset* point_dataset);
+    void SetMvDataset(MultivariateDataset* dataset);
     void SetData(GlyphDataset* glyph_dataset);
     // for point rendering widget
     void SetSelectedPointIds(vector<vector<int>>& ids);
@@ -73,7 +73,7 @@ signals:
 protected:
 
 private:
-    ScatterPointDataset* point_dataset_ = NULL;
+    MultivariateDataset* mv_dataset_ = NULL;
     GlyphDataset* glyph_dataset_ = NULL;
 
     bool is_glyph_visible_ = true;

@@ -15,19 +15,16 @@
 #include <vector>
 using namespace std;
 
-class ScatterPointDataset;
+class MultivariateDataset;
 
 class ViewDependentTree : public MultiLabelTree
 {
 public:
-    ViewDependentTree(ScatterPointDataset* data);
+    ViewDependentTree(MultivariateDataset* data);
     virtual ~ViewDependentTree();
 
-    virtual TreeType type() { return TreeCommon::VIEW_DEPENDENT_TREE; }
+    virtual TreeType type() { return TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE; }
     virtual void ConstructTree(float left, float right, float bottom, float top, float glyph_radius);
-
-private:
-    vector<CNode*> leaf_nodes;
 };
 
 #endif

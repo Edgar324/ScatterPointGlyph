@@ -37,7 +37,7 @@ public:
     VariableSelectionWidget();
     ~VariableSelectionWidget();
 
-    void SetData(vector<QString>& names, vector<QColor>& colors);
+    void SetData(const vector<QString>& names, const vector<QColor>& colors);
     void GetSelection(vector<bool>& is_selected);
 
 signals:

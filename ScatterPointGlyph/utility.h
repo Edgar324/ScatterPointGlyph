@@ -24,8 +24,7 @@ public:
 	// nodes: the input 2D points (Size: N)
 	// connecting_status: boolean matrix (N*N)
 	// min_edge_length: the minimum distance between any two points
-	static void VtkTriangulation(std::vector<CNode*>& nodes, std::vector<std::vector<bool>>& connecting_status, float& min_edge_length);
-    static void VtkTriangulation(vector<vector<float>>& pos, vector<vector<bool>>& connecting_status, float& min_edge_length);
+    static void Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& connecting_status, double& min_edge_length);
 
 	static void GenerateAxisOrder(ParallelDataset* dataset_t, std::vector<int>& axis_order);
 

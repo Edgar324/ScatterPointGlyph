@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;DEBUG_ON;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;$(TAPKEEDIR)\include;$(EIGENDIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>
@@ -125,7 +125,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PreprocessorDefinitions>UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_OPENGL_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;$(VTKDIR)\include;$(GLEWDIR)\include;$(BOOSTDIR);$(MATLABEXTERNDIR)\include;.\LibNCut;.\wrfdata;$(NETCDFDIR)\include;.\slic;$(OPENCLDIR)\include;..\VolumeRenderer;.\bhtsne;$(TAPKEEDIR)\include;$(EIGENDIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>
       </RuntimeLibrary>
@@ -142,12 +142,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="arrow_widget.cpp" />
-    <ClCompile Include="bhtsne\sptree.cpp" />
-    <ClCompile Include="bhtsne\tsne.cpp" />
-    <ClCompile Include="cluster_projection_tree.cpp" />
     <ClCompile Include="cnode.cpp" />
     <ClCompile Include="color_mapping_generator.cpp" />
+    <ClCompile Include="connector_widget.cpp" />
+    <ClCompile Include="data_projector.cpp" />
     <ClCompile Include="density_rendering_widget.cpp" />
+    <ClCompile Include="edge_node.cpp" />
+    <ClCompile Include="gaussian_tree.cpp" />
     <ClCompile Include="gco-v3.0\GCoptimization.cpp" />
     <ClCompile Include="gco-v3.0\graph.cpp" />
     <ClCompile Include="gco-v3.0\LinkedBlockList.cpp" />
@@ -258,33 +259,32 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="geo_point_data_reader.cpp" />
+    <ClCompile Include="geo_multivariate_dataset.cpp" />
     <ClCompile Include="glyph_dataset.cpp" />
     <ClCompile Include="glyph_dataset_builder.cpp" />
     <ClCompile Include="glyph_object.cpp" />
     <ClCompile Include="glyph_rendering_widget.cpp" />
     <ClCompile Include="glyph_widget.cpp" />
+    <ClCompile Include="gmm.cpp" />
     <ClCompile Include="hierarchical_tree.cpp" />
+    <ClCompile Include="image_widget.cpp" />
     <ClCompile Include="indicator_widget.cpp" />
+    <ClCompile Include="leaf_builder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_widget.cpp" />
-    <ClCompile Include="mds_projector.cpp" />
+    <ClCompile Include="multivariate_dataset.cpp" />
     <ClCompile Include="multi_label_processor.cpp" />
     <ClCompile Include="ncut_tree.cpp" />
     <ClCompile Include="parallel_coordinate.cpp" />
     <ClCompile Include="parallel_dataset.cpp" />
     <ClCompile Include="parallel_dataset_builder.cpp" />
-    <ClCompile Include="pca_projector.cpp" />
-    <ClCompile Include="point_data_reader.cpp" />
     <ClCompile Include="point_rendering_widget.cpp" />
     <ClCompile Include="quality_metric.cpp" />
     <ClCompile Include="radar_band_widget.cpp" />
     <ClCompile Include="radar_band_widget_no_saliency.cpp" />
     <ClCompile Include="regular_radar_widget.cpp" />
-    <ClCompile Include="scatter_point_dataset.cpp" />
     <ClCompile Include="scatter_point_glyph.cpp" />
     <ClCompile Include="qvtk_rendering_widget.cpp" />
-    <ClCompile Include="scatter_volume_dataset.cpp" />
     <ClCompile Include="slic\slic_vf.cpp" />
     <ClCompile Include="table_lens.cpp" />
     <ClCompile Include="tour_path_generator.cpp" />
@@ -292,12 +292,10 @@
     <ClCompile Include="multi_label_tree.cpp" />
     <ClCompile Include="tree_map_item.cpp" />
     <ClCompile Include="tree_map.cpp" />
-    <ClCompile Include="tsne_projector.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="variable_item.cpp" />
     <ClCompile Include="var_selection_widget.cpp" />
     <ClCompile Include="view_dependent_tree.cpp" />
-    <ClCompile Include="volume_data_reader.cpp" />
     <ClCompile Include="vtkPVScalarBarActor.cxx" />
   </ItemGroup>
   <ItemGroup>
@@ -342,24 +340,29 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arrow_widget.h" />
-    <ClInclude Include="bhtsne\sptree.h" />
-    <ClInclude Include="bhtsne\tsne.h" />
-    <ClInclude Include="bhtsne\vptree.h" />
-    <ClInclude Include="cluster_projection_tree.h" />
     <ClInclude Include="cnode.h" />
     <ClInclude Include="color_mapping_generator.h" />
+    <ClInclude Include="connector_widget.h" />
+    <ClInclude Include="data_core.h" />
+    <ClInclude Include="data_projector.h" />
     <ClInclude Include="density_rendering_widget.h" />
+    <ClInclude Include="edge_node.h" />
+    <ClInclude Include="gaussian_tree.h" />
     <ClInclude Include="GeneratedFiles\ui_glyph_design_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_map_controller.h" />
     <ClInclude Include="GeneratedFiles\ui_option_dialog.h" />
     <ClInclude Include="GeneratedFiles\ui_projection_control.h" />
     <ClInclude Include="GeneratedFiles\ui_variable_selection_dialog.h" />
+    <ClInclude Include="geo_multivariate_dataset.h" />
     <ClInclude Include="glyph_dataset_builder.h" />
+    <ClInclude Include="gmm.h" />
     <ClInclude Include="hierarchical_tree.h" />
+    <ClInclude Include="image_widget.h" />
+    <ClInclude Include="leaf_builder.h" />
     <ClInclude Include="map_rendering_widget.h" />
+    <ClInclude Include="multivariate_dataset.h" />
     <ClInclude Include="ncut_tree.h" />
     <ClInclude Include="quality_metric.h" />
-    <ClInclude Include="tsne_projector.h" />
     <ClInclude Include="view_dependent_tree.h" />
     <ClInclude Include="vtkPVScalarBarActor.h" />
     <CustomBuild Include="parallel_dataset.h">
@@ -382,7 +385,6 @@
     </CustomBuild>
     <ClInclude Include="indicator_widget.h" />
     <ClInclude Include="parallel_dataset_builder.h" />
-    <ClInclude Include="pca_projector.h" />
     <ClInclude Include="point_rendering_widget.h" />
     <CustomBuild Include="variable_item.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -404,7 +406,6 @@
     </CustomBuild>
     <ClInclude Include="radar_band_widget_no_saliency.h" />
     <ClInclude Include="regular_radar_widget.h" />
-    <ClInclude Include="volume_data_reader.h" />
     <CustomBuild Include="tree_map_item.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing tree_map_item.h...</Message>
@@ -441,7 +442,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(GLEWDIR)\include" "-I$(BOOSTDIR)\." "-I$(MATLABEXTERNDIR)\include" "-I.\LibNCut" "-I.\wrfdata" "-I$(NETCDFDIR)\include" "-I.\slic"</Command>
     </CustomBuild>
-    <ClInclude Include="scatter_volume_dataset.h" />
     <ClInclude Include="table_lens.h" />
     <CustomBuild Include="var_selection_widget.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
@@ -541,7 +541,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(GLEWDIR)\include" "-I$(BOOSTDIR)\." "-I$(MATLABEXTERNDIR)\include" "-I.\LibNCut" "-I.\wrfdata" "-I$(NETCDFDIR)\include" "-I.\slic"</Command>
     </CustomBuild>
-    <ClInclude Include="geo_point_data_reader.h" />
     <CustomBuild Include="glyph_object.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing glyph_object.h...</Message>
@@ -560,8 +559,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(GLEWDIR)\include" "-I$(BOOSTDIR)\." "-I$(MATLABEXTERNDIR)\include" "-I.\LibNCut" "-I.\wrfdata" "-I$(NETCDFDIR)\include" "-I.\slic"</Command>
     </CustomBuild>
-    <ClInclude Include="mds_projector.h" />
-    <ClInclude Include="point_data_reader.h" />
     <CustomBuild Include="radar_band_widget.h">
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
       </Message>
@@ -588,7 +585,6 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </Command>
     </CustomBuild>
-    <ClInclude Include="scatter_grid_dataset.h" />
     <ClInclude Include="slic\slic_vf.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="multi_label_processor.h" />
@@ -610,7 +606,6 @@
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_OPENGL_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtOpenGL" "-I$(QTDIR)\include\QtWidgets" "-I$(VTKDIR)\include" "-I$(MRPTDIR)\libs\base\include" "-I$(MRPTDIR)\include\mrpt\mrpt-config" "-I$(NETCDFDIR)\include" "-I.\scagnostics" "-I.\data"</Command>
     </CustomBuild>
-    <ClInclude Include="SimpleMatrix.h" />
     <ClInclude Include="tour_path_generator.h" />
     <ClInclude Include="tree_common.h" />
     <CustomBuild Include="multi_label_tree.h">
@@ -645,7 +640,6 @@
     <ClInclude Include="gco-v3.0\graph.h" />
     <ClInclude Include="gco-v3.0\LinkedBlockList.h" />
     <ClInclude Include="GeneratedFiles\ui_scatter_point_glyph.h" />
-    <ClInclude Include="scatter_point_dataset.h" />
     <CustomBuild Include="qvtk_rendering_widget.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath);$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing qvtk_rendering_widget.h...</Message>

@@ -3,12 +3,12 @@
 
 #include "tree_common.h"
 
-class ScatterPointDataset;
+class MultivariateDataset;
 
 class HierarchicalTree : public TreeCommon
 {
 public:
-	HierarchicalTree(ScatterPointDataset* data);
+	HierarchicalTree(MultivariateDataset* data);
 	~HierarchicalTree();
 
 	enum DistanceType {
@@ -21,7 +21,7 @@ public:
 	void SetDistanceType(DistanceType type);
 
     virtual void AutoConstructTree(float std_dev_threshold);
-    virtual TreeType type() { return TreeCommon::HIERARCHICAL_TREE; }
+    virtual TreeType type() { return TreeCommon::GEO_HIERARCHICAL_TREE; }
 
 protected:
     virtual void SplitNode(CBranch* node);

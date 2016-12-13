@@ -24,9 +24,11 @@ VariableSelectionWidget::~VariableSelectionWidget() {
 
 }
 
-void VariableSelectionWidget::SetData(vector<QString>& names, vector<QColor>& colors) {
-    var_names_ = names;
-    var_colors_ = colors;
+void VariableSelectionWidget::SetData(const vector<QString>& names, const vector<QColor>& colors) {
+    var_names_.clear();
+    var_names_.assign(names.begin(), names.end());
+    var_colors_.clear();
+    var_colors_.assign(colors.begin(), colors.end());
 
     this->UpdateWidget();
 }
@@ -54,7 +56,6 @@ void VariableSelectionWidget::UpdateWidget() {
     this->setColumnWidth(0, 80);
     this->setColumnWidth(1, 80);
     this->setColumnWidth(2, 80);
-
 
     for (int i = 0; i < var_names_.size(); ++i) {
         item_model_->insertRow(i);

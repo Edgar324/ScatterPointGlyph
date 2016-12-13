@@ -56,12 +56,12 @@ GlyphRenderingWidget::~GlyphRenderingWidget() {
 
 }
 
-void GlyphRenderingWidget::SetPointData(ScatterPointDataset* point_dataset) {
-    this->point_dataset_ = point_dataset;
+void GlyphRenderingWidget::SetMvDataset(MultivariateDataset* dataset) {
+    this->mv_dataset_ = dataset;
 
     // initialize the point rendering layer
     point_rendering_widget_->SetEnabled(false);
-    point_rendering_widget_->SetData(point_dataset);
+    point_rendering_widget_->SetData(mv_dataset_);
     point_rendering_widget_->SetEnabled(true);
 
     arrow_widget_->SetEnabled(true);

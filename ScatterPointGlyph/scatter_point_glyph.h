@@ -26,7 +26,7 @@ class vtkRenderer;
 class vtkUnstructuredGrid;
 class vtkActor;
 
-class ScatterPointDataset;
+class MultivariateDataset;
 class GlyphRenderingWidget;
 class GlyphDataset;
 class ParallelCoordinate;
@@ -106,14 +106,14 @@ private:
     vector<float> voxel_values_;
     QDockWidget* volume_render_panel_;
 
-    // the only dataset served in the memory
-	ScatterPointDataset* scatter_point_dataset_ = NULL;
-    vector<int> selected_var_index_;
-
     QActionGroup* example_action_group_;
     QActionGroup* color_mapping_group_;
     QActionGroup* clustering_mode_action_group_;
     QActionGroup* glyph_view_interaction_mode_group_;
+
+    // the only dataset served in the memory
+	MultivariateDataset* mv_dataset_ = NULL;
+    vector<int> selected_var_index_;
 
     ClusteringMode clustering_mode_ = VIEW_DEPENDENT_MODE;
     // thresholds for each cluster method

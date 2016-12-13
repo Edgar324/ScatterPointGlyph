@@ -11,7 +11,7 @@
 #include "table_lens.h"
 #include "cnode.h"
 #include "tree_common.h"
-#include "scatter_point_dataset.h"
+#include "multivariate_dataset.h"
 #include "variable_item.h"
 #include "tree_map_item.h"
 #include "color_mapping_generator.h"
@@ -49,7 +49,7 @@ void TableLens::SetData(TreeCommon* tree, vector<int>& selected_cluster_ids, vec
 void TableLens::UpdateVariableItems() {
     int var_num = selected_var_index_.size();
     int cluster_num = selected_cluster_ids_.size();
-    ScatterPointDataset* point_dataset = cluster_tree_->data();
+    MultivariateDataset* mv_dataset = cluster_tree_->mv_dataset();
 
     if (var_items_.size() < var_num) {
         int current_size = var_items_.size();
@@ -74,18 +74,19 @@ void TableLens::UpdateVariableItems() {
 
 	for (int i = 0; i < var_num; ++i) {
         int var_index = selected_var_index_[i];
-		QString var_name = point_dataset->var_names[var_index];
+		QString var_name = mv_dataset->var_names()[var_index];
 		
 		for (int j = 0; j < cluster_num; ++j) {
-			var_values[i].push_back(selected_nodes[j]->mean_values[var_index]);
-			node_count[i].push_back(selected_nodes[j]->point_count);
+			var_values[i].push_back(selected_nodes[j]->mean_values()[var_index]);
+			node_count[i].push_back(selected_nodes[j]->point_count());
             // TODO: Add Context data
 			/*tree_->GetNodeValues(selected_nodes[j], i, context_data[j]);
 			std::sort(context_data[j].begin(), context_data[j].end());*/
 		}
 
-		var_items_[i]->SetData(var_name, point_dataset->var_colors[var_index], var_values[i], node_count[i], cluster_num, context_data);
-		var_items_[i]->SetValueRange(point_dataset->original_value_ranges[var_index][0], point_dataset->original_value_ranges[var_index][1]);
+        /// TODO: implement this part
+		/*var_items_[i]->SetData(var_name, mv_dataset->var_colors[var_index], var_values[i], node_count[i], cluster_num, context_data);
+		var_items_[i]->SetValueRange(mv_dataset->original_value_ranges[var_index][0], mv_dataset->original_value_ranges[var_index][1]);*/
 	}
 }
 

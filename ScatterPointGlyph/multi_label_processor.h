@@ -2,45 +2,37 @@
 #define MULTI_LABEL_PROCESSOR_H_
 
 #include <vector>
+using namespace std;
 
 class MultiLabelProcessor 
 {
 public:
-	MultiLabelProcessor();
+	MultiLabelProcessor(double label_cost_rate = 1.0, double data_dis_scale = 0.5);
 	~MultiLabelProcessor();
 
-	void SetData(std::vector<std::vector<float>>& pos, std::vector<std::vector<float>>& value, std::vector < float>& weights, std::vector<std::vector<bool>>& edges);
-	void SetLabelEstimationRadius(float radius);
-	void SetSampleNumber(int num);
-	void GenerateCluster();
-	std::vector<int>& GetResultLabel();
+    void GenerateCluster(const vector<vector<double>>& pos, const vector<vector<double>>& value, 
+        const vector<double>& weights, const vector<vector<bool>>& edges,
+        double radius, vector<vector<int>>& clusters);
+    void GenerateCluster(const vector<vector<double>>& value, 
+        const vector<double>& weights, const vector<vector<bool>>& edges,
+        double radius, vector<vector<int>>& clusters);
 
 private:
-	int point_num_;
-	std::vector<std::vector<float>> point_pos_;
-	std::vector<std::vector<float>> point_value_;
-	std::vector<float> var_weights_;
-	std::vector<std::vector<bool>> edges_;
-	std::vector<std::vector<float>> edge_weights_;
-	std::vector<std::vector<float>> point_dis_;
+    double label_cost_rate_, data_dis_scale_;
 
-	const float data_dis_scale_ = { 0.5 };
+    double max_radius_;
+    vector<vector<double>> dis_mat_;
+    vector<vector<int>> estimated_models_;
 
-	float max_radius_;
-	int sample_num_;
+    vector<vector<double>> data_cost_;
 
     float average_value_dis_;
+	vector<vector<double>> smooth_cost_;
 
-	std::vector<int> result_label_;
+	vector<double> label_cost_;
 
-	std::vector<std::vector<int>> estimated_models_;
-
-	std::vector<std::vector<float>> data_cost_;
-	std::vector<std::vector<float>> smooth_cost_;
-	std::vector<float> label_cost_;
-
-	void UpdateEnergyCost();
-	void ExtractEstimatedModels();
+    void GenerateCluster(const vector<vector<bool>>& edges, vector<vector<int>>& clusters);
+	void ExtractEstimatedModels(const vector<vector<bool>>& edges);
 };
 
 #endif
