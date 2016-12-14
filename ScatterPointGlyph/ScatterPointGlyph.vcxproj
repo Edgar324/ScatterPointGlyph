@@ -269,6 +269,8 @@
     <ClCompile Include="hierarchical_tree.cpp" />
     <ClCompile Include="image_widget.cpp" />
     <ClCompile Include="indicator_widget.cpp" />
+    <ClCompile Include="knn_graph.cpp" />
+    <ClCompile Include="knn_multi_label_tree.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_widget.cpp" />
     <ClCompile Include="multivariate_dataset.cpp" />
@@ -357,6 +359,8 @@
     <ClInclude Include="gmm.h" />
     <ClInclude Include="hierarchical_tree.h" />
     <ClInclude Include="image_widget.h" />
+    <ClInclude Include="knn_graph.h" />
+    <ClInclude Include="knn_multi_label_tree.h" />
     <ClInclude Include="map_rendering_widget.h" />
     <ClInclude Include="multivariate_dataset.h" />
     <ClInclude Include="ncut_tree.h" />

@@ -305,6 +305,12 @@
     <ClCompile Include="quality_metric.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
+    <ClCompile Include="knn_multi_label_tree.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="knn_graph.cpp">
+      <Filter>Source Files\Tree</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -500,6 +506,12 @@
     </ClInclude>
     <ClInclude Include="data_core.h">
       <Filter>Header Files\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="knn_multi_label_tree.h">
+      <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="knn_graph.h">
+      <Filter>Header Files\Tree</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
