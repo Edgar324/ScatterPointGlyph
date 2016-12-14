@@ -36,7 +36,7 @@ void Slic::InitData()
 
     for (int i = 0; i < vfd_->width(); i++) {
         vector<int> cr;
-        vector<float> dr;
+        vector<double> dr;
         for (int j = 0; j < vfd_->height(); j++) {
             cr.push_back(-1);
             dr.push_back(DBL_MAX);
@@ -48,7 +48,7 @@ void Slic::InitData()
     // Initialize the centers and counters.
     for (int i = step_; i < vfd_->width() - step_/2; i += step_) {
         for (int j = step_; j < vfd_->height() - step_/2; j += step_) {
-            vector<float> center;
+            vector<double> center;
             // Find the local minimum (gradient-wise).
             int yi, xi;
             this->FindLocalMinimum(i, j, xi, yi);
@@ -56,7 +56,7 @@ void Slic::InitData()
             // Generate the center vector.
             center.push_back(xi);
             center.push_back(yi);
-            vector<float>& val = vfd_->GetData(xi, yi);
+            vector<double>& val = vfd_->GetData(xi, yi);
 
             for (int k = 0; k < val.size(); k++)
                 center.push_back(val[k]);
@@ -69,36 +69,36 @@ void Slic::InitData()
 }
 
 
-float Slic::ComputeDist(int ci, int xi, int yi) {
-    vector<float>& val = vfd_->GetData(xi, yi);
+double Slic::ComputeDist(int ci, int xi, int yi) {
+    vector<double>& val = vfd_->GetData(xi, yi);
 
-    float dc = 0;
+    double dc = 0;
     for (int i = 0; i < val.size(); ++i)
         dc += pow(centers_[ci][i + 2] - val[i], 2);
 
-    float ds = sqrt(pow(centers_[ci][0] - xi, 2) + pow(centers_[ci][1] - yi, 2));
+    double ds = sqrt(pow(centers_[ci][0] - xi, 2) + pow(centers_[ci][1] - yi, 2));
     
     return sqrt(pow(dc / nc_, 2) + pow(ds / ns_, 2));
 }
 
 
 void Slic::FindLocalMinimum(int cx, int cy, int& xi, int& yi) {
-    float min_grad = DBL_MAX;
+    double min_grad = DBL_MAX;
     xi = cx;
     yi = cy;
     
     for (int i = cx - 1; i < cx + 2; i++) {
         for (int j = cy - 1; j < cy + 2; j++) {
-            vector<float>& c1 = vfd_->GetData(i, j+1);
-            vector<float>& c2 = vfd_->GetData(i + 1, j);
-            vector<float>& c3 = vfd_->GetData(i, j);
+            vector<double>& c1 = vfd_->GetData(i, j+1);
+            vector<double>& c2 = vfd_->GetData(i + 1, j);
+            vector<double>& c3 = vfd_->GetData(i, j);
 
-            float i1toi3 = 0;
+            double i1toi3 = 0;
             for (int k = 0; k < c1.size(); k++) 
                 i1toi3 += pow(c1[k] - c3[k], 2);
             i1toi3 = sqrt(i1toi3);
 
-            float i2toi3 = 0;
+            double i2toi3 = 0;
             for (int k = 0; k < c2.size(); k++)
                 i2toi3 += pow(c2[k] - c3[k], 2);
             i2toi3 = sqrt(i2toi3);
@@ -137,7 +137,7 @@ void Slic::GenerateSuperPixels(VectorFieldData* vfd, int step, int nc) {
                 for (int l = centers_[j][1] - step; l < centers_[j][1] + step; l++) {
                 
                     if (k >= 0 && k < vfd_->width() && l >= 0 && l < vfd_->height()) {
-                        float d = ComputeDist(j, k, l);
+                        double d = ComputeDist(j, k, l);
                         
                         /* Update cluster allocation if the cluster minimizes the
                            distance. */
@@ -162,7 +162,7 @@ void Slic::GenerateSuperPixels(VectorFieldData* vfd, int step, int nc) {
                 int c_id = clusters_[j][k];
                 
                 if (c_id != -1) {
-                    vector<float>& val = vfd_->GetData(j, k);
+                    vector<double>& val = vfd_->GetData(j, k);
                     
                     centers_[c_id][0] += j;
                     centers_[c_id][1] += k;
@@ -291,7 +291,7 @@ void Slic::SaveContour(const char* file_name) {
     for (int i = 0; i < vfd_->height(); ++i)
         for (int j = 0; j < vfd_->width(); ++j) {
             QColor color;
-            vector<float>& val = vfd_->GetData(j, i);
+            vector<double>& val = vfd_->GetData(j, i);
             color.setRedF(val[2]);
             color.setGreenF(val[2]);
             color.setBlueF(val[2]);

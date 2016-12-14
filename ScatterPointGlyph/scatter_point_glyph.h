@@ -215,6 +215,7 @@ private slots:
     void OnBrushSelectionChanged();
     void OnVariableSelectionChanged();
 
+    void OnActionExecTriggered();
     void OnSplitClusterTriggered();
     void OnRecursiveSplittingTriggered();
 	void OnMergeClusterTriggered();

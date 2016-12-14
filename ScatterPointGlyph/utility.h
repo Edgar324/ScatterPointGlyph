@@ -23,8 +23,7 @@ public:
 	// Delaunay triangulation using vtkDelaunay2D
 	// nodes: the input 2D points (Size: N)
 	// connecting_status: boolean matrix (N*N)
-	// min_edge_length: the minimum distance between any two points
-    static void Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& connecting_status, double& min_edge_length);
+    static void Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& connecting_status);
 
 	static void GenerateAxisOrder(ParallelDataset* dataset_t, std::vector<int>& axis_order);
 

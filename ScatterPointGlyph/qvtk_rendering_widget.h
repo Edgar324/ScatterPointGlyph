@@ -39,8 +39,7 @@ public:
     void GetViewport(float& left, float& right, float& bottom, float& top);
     float GetDistancePerPixel();
     void GetBrushingPath(vector<float>& path) { path = brushing_path; }
-    vtkRenderer* main_renderer() { return main_renderer_; }
-    vtkRenderer* indicator_renderer() { return indicator_renderer_; }
+    vtkRenderer* renderer() { return main_renderer_; }
 
 signals:
     void ViewUpdated();
@@ -59,7 +58,7 @@ private:
 	QPoint global_mouse_pos_;
 
     vtkRenderer* main_renderer_;
-    vtkRenderer* indicator_renderer_;
+    //vtkRenderer* indicator_renderer_;
 
     bool is_brush_enabled_ = false;
     vector<float> brushing_path;

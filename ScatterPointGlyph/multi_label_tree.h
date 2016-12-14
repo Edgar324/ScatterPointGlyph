@@ -20,17 +20,22 @@ public:
 protected:
     MultiLabelProcessor* processor_ = NULL;
 
-	float max_radius_threshold_ = 0.5;
-	float factor_ = 2.0;
-    int SLIC_PIXEL_THRESHOLD = 500;
+    const int SCALE_NODE_SIZE = 2000;
+    const int LEAF_RESO_SIZE = 1000;
+    const int SLIC_RESO_SIZE = 200;
+
+    const int SLIC_PIXEL_THRESHOLD = 500;
     const int EXPECTED_CLUSTER_NUM = 40;
 
+    bool is_pixel_used_ = false;
+
     virtual void BuildLeafs();
+    void BuildOnPixels();
+    void BuildOnRecords();
 
-    /*void SplitOnSlic(CBranch* node);
-    void DirectSplit(CBranch* node);
-
-    void SplitPoints(vector<vector<float>>& pos, vector<vector<float>>& value, float radius, vector<int>& clusters);*/
+    void SplitOnPixels(const vector<CNode*>& children, vector<vector<int>>& clusters);
+    void SplitOnRecords(const vector<CNode*>& children, vector<vector<int>>& clusters);
+    void SplitPoints(vector<vector<double>>& pos, vector<vector<double>>& value, double radius, vector<vector<int>>& clusters);
 };
 
 #endif

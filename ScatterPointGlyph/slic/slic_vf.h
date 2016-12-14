@@ -20,7 +20,7 @@ struct Point2D {
 class VectorFieldData
 {
 public:
-    VectorFieldData(vector<vector<vector<float>>>& v)
+    VectorFieldData(vector<vector<vector<double>>>& v)
         : values_(v) 
     {
         if (values_.size() > 0 && values_[0].size() > 0 && values_[0][0].size() > 0) {
@@ -35,11 +35,11 @@ public:
     int width() { return w_; }
     int height() { return h_; }
     int v_num() { return v_num_; }
-    vector<float>& GetData(int x, int y) { return values_[y][x]; }
+    vector<double>& GetData(int x, int y) { return values_[y][x]; }
 
 private:
     int w_ = 0, h_ = 0, v_num_ = 0;
-    vector<vector<vector<float>>> values_;
+    vector<vector<vector<double>>> values_;
 };
 
 class Slic
@@ -50,7 +50,7 @@ public:
 
     void GenerateSuperPixels(VectorFieldData* vfd, int step, int nc);
     vector<vector<int>>& GetClusters() { return clusters_; }
-    vector<vector<float>>& GetCenters() { return centers_; }
+    vector<vector<double>>& GetCenters() { return centers_; }
 
 private:
     VectorFieldData* vfd_ = NULL;
@@ -59,10 +59,10 @@ private:
 
     // The cluster assignments and distance values for each pixel.
     vector<vector<int>> clusters_;
-    vector<vector<float>> distances_;
+    vector<vector<double>> distances_;
 
     // The xy and vector values of the centers.
-    vector<vector<float>> centers_;
+    vector<vector<double>> centers_;
     // The number of occurences of each center.
     vector<int> center_count_;
 
@@ -70,7 +70,7 @@ private:
     int step_, nc_, ns_;
 
     // Compute the distance between a center and an individual pixel
-    float ComputeDist(int ci, int xi, int yi);
+    double ComputeDist(int ci, int xi, int yi);
     
     // Find the pixel with the lowest gradient in a 3x3 surrounding.
     void FindLocalMinimum(int cx, int cy, int& xi, int& yi);

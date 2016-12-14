@@ -11,6 +11,7 @@
 #include "glyph_rendering_widget.h"
 #include <vtkRenderer.h>
 #include <vtkGenericOpenGLRenderWindow.h>
+#include <vtkCamera.h>
 #include <QVBoxLayout>
 #include "glyph_object.h"
 #include "glyph_dataset.h"
@@ -23,6 +24,7 @@
 #include "density_rendering_widget.h"
 #include "map_rendering_widget.h"
 #include "indicator_widget.h"
+#include "multivariate_dataset.h"
 
 
 GlyphRenderingWidget::GlyphRenderingWidget() {
@@ -59,19 +61,16 @@ GlyphRenderingWidget::~GlyphRenderingWidget() {
 void GlyphRenderingWidget::SetMvDataset(MultivariateDataset* dataset) {
     this->mv_dataset_ = dataset;
 
-    // initialize the point rendering layer
-    point_rendering_widget_->SetEnabled(false);
-    point_rendering_widget_->SetData(mv_dataset_);
-    point_rendering_widget_->SetEnabled(true);
+    //if (mv_dataset_->is_projected()) this->SetPointMapVisibility(true);
 
-    arrow_widget_->SetEnabled(true);
+    //arrow_widget_->SetEnabled(true);
 
-    indicator_widget_->SetRenderer(rendering_widget_->indicator_renderer());
+    /*indicator_widget_->SetRenderer(rendering_widget_->indicator_renderer());
     indicator_widget_->SetData(0);
-    indicator_widget_->SetEnabled(true);
+    indicator_widget_->SetEnabled(true);*/
 
-    rendering_widget_->main_renderer()->ResetCamera();
-    rendering_widget_->update();
+    /*rendering_widget_->main_renderer()->ResetCamera();
+    rendering_widget_->update();*/
 }
 
 void GlyphRenderingWidget::SetData(GlyphDataset* glyph_dataset) {
@@ -89,8 +88,14 @@ void GlyphRenderingWidget::SetDensityMapVisibility(bool visible) {
 }
 
 void GlyphRenderingWidget::SetPointMapVisibility(bool visible) {
+    if (mv_dataset_ == NULL || !mv_dataset_->is_projected()) return;
+
+    if (visible) {
+        point_rendering_widget_->SetEnabled(false);
+        point_rendering_widget_->SetData(mv_dataset_);
+    }
+
     this->point_rendering_widget_->SetEnabled(visible);
-    rendering_widget_->update();
 }
 
 void GlyphRenderingWidget::SetGlyphVisibility(bool visible) {

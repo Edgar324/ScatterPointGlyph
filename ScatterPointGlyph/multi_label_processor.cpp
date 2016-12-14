@@ -16,6 +16,8 @@ MultiLabelProcessor::~MultiLabelProcessor() {
 }
 
 void MultiLabelProcessor::ExtractEstimatedModels(const vector<vector<bool>>& edges) {
+    this->estimated_models_.clear();
+
     int point_num = dis_mat_.size();
 
 	vector<bool> is_reached;
@@ -25,6 +27,7 @@ void MultiLabelProcessor::ExtractEstimatedModels(const vector<vector<bool>>& edg
 		is_reached.assign(point_num, false);
 
 		dis_mat_[i][i] = 0;
+        is_reached[i] = true;
 
 		for (int j = 0; j < point_num; ++j) {
 			float min_dist = 1e10;
@@ -82,6 +85,8 @@ void MultiLabelProcessor::GenerateCluster(const vector<vector<bool>>& edges, vec
 
 		gc->expansion(2); // run expansion for 2 iterations. For swap use gc->swap(num_iterations);
 
+        cout << "Optimizatoin finished!" << endl;
+
         vector<int> result_label(site_num);
 		for (int i = 0; i < site_num; ++i) result_label[i] = gc->whatLabel(i);
 
@@ -109,6 +114,7 @@ void MultiLabelProcessor::GenerateCluster(const vector<vector<double>>& pos, con
     double radius, vector<vector<int>>& clusters) {
 
     int point_num = pos.size();
+    max_radius_ = radius;
 
     // Update distance matrix for model extraction
     dis_mat_.clear();

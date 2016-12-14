@@ -62,13 +62,13 @@ void ScatterPointGlyph::InitWidget() {
     glyph_widget_ = new GlyphRenderingWidget;
     glyph_dataset_ = new GlyphDataset;
     
-    projection_control_widget_ = new QWidget;
+    /*projection_control_widget_ = new QWidget;
     ui_projection_control_.setupUi(projection_control_widget_);
-    ui_projection_control_.axisSelectionWidget->setVisible(false);
+    ui_projection_control_.axisSelectionWidget->setVisible(false);*/
 
     QVBoxLayout* central_layout = new QVBoxLayout;
 	central_layout->addWidget(glyph_widget_);
-    central_layout->addWidget(projection_control_widget_);
+    //central_layout->addWidget(projection_control_widget_);
 	ui_.centralWidget->setLayout(central_layout);
 
     variable_selection_widget_ = new VariableSelectionWidget;
@@ -122,14 +122,10 @@ void ScatterPointGlyph::InitWidget() {
     connect(ui_.actionOpen_File, SIGNAL(triggered()), this, SLOT(OnActionOpenScatterFileTriggered()));
 	connect(ui_.action_close, SIGNAL(triggered()), this, SLOT(OnActionCloseTriggered()));
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(OnActionExitTriggered()));
-    connect(ui_projection_control_.applyProjectionButton, SIGNAL(clicked()), this, SLOT(OnApplyProjectionTriggered()));
-    connect(ui_projection_control_.projectionComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(OnProjectionMethodChanged()));
 
     connect(variable_selection_widget_, SIGNAL(SelectionChanged()), this, SLOT(OnVariableSelectionChanged()));
 
-    connect(ui_.actionSplit, SIGNAL(triggered()), this, SLOT(OnSplitClusterTriggered()));
-    connect(ui_.actionRecursive_Splitting, SIGNAL(triggered()), this, SLOT(OnRecursiveSplittingTriggered()));
-	connect(ui_.actionMerge, SIGNAL(triggered()), this, SLOT(OnMergeClusterTriggered()));
+    connect(ui_.actionExec, SIGNAL(triggered()), this, SLOT(OnActionExecTriggered()));
 
     color_mapping_group_ = new QActionGroup(this);
 	color_mapping_group_->addAction(ui_.actionColor_Mapping_Off);
@@ -334,8 +330,6 @@ void ScatterPointGlyph::OnActionOpenExampleDataTriggered() {
 
 	if (type.compare("sc") == 0) {
         mv_dataset_ = new MultivariateDataset(file_path.toLocal8Bit().data());
-        DataProjector tsne_projector(ProjectionMethod::tSNE);
-        mv_dataset_->ApplyProjection(&tsne_projector);
 	} else if (type.compare("gsc") == 0) {
         mv_dataset_ = new GeoMultivariateDataset(file_path.toLocal8Bit().data());
         DataProjector lon_lat_projector(ProjectionMethod::LON_LAT);
@@ -380,12 +374,12 @@ void ScatterPointGlyph::OnApplyProjectionTriggered() {
 }
 
 void ScatterPointGlyph::OnProjectionMethodChanged() {
-    QString projection_method = ui_projection_control_.projectionComboBox->currentText();
+    /*QString projection_method = ui_projection_control_.projectionComboBox->currentText();
     if (projection_method.compare(QString("NORMAL")) == 0) {
         ui_projection_control_.axisSelectionWidget->setVisible(true);
     } else {
         ui_projection_control_.axisSelectionWidget->setVisible(false);
-    }
+    }*/
 }
 
 void ScatterPointGlyph::InitExploration() {
@@ -428,7 +422,7 @@ void ScatterPointGlyph::InitExploration() {
 	}
     
     this->InitAllViews();
-    this->UpdateAllViews();
+    //this->UpdateAllViews();
 }
 
 void ScatterPointGlyph::InitAllViews() {
@@ -668,6 +662,48 @@ void ScatterPointGlyph::OnVariableSelectionChanged()
     this->UpdateAllViews();
 }
 
+void ScatterPointGlyph::OnActionExecTriggered() {
+    if (cluster_tree_ == NULL) {
+        cout << "Cluster tree not initialized!" << endl;
+        return;
+    }
+
+    switch (cluster_tree_->type()) {
+    case TreeCommon::GEO_HIERARCHICAL_TREE:
+    case TreeCommon::GEO_NCUTS_TREE:
+    case TreeCommon::GEO_MULTI_LABEL_TREE:
+    case TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE:
+    {
+        // TODO: Get Projection type and apply projection
+        DataProjector tsne_projector(ProjectionMethod::tSNE);
+        mv_dataset_->ApplyProjection(&tsne_projector);
+        glyph_widget_->SetPointMapVisibility(true);
+    }
+        break;
+    case TreeCommon::KNN_MULTI_LABEL_TREE:
+        break;
+    default:
+        cout << "Unsupported tree type!" << endl;
+        return;
+    }
+
+    switch (cluster_tree_->type()) {
+    case TreeCommon::GEO_HIERARCHICAL_TREE:
+    case TreeCommon::GEO_NCUTS_TREE:
+    case TreeCommon::GEO_MULTI_LABEL_TREE:
+    {
+        // TODO: Generate hierarchical data structure
+    }
+        break;
+    case TreeCommon::KNN_MULTI_LABEL_TREE:
+        break;
+    default:
+        break;
+    }
+
+    UpdateGlyphWidget();
+}
+
 void ScatterPointGlyph::OnSplitClusterTriggered() {
     /*if (selected_cluster_ids_.size() != 1) {
         QMessageBox::warning(this, tr("Warning"), tr("Splitting is only supported for one selected cluster!"));
@@ -703,7 +739,6 @@ void ScatterPointGlyph::OnRecursiveSplittingTriggered() {
 
     this->UpdateAllViews();*/
 }
-
 
 void ScatterPointGlyph::OnMergeClusterTriggered() {
     /*if (selected_cluster_ids_.size() <= 1) {
@@ -762,14 +797,14 @@ void ScatterPointGlyph::UpdateMenus() {
 	}
 
     // update axis names
-    ui_projection_control_.xAxisComboBox->clear();
+    /*ui_projection_control_.xAxisComboBox->clear();
     ui_projection_control_.yAxisComboBox->clear();
     for (int i = 0; i < var_names.size(); ++i) {
         ui_projection_control_.xAxisComboBox->addItem(var_names[i]);
         ui_projection_control_.yAxisComboBox->addItem(var_names[i]);
     }
     ui_projection_control_.xAxisComboBox->setCurrentIndex(0);
-    ui_projection_control_.yAxisComboBox->setCurrentIndex(1);
+    ui_projection_control_.yAxisComboBox->setCurrentIndex(1);*/
 }
 
 

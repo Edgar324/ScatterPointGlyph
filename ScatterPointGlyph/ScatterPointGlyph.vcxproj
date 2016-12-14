@@ -269,7 +269,6 @@
     <ClCompile Include="hierarchical_tree.cpp" />
     <ClCompile Include="image_widget.cpp" />
     <ClCompile Include="indicator_widget.cpp" />
-    <ClCompile Include="leaf_builder.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="map_rendering_widget.cpp" />
     <ClCompile Include="multivariate_dataset.cpp" />
@@ -358,7 +357,6 @@
     <ClInclude Include="gmm.h" />
     <ClInclude Include="hierarchical_tree.h" />
     <ClInclude Include="image_widget.h" />
-    <ClInclude Include="leaf_builder.h" />
     <ClInclude Include="map_rendering_widget.h" />
     <ClInclude Include="multivariate_dataset.h" />
     <ClInclude Include="ncut_tree.h" />

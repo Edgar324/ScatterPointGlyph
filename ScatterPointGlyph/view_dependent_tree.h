@@ -24,7 +24,14 @@ public:
     virtual ~ViewDependentTree();
 
     virtual TreeType type() { return TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE; }
-    virtual void ConstructTree(float left, float right, float bottom, float top, float glyph_radius);
+    virtual void ConstructTree(float left, float right, float bottom, float top);
+
+protected:
+    float left_, right_, bottom_, top_;
+
+    virtual void BuildLeafs();
+    void BuildOnPixels();
+    void BuildOnRecords();
 };
 
 #endif

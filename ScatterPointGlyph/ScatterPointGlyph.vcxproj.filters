@@ -293,9 +293,6 @@
     <ClCompile Include="data_projector.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
-    <ClCompile Include="leaf_builder.cpp">
-      <Filter>Source Files\Tree</Filter>
-    </ClCompile>
     <ClCompile Include="glyph_object.cpp">
       <Filter>Source Files\Data</Filter>
     </ClCompile>
@@ -497,9 +494,6 @@
     </ClInclude>
     <ClInclude Include="data_projector.h">
       <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="leaf_builder.h">
-      <Filter>Header Files\Tree</Filter>
     </ClInclude>
     <ClInclude Include="multi_label_processor.h">
       <Filter>Header Files\GcOpt</Filter>

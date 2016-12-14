@@ -22,7 +22,7 @@ DataProjector::~DataProjector() {
 
 bool DataProjector::Project(Eigen::MatrixXd& records, Eigen::MatrixXd& projected_pos) {
     TapkeeOutput output = tapkee::initialize() 
-        .withParameters((method=tDistributedStochasticNeighborEmbedding, num_neighbors=5))
+        .withParameters((method=MultidimensionalScaling, target_dimension=2))
         .embedUsing(records);
 
     projected_pos = output.embedding;

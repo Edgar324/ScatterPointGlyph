@@ -45,7 +45,7 @@ public:
     virtual void AutoConstructTree(float std_dev_threshold = 0.0) = 0;
 
     // Construct a two-level tree based on the view dependent control
-    virtual void ConstructTree(float left, float right, float bottom, float top, float glyph_radius) = 0;
+    virtual void ConstructTree(float left, float right, float bottom, float top) = 0;
 
     // Clear the tree and generate the basic two-level tree with root and leaf nodes
     virtual void Clear() = 0;
@@ -55,6 +55,7 @@ protected:
 
 	CBranch* root_ = NULL;
     vector<CLeaf*> leaf_nodes_;
+
     map<int, CNode*> id_node_map_;
 
 	int max_level_ = 0;

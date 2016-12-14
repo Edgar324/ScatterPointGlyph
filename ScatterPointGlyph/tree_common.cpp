@@ -33,89 +33,12 @@ void TreeCommon::Initialize() {
 }
 
 void TreeCommon::GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) {
-
-    //if (this->type() == GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE || this->type() == KNN_MULTI_LABEL_TREE) {
-    //    this->ConstructTree(left, right, bottom, top, glyph_radius);
-    //}
-
-    //// Get nodes according to the average distance among all child nodes!!!
-    //pre_level_nodes.clear();
-    //current_level_nodes.clear();
-
-    //float expected_radius = glyph_radius * 2;
-    //float view_center_x = (left + right) / 2;
-    //float view_center_y = (top + bottom) / 2;
-    //float view_width = right - left;
-    //float view_height = top - bottom;
-
-    //if (this->type() == GEO_HIERARCHICAL_TREE) {
-    //    pre_level_nodes.push_back(root_);
-    //} else if (this->type() == GEO_NCUTS_TREE) {
-    //    int temp_level = 0;
-    //    vector<CNode*> level_nodes;
-    //    do {
-    //        temp_level++;
-    //        GetNodes(temp_level, level_nodes);
-    //    } while (level_nodes.size() < 8);
-    //    GetNodes(temp_level - 1, pre_level_nodes);
-    //} else {
-    //    queue<CNode*> node_queue;
-    //    node_queue.push(root_);
-    //    while (!node_queue.empty()) {
-    //    CNode* node = node_queue.front();
-    //    node->is_visible = false;
-    //    node_queue.pop();
-    //    if (node->type() != CNode::BRANCH) continue;
-
-    //    float center_x = node->center_pos[0] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[0][0];
-    //    float center_y = node->center_pos[1] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[1][0];
-    //    float node_width = (node->right - node->left) * mv_dataset_->max_pos_range;
-    //    float node_height = (node->top - node->bottom) * mv_dataset_->max_pos_range;
-
-
-    //    if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
-    //        && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2)) {
-    //        node->is_expanded = true;
-    //        if (node->average_dis < expected_radius * 4) {
-    //            pre_level_nodes.push_back(node);
-    //        } else {
-    //            CBranch* branch = (CBranch*)node;
-    //            for (int i = 0; i < branch->children.size(); ++i)
-    //                node_queue.push(branch->children[i]);
-    //        }
-    //    }
-    //}
-    //}
-
-    //for (int i = 0; i < pre_level_nodes.size(); ++i) {
-    //    CBranch* branch = (CBranch*)pre_level_nodes[i];
-    //    bool is_children_leaf = false;
-    //    for (int j = 0; j < branch->children.size(); ++j)
-    //        if (branch->children[j]->type() == CNode::LEAF) {
-    //            is_children_leaf = true;
-    //            break;
-    //        }
-    //    if (!is_children_leaf) {
-    //        for (int j = 0; j < branch->children.size(); ++j) {
-    //            CNode* node = branch->children[j];
-
-    //            float center_x = node->center_pos[0] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[0][0];
-    //            float center_y = node->center_pos[1] * mv_dataset_->max_pos_range + mv_dataset_->original_pos_ranges[1][0];
-    //            float node_width = (node->right - node->left) * mv_dataset_->max_pos_range;
-    //            float node_height = (node->top - node->bottom) * mv_dataset_->max_pos_range;
-
-    //            if (abs(view_center_x - center_x)  < (node_width / 2 + view_width / 2)
-    //                && abs(view_center_y - center_y) < (node_height / 2 + view_height / 2))
-    //                current_level_nodes.push_back(branch->children[j]);
-    //        }
-    //    } else {
-    //        current_level_nodes.push_back(branch);
-    //    }
-    //}
-    //for (int i = 0; i < current_level_nodes.size(); ++i) {
-    //    current_level_nodes[i]->is_expanded = false;
-    //    current_level_nodes[i]->is_visible = true;
-    //}
+    if (this->type() == GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE) {
+        this->ConstructTree(left, right, bottom, top);
+        nodes = root_->children();
+    } else {
+        cout << "GetNodes(float, float, float, float) is not supported for non-view-dependent tree" << endl;
+    }
 }
 
 void TreeCommon::GetNodes(int level, vector<CNode*>& level_nodes) {

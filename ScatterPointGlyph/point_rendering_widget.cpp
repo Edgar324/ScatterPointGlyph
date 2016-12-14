@@ -55,8 +55,7 @@ PointRenderingWidget::PointRenderingWidget() {
 	actor_->GetProperty()->SetPointSize(6);
 	actor_->GetProperty()->SetColor(0.8, 0.8, 0.8);
 
-    bar_actor_ = vtkPVScalarBarActor::New();
-    //bar_actor_->SetNumberOfLabels(2);
+    /*bar_actor_ = vtkPVScalarBarActor::New();
     bar_actor_->SetMaximumWidthInPixels(20);
     bar_actor_->SetWidth(0.05);
     bar_actor_->GetLabelTextProperty()->SetFontFamilyToArial();
@@ -71,7 +70,7 @@ PointRenderingWidget::PointRenderingWidget() {
     bar_actor_->GetTitleTextProperty()->SetFontSize(5);
     bar_actor_->SetPosition(0.91, 0.1);
     bar_actor_->SetHeight(0.7);
-    bar_actor_->SetVisibility(false);
+    bar_actor_->SetVisibility(false);*/
 
     scalar_lookup_table_ = vtkLookupTable::New();
     scalar_lookup_table_->SetValueRange(0, 1.0);
@@ -109,16 +108,12 @@ void PointRenderingWidget::SetViewpot(float left, float right, float bottom, flo
 }
 
 void PointRenderingWidget::BuildPointRepresentation() {
-    /*vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
+    vtkSmartPointer< vtkPoints > original_points = vtkSmartPointer< vtkPoints >::New();
 	vtkSmartPointer< vtkPolyData > original_point_poly = vtkSmartPointer< vtkPolyData >::New();
 	original_point_poly->SetPoints(original_points);
-	for (int i = 0; i < dataset_->original_point_pos[0].size(); ++i){
-        if (!dataset_->is_valid[i]) continue;
-		double new_pos[3];
-		new_pos[0] = dataset_->original_point_pos[0][i];
-		new_pos[1] = dataset_->original_point_pos[1][i];
-		new_pos[2] = -0.1;
-		original_points->InsertNextPoint(new_pos);
+	for (int i = 0; i < dataset_->record_num(); ++i){
+		double* pos = dataset_->GetRecordPos(i);
+		original_points->InsertNextPoint(pos[0], pos[1], -0.1);
 	}
 
 	vtkSmartPointer< vtkVertexGlyphFilter > original_vertex_filter = vtkSmartPointer< vtkVertexGlyphFilter >::New();
@@ -132,14 +127,13 @@ void PointRenderingWidget::BuildPointRepresentation() {
 	vtkUnsignedCharArray* colors = vtkUnsignedCharArray::New();
     colors->SetName("color");
 	colors->SetNumberOfComponents(4);
-	for (int i = 0; i < dataset_->original_point_pos[0].size(); ++i) {
-        if (!dataset_->is_valid[i]) continue;
+	for (int i = 0; i < dataset_->record_num(); ++i) {
 		colors->InsertNextTuple4(150, 150, 150, 255);
 	}
 	poly_data_->GetPointData()->SetScalars(colors);
 
     poly_data_->Modified();
-	actor_->Modified();*/
+	actor_->Modified();
 }
 
 void PointRenderingWidget::BuildDensityRepresentation() {
@@ -165,7 +159,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 1;
 
 		this->CurrentRenderer->AddActor(this->actor_);
-        this->CurrentRenderer->AddActor(this->bar_actor_);
+        //this->CurrentRenderer->AddActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::EnableEvent,NULL);
 	}
@@ -175,7 +169,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->CurrentRenderer->RemoveActor(this->actor_);
-        this->CurrentRenderer->RemoveActor(this->bar_actor_);
+        //this->CurrentRenderer->RemoveActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::DisableEvent,NULL);
         this->SetCurrentRenderer(NULL);

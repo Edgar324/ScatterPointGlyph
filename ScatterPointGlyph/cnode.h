@@ -29,7 +29,7 @@ public:
     const vector<double>& std_deviations() { return std_deviations_; }
 
     // Update the statistics for the cluster of data
-    void Update(bool value = true, bool pos = true, bool std_dev = true);
+    void Update(bool update_value = true, bool update_pos = true);
 
 protected:
     MultivariateDataset* mv_dataset_ = NULL;
@@ -39,6 +39,8 @@ protected:
 	vector<double> mean_pos_;
 	vector<double> mean_values_;
 	vector<double> std_deviations_;
+
+    void GetNodeRecords(vector<int>& record_ids);
 
 private:
 	int level_;
@@ -56,16 +58,20 @@ public:
 
 	virtual CNode::NodeType type() { return CNode::LEAF; }
 
-    const vector<int>& point_ids() { return point_ids_; }
+    const vector<int>& record_ids() { return record_ids_; }
+    void ClearRecords();
+    void AppendRecord(int record_id);
 
 protected:
-	vector<int> point_ids_;
+	vector<int> record_ids_;
 };
 
 class CBranch : public CNode
 {
 public:
+    CBranch(MultivariateDataset* dataset_t);
 	CBranch(MultivariateDataset* dataset_t, vector<CNode*>& children_t);
+    CBranch(MultivariateDataset* dataset_t, vector<CLeaf*>& children_t);
 	virtual ~CBranch();
 
 	virtual CNode::NodeType type() { return CNode::BRANCH; }

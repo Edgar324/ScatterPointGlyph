@@ -44,6 +44,12 @@ public:
     const vector<QString>& var_names() { return var_names_; }
     const vector<double>& var_weights() { return var_weights_; }
     const vector<QColor>& var_colors() { return var_colors_; }
+    bool is_projected() { return is_projected_; }
+
+    double* GetRecordPos(int i);
+    void GetPosRanges(double& left, double& right, double& bottom, double& top);
+    void GetAveragePos(const vector<int>& record_ids, double& x, double& y);
+    void GetAverageValues(const vector<int>& record_ids, vector<double>& values, vector<double>& std_deviations);
 
     // Return the distance of two data records
     // @param record_one record_two The index of two records
@@ -60,6 +66,8 @@ protected:
 	vector<QString> var_names_;
     vector<QColor> var_colors_;
 
+    bool is_projected_ = false;
+
     // Currently not used, all assigned to 1.0 / var_num_
     vector<double> var_weights_;
 
@@ -68,6 +76,8 @@ protected:
 
     Eigen::MatrixXd projected_pos_;
     Eigen::MatrixXd pos_ranges_;
+
+    double temp_pos_[2];
 
 private:
     // File reading status

@@ -58,7 +58,7 @@ void Utility::Sort(std::vector<float>& index_one, std::vector<int>& index_two) {
 			}
 }
 
-void Utility::Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& connecting_status, double& min_edge_length) {
+void Utility::Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& connecting_status) {
 	connecting_status.resize(pos.size());
 	for (int i = 0; i < pos.size(); ++i) {
 		connecting_status[i].resize(pos.size());
@@ -68,30 +68,21 @@ void Utility::Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& c
         for (int i = 0; i < connecting_status.size(); ++i)
             for (int j = 0; j < connecting_status[i].size(); ++j)
                 connecting_status[i][j] = true;
-        if (connecting_status.size() <= 1)
-            min_edge_length = 0;
-        else
-        {
-            min_edge_length = sqrt(pow(pos[0][0] - pos[1][0], 2) + pow(pos[0][1] - pos[1][1], 2));
-        }
         return;
     }
 
-	vtkSmartPointer< vtkPoints > points = vtkSmartPointer< vtkPoints >::New();
+	vtkSmartPointer<vtkPoints> points = vtkSmartPointer< vtkPoints >::New();
 	for (int i = 0; i < pos.size(); ++i) {
 		points->InsertNextPoint(pos[i][0], pos[i][1], 0);
 	}
-	vtkSmartPointer< vtkPolyData > polydata = vtkSmartPointer<vtkPolyData>::New();
+	vtkSmartPointer<vtkPolyData> polydata = vtkSmartPointer<vtkPolyData>::New();
 	polydata->SetPoints(points);
-	vtkSmartPointer< vtkDelaunay2D > delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
+	vtkSmartPointer<vtkDelaunay2D> delaunay = vtkSmartPointer<vtkDelaunay2D>::New();
 	delaunay->SetInputData(polydata);
 	delaunay->SetTolerance(0.0000001);
 	delaunay->SetBoundingTriangulation(false);
 	delaunay->Update();
 	vtkPolyData* triangle_out = delaunay->GetOutput();
-
-	min_edge_length = 0.0;
-	int edge_count = 0;
 
 	vtkIdTypeArray* idarray = triangle_out->GetPolys()->GetData();
 	float min_dis = 1e10;
@@ -106,21 +97,7 @@ void Utility::Triangulation(vector<vector<double>>& pos, vector<vector<bool>>& c
 		connecting_status[id3][id2] = true;
 		connecting_status[id1][id3] = true;
 		connecting_status[id3][id1] = true;
-
-		float temp_dis;
-		temp_dis = sqrt(pow(pos[id1][0] - pos[id2][0], 2)
-			+ pow(pos[id1][1] - pos[id2][1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
-
-		temp_dis = sqrt(pow(pos[id1][0] - pos[id3][0], 2)
-			+ pow(pos[id1][1] - pos[id3][1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
-
-		temp_dis = sqrt(pow(pos[id3][0] - pos[id2][0], 2)
-			+ pow(pos[id3][1] - pos[id2][1], 2));
-		if (temp_dis < min_dis) min_dis = temp_dis;
 	}
-	min_edge_length = min_dis;
 
     int unconnected_count = 0;
     for (int i = 0; i < connecting_status.size(); ++i){

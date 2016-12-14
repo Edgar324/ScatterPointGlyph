@@ -53,7 +53,7 @@ void GlyphDatasetBuilder::Build(MultivariateDataset* mv_dataset, vector<int>& se
         colors.push_back(mv_dataset->var_colors()[selected_vars[i]]);
     }
 
-    int max_point_count = -1;
+    int max_point_count = 0;
     for (int i = 0; i < visible_nodes.size(); ++i)
         if (visible_nodes[i]->point_count() > max_point_count)
             max_point_count = visible_nodes[i]->point_count();
