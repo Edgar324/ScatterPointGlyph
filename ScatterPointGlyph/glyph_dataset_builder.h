@@ -34,6 +34,8 @@ public:
     // J. Harel, C. Koch, and P. Perona. Graph-based visual saliency. In Advances
     // in neural information processing systems, pages 545¨C552, 2006.
     static void EvaluateSaliency(MultivariateDataset* mv_dataset, vector<CNode*>& nodes, vector<float>& node_saliency);
+
+    static void Project(vector<vector<float>>& values, vector<vector<double>>& pos);
 };
 
 #endif

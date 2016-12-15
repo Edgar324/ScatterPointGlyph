@@ -14,6 +14,7 @@
 #include "glyph_object.h"
 #include "glyph_dataset.h"
 #include "utility.h"
+#include "data_projector.h"
 
 void GlyphDatasetBuilder::Build(MultivariateDataset* mv_dataset, vector<int>& selected_var_index,
     TreeCommon* tree, float left, float right, float bottom, float top, 
@@ -21,7 +22,17 @@ void GlyphDatasetBuilder::Build(MultivariateDataset* mv_dataset, vector<int>& se
 
     // Get visible nodes
     vector<CNode*> visible_nodes;
-    tree->GetNodes(left, right, bottom, top, visible_nodes);
+
+    switch (tree->type()) {
+    case TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE:
+        tree->GetNodes(left, right, bottom, top, visible_nodes);
+        break;
+    case TreeCommon::KNN_MULTI_LABEL_TREE:
+        tree->GetNodes(1, visible_nodes);
+        break;
+    default:
+        break;
+    }
 
     // Generate axis order
     vector<vector<float>> mean_values;
@@ -39,12 +50,29 @@ void GlyphDatasetBuilder::Build(MultivariateDataset* mv_dataset, vector<int>& se
     if (mean_values.size() > 2) {
         Utility::GenerateAxisOrder(mean_values, axis_order);
     }
+
     vector<int> selected_vars;
     selected_vars.resize(axis_order.size());
     for (int i = 0; i < axis_order.size(); ++i)
         selected_vars[i] = selected_var_index[axis_order[i]];
 
     selected_var_index = selected_vars;
+
+    vector<vector<double>> mean_pos;
+    switch (tree->type()) {
+    case TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE: {
+            for (int i = 0; i < visible_nodes.size(); i++)
+                mean_pos.push_back(visible_nodes[i]->mean_pos());
+        }
+        break;
+    case TreeCommon::KNN_MULTI_LABEL_TREE: {
+            GlyphDatasetBuilder::Project(mean_values, mean_pos);
+        }
+        break;
+    default:
+        break;
+    }
+
 
     vector<QString> names;
     vector<QColor> colors;
@@ -89,7 +117,7 @@ void GlyphDatasetBuilder::Build(MultivariateDataset* mv_dataset, vector<int>& se
 
         GlyphObject* object = new GlyphObject(node->id(),
             names, colors, means, std_devs, node_saliency[i], node->point_count(), max_point_count, 
-            glyph_half_size, node->mean_pos()[0], node->mean_pos()[1], is_expandable);
+            glyph_half_size, mean_pos[i][0], mean_pos[i][1], is_expandable);
 
         glyph_dataset->AddGlyphObject(object);
     }
@@ -136,4 +164,19 @@ void GlyphDatasetBuilder::EvaluateSaliency(MultivariateDataset* mv_dataset, vect
     //    node_saliency.resize(nodes.size());
     //    node_saliency.assign(nodes.size(), 0.5);
     //}
+}
+
+void GlyphDatasetBuilder::Project(vector<vector<float>>& values, vector<vector<double>>& pos) {
+    Eigen::MatrixXd value_mat(values[0].size(), values.size());
+    for (int i = 0; i < values[0].size(); i++)
+        for (int j = 0; j < values.size(); j++)
+            value_mat(i, j) = values[j][i];
+    Eigen::MatrixXd pos_mat(values.size(), 2);
+    DataProjector projector;
+    projector.Project(value_mat, pos_mat);
+    pos.resize(values.size(), vector<double>(2));
+    for (int i = 0; i < values.size(); i++) {
+        pos[i][0] = pos_mat(i, 0);
+        pos[i][1] = pos_mat(i, 1);
+    }
 }

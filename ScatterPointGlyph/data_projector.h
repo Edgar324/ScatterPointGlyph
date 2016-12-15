@@ -13,6 +13,8 @@
 
 #define EIGEN_RUNTIME_NO_MALLOC
 
+#include <vector>
+using namespace std;
 #include <Eigen/Dense>
 #include "data_core.h"
 

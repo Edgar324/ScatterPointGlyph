@@ -220,5 +220,100 @@ void MultiLabelProcessor::GenerateCluster(const vector<vector<double>>& pos, con
 void MultiLabelProcessor::GenerateCluster(const vector<vector<double>>& value, 
     const vector<double>& weights, const vector<vector<bool>>& edges, 
     double radius, vector<vector<int>>& clusters) {
-    cout << "Currently not implemented!" << endl;
+
+    int point_num = value.size();
+    max_radius_ = radius;
+
+    // Update distance matrix for model extraction
+    dis_mat_.clear();
+    dis_mat_.resize(point_num, vector<double>(point_num, 1e10));
+    average_value_dis_ = 0.0;
+    int connected_edge_num = 0;
+    double value_dis;
+	for (int i = 0; i < point_num - 1; ++i)
+		for (int j = i + 1; j < point_num; ++j)
+            if (edges[i][j]) {
+                value_dis = 0;
+                for (int k = 0; k < weights.size(); ++k)
+                    value_dis += abs(value[i][k] - value[j][k]) * weights[k];
+                average_value_dis_ += value_dis;
+                connected_edge_num++;
+
+                dis_mat_[i][j] = value_dis;
+                dis_mat_[j][i] = dis_mat_[i][j];
+            }
+    if (connected_edge_num != 0) average_value_dis_ /= connected_edge_num;
+
+    // Extract models using the distance matrix
+    ExtractEstimatedModels(edges);
+
+    // Generate energies
+	label_cost_.resize(point_num);
+	label_cost_.assign(point_num, -1);
+
+	smooth_cost_.resize(point_num);
+	for (int i = 0; i < point_num; ++i) {
+		smooth_cost_[i].resize(point_num);
+		smooth_cost_[i].assign(point_num, -1);
+	}
+
+	data_cost_.resize(point_num);
+	for (int i = 0; i < point_num; ++i) {
+		data_cost_[i].resize(point_num);
+		data_cost_[i].assign(point_num, -1);
+	}
+
+	vector<vector<double>> average_values;
+	average_values.resize(point_num);
+
+	for (int i = 0; i < point_num; ++i) {
+		int model_size = estimated_models_[i].size();
+
+		average_values[i].resize(weights.size(), 0);
+
+		for (int j = 0; j < model_size; ++j) {
+			int site_index = estimated_models_[i][j];
+			for (int k = 0; k < weights.size(); ++k)
+				average_values[i][k] += value[site_index][k];
+		}
+		for (int k = 0; k < weights.size(); ++k)
+			average_values[i][k] /= model_size;
+
+		float value_var = 0;
+		for (int j = 0; j < model_size; ++j) {
+			int site_index = estimated_models_[i][j];
+			double value_dis = 0;
+			for (int k = 0; k < weights.size(); ++k)
+				value_dis += abs(value[site_index][k] - average_values[i][k]) * weights[k];
+
+			data_cost_[site_index][i] = value_dis;
+
+			value_var += pow(value_dis, 2);
+		}
+        if (model_size > 1)
+            value_var = sqrt(value_var / (model_size - 1));
+        else
+		    value_var = sqrt(value_var / model_size);
+		label_cost_[i] = label_cost_rate_* value_var * point_num + 0.01;
+	}
+
+	for (int i = 0; i < point_num; ++i){
+		smooth_cost_[i][i] = 0;
+
+		for (int j = i + 1; j < point_num; ++j) {
+            smooth_cost_[i][j] = average_value_dis_;
+
+			smooth_cost_[j][i] = smooth_cost_[i][j];
+		}
+	}
+
+	for (int i = 0; i < label_cost_.size(); ++i) {
+		if (label_cost_[i] < 0) label_cost_[i] = 100.0;
+	}
+	for (int i = 0; i < data_cost_.size(); ++i)
+		for (int j = 0; j < data_cost_[i].size(); ++j) {
+			if (data_cost_[i][j] < 0) data_cost_[i][j] = 100.0;
+		}
+
+    GenerateCluster(edges, clusters);
 }

@@ -52,6 +52,7 @@ void KnnGraph::BuildGraph(int nearest_neighbors, const vector<vector<double>>& v
         for (int j = nearest_neighbors + 1; j < node_num; j++) {
             knn_vec.push_back(KnnNode{ dis_mat[i][j], j });
             push_heap(knn_vec.begin(), knn_vec.end(), cmp_knn);
+            pop_heap(knn_vec.begin(), knn_vec.end(), cmp_knn);
             knn_vec.pop_back();
         }
 

@@ -25,6 +25,7 @@
 #include "multi_label_tree.h"
 #include "ncut_tree.h"
 #include "view_dependent_tree.h"
+#include "knn_multi_label_tree.h"
 
 #include "glyph_rendering_widget.h"
 #include "parallel_coordinate.h"
@@ -415,7 +416,8 @@ void ScatterPointGlyph::InitExploration() {
     case ScatterPointGlyph::VIEW_DEPENDENT_MODE:
         cluster_tree_ = new ViewDependentTree(mv_dataset_);
         break;
-    case ScatterPointGlyph::CLUSTER_PROJECTION_MODE:
+    case ScatterPointGlyph::KNN_MULTI_LABEL_MODE:
+        cluster_tree_ = new KnnMultiLabelTree(mv_dataset_);
         break;
 	default:
 		break;
@@ -696,6 +698,9 @@ void ScatterPointGlyph::OnActionExecTriggered() {
     }
         break;
     case TreeCommon::KNN_MULTI_LABEL_TREE:
+    {
+        cluster_tree_->AutoConstructTree(0.2);
+    }
         break;
     default:
         break;

@@ -62,7 +62,7 @@ public:
 		NCUTS_MODE,
 		MULTI_LABEL_MODE,
         VIEW_DEPENDENT_MODE,
-        CLUSTER_PROJECTION_MODE
+        KNN_MULTI_LABEL_MODE
 	};
 
 protected:
@@ -115,7 +115,7 @@ private:
 	MultivariateDataset* mv_dataset_ = NULL;
     vector<int> selected_var_index_;
 
-    ClusteringMode clustering_mode_ = VIEW_DEPENDENT_MODE;
+    ClusteringMode clustering_mode_ = KNN_MULTI_LABEL_MODE;
     // thresholds for each cluster method
 	float multi_label_threshold_ = 0.1;
 	float ncuts_threshold_ = 0.1;
