@@ -22,6 +22,11 @@ ViewDependentTree::~ViewDependentTree() {
 
 }
 
+void ViewDependentTree::GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) {
+    this->ConstructTree(left, right, bottom, top);
+    nodes = root_->children();
+}
+
 void ViewDependentTree::ConstructTree(float left, float right, float bottom, float top) {
     left_ = left;
     right_ = right;

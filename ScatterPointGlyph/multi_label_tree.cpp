@@ -1,5 +1,7 @@
 #include "multi_label_tree.h"
 #include <queue>
+#include <iostream>
+using namespace std;
 #include "multivariate_dataset.h"
 #include "multi_label_processor.h"
 #include "utility.h"
@@ -12,6 +14,41 @@ MultiLabelTree::MultiLabelTree(MultivariateDataset* data)
 
 MultiLabelTree::~MultiLabelTree() {
 
+}
+
+void MultiLabelTree::GetNodes(int level, vector<CNode*>& level_nodes) {
+    level_nodes.clear();
+
+    queue<CNode*> node_queue;
+    node_queue.push(root_);
+
+    while (!node_queue.empty()) {
+        CNode* temp_node = node_queue.front();
+        node_queue.pop();
+
+        if (temp_node->level() == level && temp_node->type() != CNode::LEAF) {
+            level_nodes.push_back(temp_node);
+        } else if (temp_node->type() == CNode::BRANCH) {
+            CBranch* branch_node = (CBranch*)temp_node;
+            bool is_children_all_leaf = true;
+            for (int i = 0; i < branch_node->children().size(); ++i)
+                if (branch_node->children()[i]->type() == CNode::BRANCH) {
+                    is_children_all_leaf = false;
+                    break;
+                }
+            if (is_children_all_leaf) {
+                level_nodes.push_back(temp_node);
+            } else {
+                for (int i = 0; i < branch_node->children().size(); ++i)
+                node_queue.push(branch_node->children()[i]);
+            }
+        }
+    }
+}
+
+void MultiLabelTree::GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) {
+    cout << "View dependent GetNodes is not supported in multilabel tree" << endl;
+    return;
 }
 
 void MultiLabelTree::SplitNode(CBranch* root_node) {

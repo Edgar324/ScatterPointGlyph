@@ -55,7 +55,8 @@ public:
     // @param record_one record_two The index of two records
     // @param ratio The ratio of data distance in the result, dis = ratio * data_dis + (1.0 - ratio) * geo_dis.
     //              The default ratio is 1.0 for regular multivariate data and can be adjusted for geospatial multivariate data
-    virtual double Distance(int record_one, int record_two, double ratio = 0.5f);
+    virtual double Distance(int record_one, int record_two);
+    virtual double Distance(int record_one, int record_two, double ratio);
     
     virtual bool ApplyProjection(DataProjector* projector);
 

@@ -25,14 +25,14 @@ public:
 	MultivariateDataset* mv_dataset() { return mv_dataset_; }
     int max_level() { return this->max_level_; }
 
-    // Return nodes that are in a specified level. Hierarchical control.
-    void GetNodes(int level, vector<CNode*>& level_nodes);
-
-    // Return nodes that are best fit for the view. View dependent control.
-    void GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes);
-
     // Return a node according to its id
     CNode* GetNode(int node_id);
+
+    // Return nodes that are in a specified level. Hierarchical control.
+    virtual void GetNodes(int level, vector<CNode*>& level_nodes) = 0;
+
+    // Return nodes that are best fit for the view. View dependent control.
+    virtual void GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) = 0;
 
     virtual TreeType type() = 0;
 

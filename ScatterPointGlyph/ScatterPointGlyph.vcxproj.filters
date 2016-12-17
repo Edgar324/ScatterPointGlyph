@@ -75,12 +75,6 @@
     <Filter Include="Source Files\Glyph">
       <UniqueIdentifier>{1cbe433f-b510-4f77-8dca-dc451dfb5cd8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Data Oriented">
-      <UniqueIdentifier>{086bacdf-a8f5-4d8f-a2b2-8ff093afb748}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Data Oriented">
-      <UniqueIdentifier>{2a8ccda9-f262-429b-b0c8-4ce7a13efa4d}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -269,23 +263,8 @@
     <ClCompile Include="qvtk_rendering_widget.cpp">
       <Filter>Source Files\Views</Filter>
     </ClCompile>
-    <ClCompile Include="image_widget.cpp">
-      <Filter>Source Files\Data Oriented</Filter>
-    </ClCompile>
-    <ClCompile Include="connector_widget.cpp">
-      <Filter>Source Files\Data Oriented</Filter>
-    </ClCompile>
     <ClCompile Include="multivariate_dataset.cpp">
       <Filter>Source Files\Data</Filter>
-    </ClCompile>
-    <ClCompile Include="edge_node.cpp">
-      <Filter>Source Files\Data Oriented</Filter>
-    </ClCompile>
-    <ClCompile Include="gaussian_tree.cpp">
-      <Filter>Source Files\Data Oriented</Filter>
-    </ClCompile>
-    <ClCompile Include="gmm.cpp">
-      <Filter>Source Files\Data Oriented</Filter>
     </ClCompile>
     <ClCompile Include="geo_multivariate_dataset.cpp">
       <Filter>Source Files\Data</Filter>
@@ -310,6 +289,12 @@
     </ClCompile>
     <ClCompile Include="knn_graph.cpp">
       <Filter>Source Files\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="image_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
+    <ClCompile Include="connector_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -477,23 +462,8 @@
     <ClInclude Include="map_rendering_widget.h">
       <Filter>Header Files\Glyph</Filter>
     </ClInclude>
-    <ClInclude Include="image_widget.h">
-      <Filter>Header Files\Data Oriented</Filter>
-    </ClInclude>
-    <ClInclude Include="connector_widget.h">
-      <Filter>Header Files\Data Oriented</Filter>
-    </ClInclude>
     <ClInclude Include="multivariate_dataset.h">
       <Filter>Header Files\Data</Filter>
-    </ClInclude>
-    <ClInclude Include="gaussian_tree.h">
-      <Filter>Header Files\Data Oriented</Filter>
-    </ClInclude>
-    <ClInclude Include="edge_node.h">
-      <Filter>Header Files\Data Oriented</Filter>
-    </ClInclude>
-    <ClInclude Include="gmm.h">
-      <Filter>Header Files\Data Oriented</Filter>
     </ClInclude>
     <ClInclude Include="geo_multivariate_dataset.h">
       <Filter>Header Files\Data</Filter>
@@ -512,6 +482,12 @@
     </ClInclude>
     <ClInclude Include="knn_graph.h">
       <Filter>Header Files\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="connector_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="image_widget.h">
+      <Filter>Header Files\Glyph</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

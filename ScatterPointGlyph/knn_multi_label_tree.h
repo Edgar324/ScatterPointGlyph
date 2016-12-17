@@ -24,7 +24,13 @@ public:
 	virtual ~KnnMultiLabelTree();
 
     virtual TreeType type() { return TreeCommon::KNN_MULTI_LABEL_TREE; }
+
+    virtual void GetNodes(int level, vector<CNode*>& level_nodes);
+    virtual void GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes);
+
     virtual void SplitNode(CBranch* node);
+    void SplitNodes(int level, vector<CBranch*>& nodes);
+
     virtual void AutoConstructTree(float std_dev_threshold);
     virtual void ConstructTree(float left, float right, float bottom, float top);
     virtual void Clear();
@@ -32,7 +38,12 @@ public:
 protected:
     MultiLabelProcessor* processor_ = NULL;
 
+    vector<vector<CNode*>> exploration_path_;
+
+    vector<int> current_records_;
+
     int nearest_neighbors_ = 5;
+    double radius_scale_ = 0.1;
 
     const int SCALE_NODE_SIZE = 2000;
     const int LEAF_RESO_SIZE = 1000;

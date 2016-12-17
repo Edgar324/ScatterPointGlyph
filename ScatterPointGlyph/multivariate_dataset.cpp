@@ -75,6 +75,15 @@ double MultivariateDataset::Distance(int record_one, int record_two, double rati
     return 0.0;
 }
 
+double MultivariateDataset::Distance(int record_one, int record_two) {
+    double distance = 0;
+    for (int i = 0; i < var_num_; i++)
+        distance += pow(records_(i, record_one) - records_(i, record_two), 2) * var_weights_[i];
+    distance = sqrt(distance);
+
+    return distance;
+}
+
 bool MultivariateDataset::ApplyProjection(DataProjector* projector) {
     projector->Project(records_, projected_pos_);
     is_projected_ = true;

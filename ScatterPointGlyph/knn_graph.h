@@ -14,6 +14,8 @@
 #include <vector>
 using namespace std;
 
+class MultivariateDataset;
+
 struct KnnNode {
     double dis;
     int index;
@@ -33,6 +35,11 @@ public:
     ~KnnGraph();
 
     void BuildGraph(int nearest_neighbors, const vector<vector<double>>& values, const vector<double>& weights, vector<vector<bool>>& connecting);
+    double max_distance() { return max_distance_; }
+
+private:
+    double max_distance_ = 0;
+
 };
 
 #endif

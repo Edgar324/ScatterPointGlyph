@@ -32,45 +32,6 @@ void TreeCommon::Initialize() {
     max_level_ = 1;
 }
 
-void TreeCommon::GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes) {
-    if (this->type() == GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE) {
-        this->ConstructTree(left, right, bottom, top);
-        nodes = root_->children();
-    } else {
-        cout << "GetNodes(float, float, float, float) is not supported for non-view-dependent tree" << endl;
-    }
-}
-
-void TreeCommon::GetNodes(int level, vector<CNode*>& level_nodes) {
-    level_nodes.clear();
-
-    queue<CNode*> node_queue;
-    node_queue.push(root_);
-
-    while (!node_queue.empty()) {
-        CNode* temp_node = node_queue.front();
-        node_queue.pop();
-
-        if (temp_node->level() == level && temp_node->type() != CNode::LEAF) {
-            level_nodes.push_back(temp_node);
-        } else if (temp_node->type() == CNode::BRANCH) {
-            CBranch* branch_node = (CBranch*)temp_node;
-            bool is_children_all_leaf = true;
-            for (int i = 0; i < branch_node->children().size(); ++i)
-                if (branch_node->children()[i]->type() == CNode::BRANCH) {
-                    is_children_all_leaf = false;
-                    break;
-                }
-            if (is_children_all_leaf) {
-                level_nodes.push_back(temp_node);
-            } else {
-                for (int i = 0; i < branch_node->children().size(); ++i)
-                node_queue.push(branch_node->children()[i]);
-            }
-        }
-    }
-}
-
 CNode* TreeCommon::GetNode(int node_id) {
     map<int, CNode*>::iterator iter = id_node_map_.find(node_id);
     if (iter != id_node_map_.end()) return iter->second;

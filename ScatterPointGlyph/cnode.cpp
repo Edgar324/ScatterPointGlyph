@@ -113,7 +113,7 @@ CBranch::CBranch(MultivariateDataset* dataset_t)
 }
 
 CBranch::~CBranch() {
-	for (int i = 0; i < children_.size(); ++i)
+	for (int i = 0; i < children_.size(); ++i) 
 		delete children_[i];
 	children_.clear();
 }

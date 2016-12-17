@@ -64,7 +64,7 @@ void ConnectorWidget::ProcessEvents(vtkObject* object, unsigned long event, void
 }
 
 void ConnectorWidget::OnMouseMove() {
-    cout << "Image widget move" << endl;
+
 }
 
 void ConnectorWidget::OnLeftButtonDown() {

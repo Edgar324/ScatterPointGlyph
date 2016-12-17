@@ -11,6 +11,9 @@ public:
 	MultiLabelTree(MultivariateDataset* data);
 	virtual ~MultiLabelTree();
 
+    virtual void GetNodes(int level, vector<CNode*>& level_nodes);
+    virtual void GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes);
+
     virtual TreeType type() { return TreeCommon::GEO_MULTI_LABEL_TREE; }
     virtual void SplitNode(CBranch* node);
     virtual void AutoConstructTree(float std_dev_threshold);

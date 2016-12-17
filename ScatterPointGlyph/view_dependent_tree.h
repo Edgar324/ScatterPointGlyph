@@ -23,6 +23,8 @@ public:
     ViewDependentTree(MultivariateDataset* data);
     virtual ~ViewDependentTree();
 
+    virtual void GetNodes(float left, float right, float bottom, float top, vector<CNode*>& nodes);
+
     virtual TreeType type() { return TreeCommon::GEO_VIEW_DEPENDENT_MULTI_LABEL_TREE; }
     virtual void ConstructTree(float left, float right, float bottom, float top);
 
