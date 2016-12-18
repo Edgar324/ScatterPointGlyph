@@ -27,38 +27,31 @@ void VolumeRenderer::SetData(int* sizes_t, float* spacings_t, GLenum data_format
     win_width_slider->setRange(1, transfer_function_1d_widget_->max_value() - transfer_function_1d_widget_->min_value());
     win_width_slider->setValue(transfer_function_1d_widget_->max_value() - transfer_function_1d_widget_->min_value());
 
-    OnTransferFunctionChanged();
-    float min_val = transfer_function_1d_widget_->min_value();
-    float max_val = transfer_function_1d_widget_->max_value();
-    int class_num = (int)((max_val - min_val) / 255 + 0.4);
-
-    if (class_num != 0) {
-        vector<QColor> colors;
-        ColorMappingGenerator::GetInstance()->GetQualitativeColors(class_num, colors);
-
-        std::vector< float > tf_values;
-        tf_values.resize(4 * 256, 0);
-        float step = 255.0 / class_num;
-        float alpha = 1.0 / class_num;
-        float bin_index = step;
-        int color_index = 0;
-        while (bin_index <= 255) {
-            float red = colors[color_index].redF();
-            float green = colors[color_index].greenF();
-            float blue = colors[color_index].blueF();
-
-            for (int i = bin_index - 2; i <= bin_index + 2 && i <= 255; i++) {
-                tf_values[i * 4] = red;
-                tf_values[i * 4 + 1] = green;
-                tf_values[i * 4 + 2] = blue;
-                tf_values[i * 4 + 3] = alpha;
-            }
-            bin_index += step;
-            color_index++;
+    QImage image("white.bmp");
+    std::vector< float > pixel_data;
+    pixel_data.resize(image.width() * image.height() * 4, 1.0);
+    for ( int i = 0; i < image.height(); ++i )
+        for ( int j = 0; j < image.width(); ++j ){
+            QColor color = image.pixel(j, image.height() - 1 - i);
+            int index = (i * image.width() + j) * 4;
+            pixel_data[index] = color.redF();
+            pixel_data[index + 1] = color.greenF();
+            pixel_data[index + 2] = color.blueF();
+            pixel_data[index + 3] = color.alphaF();
         }
-        //volume_render_widget_->SetViewWindow((max_val + min_val) / 2, max_val - min_val);
-        volume_render_widget_->SetTransferFunction(tf_values.data(), 256);
-    }
+    std::vector< float > tf_values;
+    transfer_function_1d_widget_->GetTfColorAndAlpha(256, tf_values);
+
+    volume_render_widget_->SetData(sizes_t, spacings_t, data_format_t, data_t);
+    volume_render_widget_->SetTransferFunction(tf_values.data(), 256);
+    volume_render_widget_->SetBackgroundData(image.width(), image.height(), pixel_data);
+    volume_render_widget_->update();
+}
+
+void VolumeRenderer::SetData(int* sizes_t, float* spacings_t, unsigned char* data_t, vector<QColor>& colors) {
+    transfer_function_1d_widget_->setEnabled(false);
+    win_center_slider->setEnabled(false);
+    win_width_slider->setEnabled(false);
 
     QImage image("white.bmp");
     std::vector< float > pixel_data;
@@ -72,10 +65,29 @@ void VolumeRenderer::SetData(int* sizes_t, float* spacings_t, GLenum data_format
             pixel_data[index + 2] = color.blueF();
             pixel_data[index + 3] = color.alphaF();
         }
+    std::vector<float> tf_values;
+    tf_values.resize(4 * TF_ENTRY_NUM);
+    for (int i = 0; i < colors.size(); i++) {
+        tf_values[4 * i] = colors[i].redF();
+        tf_values[4 * i + 1] = colors[i].greenF();
+        tf_values[4 * i + 2] = colors[i].blueF();
+        tf_values[4 * i + 3] = colors[i].alphaF();
+    }
+    for (int i = colors.size(); i < TF_ENTRY_NUM; i++) {
+        tf_values[4 * i] = 0;
+        tf_values[4 * i + 1] = 0;
+        tf_values[4 * i + 2] = 0;
+        tf_values[4 * i + 3] = 0;
+    }
 
+    volume_render_widget_->SetData(sizes_t, spacings_t, GL_UNSIGNED_BYTE, data_t);
+    volume_render_widget_->SetTransferFunction(tf_values.data(), 256);
     volume_render_widget_->SetBackgroundData(image.width(), image.height(), pixel_data);
-    volume_render_widget_->SetData(sizes_t, spacings_t, data_format_t, data_t);
-    volume_render_widget_->OptimizeResult();
+    volume_render_widget_->update();
+}
+
+QImage* VolumeRenderer::GetRenderingImage() {
+    return volume_render_widget_->GetRenderingImage();
 }
 
 void VolumeRenderer::InitializeWidget(){

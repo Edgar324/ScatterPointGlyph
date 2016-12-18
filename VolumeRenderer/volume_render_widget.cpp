@@ -99,8 +99,6 @@ void VolumeRenderWidget::SetData(int* sizes_t, float* spacings_t, GLenum data_fo
     UpdateVolumeTexture();
 
     this->SetViewWindow((min_data_value_ + max_data_value_) / 2, max_data_value_ - min_data_value_);
-
-    this->updateGL();
 }
 
 void VolumeRenderWidget::SetBackgroundData(int w, int h, std::vector< float > image_data){
@@ -108,8 +106,6 @@ void VolumeRenderWidget::SetBackgroundData(int w, int h, std::vector< float > im
 
     glBindTexture(GL_TEXTURE_2D, background_tex_);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_FLOAT, background_image_data_.data());
-
-    this->updateGL();
 }
 
 void VolumeRenderWidget::SetViewWindow(float win_center_t, float win_width_t){
@@ -142,6 +138,25 @@ void VolumeRenderWidget::SetSampleStep(float sample_step_t){
     sample_step_ = sample_step_t;
 
     this->updateGL();
+}
+
+QImage* VolumeRenderWidget::GetRenderingImage() {
+    this->OptimizeResult();
+
+    QImage* current_image = new QImage(this->width(), this->height(), QImage::Format_ARGB32);
+    for (int i = 0; i < this->height(); i++)
+        for (int j = 0; j < this->width(); j++) {
+            int temp_index = this->width() * (this->height() - 1 - i) + j;
+            temp_index *= 4;
+            QColor temp_color;
+            temp_color.setRedF(optimization_pixel_values_[temp_index]);
+            temp_color.setGreenF(optimization_pixel_values_[temp_index + 1]);
+            temp_color.setBlueF(optimization_pixel_values_[temp_index + 2]);
+            temp_color.setAlphaF(optimization_pixel_values_[temp_index + 3]);
+            current_image->setPixel(j, i, temp_color.rgba());
+        }
+
+    return current_image;
 }
 
 void VolumeRenderWidget::SetTransferFunction(float* values, int entryNumber){

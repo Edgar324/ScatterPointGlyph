@@ -24,6 +24,8 @@ public:
     void SetViewWindow(float win_center_t, float win_width_t);
     void SetSampleStep(float sample_step_t);
 
+    QImage* GetRenderingImage();
+
     void OptimizeResult();
 
     float min_data_value() { return min_data_value_; }

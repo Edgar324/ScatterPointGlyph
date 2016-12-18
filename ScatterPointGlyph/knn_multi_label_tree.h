@@ -43,7 +43,7 @@ protected:
     vector<int> current_records_;
 
     int nearest_neighbors_ = 5;
-    double radius_scale_ = 0.1;
+    double radius_scale_ = 0.7;
 
     const int SCALE_NODE_SIZE = 2000;
     const int LEAF_RESO_SIZE = 1000;
