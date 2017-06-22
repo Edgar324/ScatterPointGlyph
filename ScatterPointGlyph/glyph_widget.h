@@ -54,7 +54,7 @@ protected:
         SELECTION
     };
 
-    const int SEG_PER_PIE = 10;
+    const int SEG_PER_PIE = 20;
     const int SEG_PER_CIRCLE = 100;
     const float PIE_VAL = 3.14159265; 
     GlyphObject* glyph_object_ = NULL;

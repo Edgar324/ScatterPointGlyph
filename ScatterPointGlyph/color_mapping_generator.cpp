@@ -273,6 +273,19 @@ void ColorMappingGenerator::ConstructColorList(){
     color_index_vec_.push_back(similarity_index_vec);
     is_linear_.push_back(true);
 
+    ColorIndex variance_mapping[3];
+    variance_mapping[0].value_index = 0.0;
+    variance_mapping[0].color = QColor(229,245,224);
+    variance_mapping[1].value_index = 0.5;
+    variance_mapping[1].color = QColor(161,217,155);
+    variance_mapping[2].value_index = 1.0;
+    variance_mapping[2].color = QColor(49,163,84);
+    std::vector<ColorIndex > variacen_index_vec;
+    for ( int i = 0; i < 3; ++i ) variacen_index_vec.push_back(variance_mapping[i]);
+    color_index_vec_.push_back(variacen_index_vec);
+    is_linear_.push_back(true);
+
+
     /*qualitative_colors_.push_back(QColor(190, 174, 212));
     qualitative_colors_.push_back(QColor(178, 223, 138));
     qualitative_colors_.push_back(QColor(31, 107, 211));

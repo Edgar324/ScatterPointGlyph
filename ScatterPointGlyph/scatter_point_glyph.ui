@@ -165,6 +165,8 @@
    <addaction name="actionSplit"/>
    <addaction name="actionMerge"/>
    <addaction name="separator"/>
+   <addaction name="actionShowMean"/>
+   <addaction name="actionShowVariance"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="action_close">
@@ -651,6 +653,33 @@
    </property>
    <property name="text">
     <string>View Dependent Clustering</string>
+   </property>
+  </action>
+  <action name="actionShowMean">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/colorstar.png</normaloff>:/ScatterPointGlyph/images/colorstar.png</iconset>
+   </property>
+   <property name="text">
+    <string>mean</string>
+   </property>
+  </action>
+  <action name="actionShowVariance">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="scatter_point_glyph.qrc">
+     <normaloff>:/ScatterPointGlyph/images/star.png</normaloff>:/ScatterPointGlyph/images/star.png</iconset>
+   </property>
+   <property name="text">
+    <string>variance</string>
    </property>
   </action>
  </widget>

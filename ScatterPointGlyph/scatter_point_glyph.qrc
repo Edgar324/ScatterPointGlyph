@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="ScatterPointGlyph">
+    <file>images/star.png</file>
+    <file>images/colorstar.png</file>
     <file>images/volume.png</file>
     <file>images/map.png</file>
     <file>images/system_icon.png</file>

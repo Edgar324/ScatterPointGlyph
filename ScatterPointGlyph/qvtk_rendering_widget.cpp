@@ -31,7 +31,12 @@ QVtkRenderingWidget::QVtkRenderingWidget()
 	indicator_renderer_->SetBackground(1.0, 1.0, 1.0);
     this->GetRenderWindow()->AddRenderer(indicator_renderer_);
 
-    main_renderer_->GetActiveCamera()->SetParallelProjection(0);
+    vtkSmartPointer<vtkCamera> camera = vtkSmartPointer<vtkCamera>::New();
+    camera->SetParallelProjection(1);
+    camera->SetParallelScale(1.0);
+    camera->SetPosition(0, 0, 1);
+    camera->SetFocalPoint(0, 0, 0);
+    main_renderer_->SetActiveCamera(camera);
 
 	vtkSmartPointer<vtkInteractorStyleImage> imageStyle =
 		vtkSmartPointer<vtkInteractorStyleImage>::New();

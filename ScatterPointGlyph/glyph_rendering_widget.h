@@ -55,6 +55,7 @@ public:
     void SetPointDensityInfo(vector<vector<float>>& pos, vector<int>& cluster_index);
 
     void SetWidgetState(WidgetState state);
+    void SetGlyphState(int state);
 
     void GetViewPort(float& left, float& right, float& bottom, float& top);
     float GetDistancePerPixel();

@@ -55,8 +55,7 @@ PointRenderingWidget::PointRenderingWidget() {
 	actor_->GetProperty()->SetPointSize(6);
 	actor_->GetProperty()->SetColor(0.8, 0.8, 0.8);
 
-    bar_actor_ = vtkPVScalarBarActor::New();
-    //bar_actor_->SetNumberOfLabels(2);
+    /*bar_actor_ = vtkPVScalarBarActor::New();
     bar_actor_->SetMaximumWidthInPixels(20);
     bar_actor_->SetWidth(0.05);
     bar_actor_->GetLabelTextProperty()->SetFontFamilyToArial();
@@ -71,7 +70,7 @@ PointRenderingWidget::PointRenderingWidget() {
     bar_actor_->GetTitleTextProperty()->SetFontSize(5);
     bar_actor_->SetPosition(0.91, 0.1);
     bar_actor_->SetHeight(0.7);
-    bar_actor_->SetVisibility(false);
+    bar_actor_->SetVisibility(false);*/
 
     scalar_lookup_table_ = vtkLookupTable::New();
     scalar_lookup_table_->SetValueRange(0, 1.0);
@@ -165,7 +164,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 1;
 
 		this->CurrentRenderer->AddActor(this->actor_);
-        this->CurrentRenderer->AddActor(this->bar_actor_);
+        //this->CurrentRenderer->AddActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::EnableEvent,NULL);
 	}
@@ -175,7 +174,7 @@ void PointRenderingWidget::SetEnabled(int enabling) {
 		this->Enabled = 0;
 
 		this->CurrentRenderer->RemoveActor(this->actor_);
-        this->CurrentRenderer->RemoveActor(this->bar_actor_);
+        //this->CurrentRenderer->RemoveActor(this->bar_actor_);
 
         this->InvokeEvent(vtkCommand::DisableEvent,NULL);
         this->SetCurrentRenderer(NULL);
@@ -212,10 +211,10 @@ void PointRenderingWidget::SetColorMappingOn(QString name, vector<float>& vals, 
     scalar_lookup_table_->SetValueRange(0.7, 0.3);
     scalar_lookup_table_->Build();
 
-    bar_actor_->SetLookupTable(scalar_lookup_table_);
+    /*bar_actor_->SetLookupTable(scalar_lookup_table_);
     bar_actor_->SetVisibility(true);
     bar_actor_->SetTitle(name.toLocal8Bit().data());
-    bar_actor_->Modified();
+    bar_actor_->Modified();*/
 
     vtkUnsignedCharArray* color_array = (vtkUnsignedCharArray*)poly_data_->GetPointData()->GetScalars("color");
     double rgb[3];
@@ -236,8 +235,8 @@ void PointRenderingWidget::SetColorMappingOff() {
 	}
     color_array->Modified();
 
-    bar_actor_->SetVisibility(false);
-    bar_actor_->Modified();
+    /*bar_actor_->SetVisibility(false);
+    bar_actor_->Modified();*/
 
     this->Interactor->Render();
 }

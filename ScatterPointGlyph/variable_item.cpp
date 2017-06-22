@@ -115,7 +115,8 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			else {
 				var_color_.setAlpha(255);
 			}
-			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
+			//painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
+            painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], QColor(160, 160, 160, 255));
 
 			if (i >= selected_count_)
 				painter->setPen(QColor(160, 160, 160, 20));
@@ -148,7 +149,8 @@ void VariableItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 			else {
 				var_color_.setAlpha(255);
 			}
-			painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
+			//painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], var_color_);
+            painter->fillRect(temp_width, total_height, temp_bar_width - 1, -1 * total_height * var_values_[temp_value_index], QColor(200, 200, 200, 255));
 
 			if (i >= selected_count_)
 				painter->setPen(QColor(160, 160, 160, 20));

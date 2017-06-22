@@ -12,14 +12,17 @@
 #include "glyph_widget.h"
 
 GlyphObject::GlyphObject(int cluster_id, vector<QString>& names, vector<QColor>& colors,
-    vector<float>& means, vector<float>& std_devs,
+    vector<float>& means, vector<float>& overall_means, vector<float>& std_devs, vector<float>& std_dev_ranges,
     float saliency, int point_count, int max_point_count,
     float node_radius, float center_x, float center_y, bool is_expandable)
-    : cluster_id_(cluster_id), names_(names), colors_(colors), means_(means), std_devs_(std_devs),
+    : cluster_id_(cluster_id), names_(names), colors_(colors), means_(means), std_devs_(std_devs), dev_ranges_(std_dev_ranges),
     saliency_(saliency), point_count_(point_count), max_point_count_(max_point_count),
     node_radius_(node_radius), center_x_(center_x), center_y_(center_y), is_expandable_(is_expandable),
     highlight_index_(-1), is_selected_(false) {
 
+    bias_.resize(means.size());
+    for (int i = 0; i < means.size(); i++)
+        bias_[i] = means_[i] - overall_means[i];
 }
 
 GlyphObject::~GlyphObject() {

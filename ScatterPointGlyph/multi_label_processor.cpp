@@ -1,6 +1,9 @@
 #include "multi_label_processor.h"
 #include <time.h>
 #include <queue>
+#include <iostream>
+#include <Windows.h>
+using namespace std;
 #include "./gco-v3.0/GCoptimization.h"
 #include "./gco-v3.0/energy.h"
 
@@ -209,6 +212,9 @@ void MultiLabelProcessor::ExtractEstimatedModels() {
 void MultiLabelProcessor::GenerateCluster() {
 	if (max_radius_ <= 0 || sample_num_ <= 0) return;
 
+    SYSTEMTIME begin_time, end_time;
+    GetLocalTime(&begin_time);
+
 	UpdateEnergyCost();
 
 	/*result_label_.resize(point_num_);
@@ -256,4 +262,9 @@ void MultiLabelProcessor::GenerateCluster() {
 	catch (GCException e) {
 		e.Report();
 	}
+
+    GetLocalTime(&end_time);
+
+    int second = end_time.wSecond - begin_time.wSecond < 0? end_time.wSecond - begin_time.wSecond + 60 : end_time.wSecond - begin_time.wSecond;
+    cout << "Total time for optimization: " << second * 1000 + end_time.wMilliseconds - begin_time.wMilliseconds << endl;
 }

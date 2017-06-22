@@ -173,6 +173,13 @@ void ScatterPointGlyph::InitWidget() {
 
     connect(ui_.actionEvaluate_Quality, SIGNAL(triggered()), this, SLOT(OnActionEvaluateQualityTriggered()));
 
+    QActionGroup* temp_group = new QActionGroup(this);
+	temp_group->addAction(ui_.actionShowMean);
+	temp_group->addAction(ui_.actionShowVariance);
+	temp_group->setExclusive(true);
+    connect(ui_.actionShowMean, SIGNAL(triggered()), this, SLOT(OnActionShowMeanTriggered()));
+    connect(ui_.actionShowVariance, SIGNAL(triggered()), this, SLOT(OnActionShowVarianceTriggered()));
+
 	//
 	//connect(parallel_coordinate_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnPcpHighlightVarChanged(int)));
 	//connect(tree_map_view_, SIGNAL(HighlightVarChanged(int)), this, SLOT(OnTreemapHighlightVarChagned(int)));
@@ -223,11 +230,11 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
         return;
     }
 
-	/*QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.sc");
 	if (file_path.length() == 0) return;
 
     PointDataReader point_reader;
-    scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());*/
+    scatter_point_dataset_ = point_reader.LoadFile(file_path.toLocal8Bit().data());
 
     /*QString file_path = QFileDialog::getOpenFileName(this, tr("Open Scatter Point Data"), ".", "*.gsc");
 	if (file_path.length() == 0) return;
@@ -238,7 +245,7 @@ void ScatterPointGlyph::OnActionOpenScatterFileTriggered() {
     /*VolumeDataReader reader;
     scatter_point_dataset_ = reader.LoadFile("");*/
 
-    this->OnActionOpenVtkFileTriggered();
+    //this->OnActionOpenVtkFileTriggered();
 
     /*PointDataReader point_reader;
     scatter_point_dataset_ = point_reader.LoadFile("./TestData/shuttle.sc");*/
@@ -894,6 +901,14 @@ void ScatterPointGlyph::OnActionEvaluateQualityTriggered() {
     QualityMetric quality_metric;
     quality_metric.GenerateQualityMeasures(cluster_tree_);
     quality_metric.SaveMeasures("quality.txt");
+}
+
+void ScatterPointGlyph::OnActionShowMeanTriggered() {
+    glyph_widget_->SetGlyphState(1);
+}
+
+void ScatterPointGlyph::OnActionShowVarianceTriggered() {
+    glyph_widget_->SetGlyphState(0);
 }
 
 //void ScatterPointGlyph::OnTransmapHighlightVarChanged(int var_index)

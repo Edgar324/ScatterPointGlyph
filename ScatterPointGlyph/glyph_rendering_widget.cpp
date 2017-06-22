@@ -17,6 +17,7 @@
 #include "radar_band_widget.h"
 #include "regular_radar_widget.h"
 #include "radar_band_widget_no_saliency.h"
+#include "mean_std_widget.h"
 #include "qvtk_rendering_widget.h"
 #include "point_rendering_widget.h"
 #include "arrow_widget.h"
@@ -66,9 +67,9 @@ void GlyphRenderingWidget::SetPointData(ScatterPointDataset* point_dataset) {
 
     arrow_widget_->SetEnabled(true);
 
-    indicator_widget_->SetRenderer(rendering_widget_->indicator_renderer());
+    /*indicator_widget_->SetRenderer(rendering_widget_->indicator_renderer());
     indicator_widget_->SetData(0);
-    indicator_widget_->SetEnabled(true);
+    indicator_widget_->SetEnabled(true);*/
 
     rendering_widget_->main_renderer()->ResetCamera();
     rendering_widget_->update();
@@ -127,6 +128,14 @@ void GlyphRenderingWidget::SetWidgetState(WidgetState state) {
     }
 }
 
+void GlyphRenderingWidget::SetGlyphState(int state) {
+    for (int i = 0; i < glyph_widgets_.size(); ++i) {
+        MeanStdWidget* widget = (MeanStdWidget*)(glyph_widgets_[i]);
+        widget->SetRenderingMode(state);
+    }
+    this->rendering_widget_->update();
+}
+
 void GlyphRenderingWidget::SetSelectedPointIds(vector<vector<int>>& ids) {
     this->point_rendering_widget_->SetSelectedIds(ids);
 }
@@ -174,7 +183,7 @@ void GlyphRenderingWidget::BuildRepresentation() {
     if (this->glyph_widgets_.size() < objects.size()) {
         int cur_size = this->glyph_widgets_.size();
         for (int i = cur_size; i < objects.size(); ++i) {
-            GlyphWidget* widget = RadarBandWidget::New();
+            GlyphWidget* widget = MeanStdWidget::New();
             this->glyph_widgets_.push_back(widget);
             widget->SetInteractor(rendering_widget_->GetInteractor());
             widget->SetRenderingWidget(this);

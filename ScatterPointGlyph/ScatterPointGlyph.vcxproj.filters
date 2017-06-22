@@ -314,6 +314,9 @@
     <ClCompile Include="map_rendering_widget.cpp">
       <Filter>Source Files\Glyph</Filter>
     </ClCompile>
+    <ClCompile Include="mean_std_widget.cpp">
+      <Filter>Source Files\Glyph</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="scatter_point_glyph.h">
@@ -523,6 +526,9 @@
       <Filter>Generated Files</Filter>
     </ClInclude>
     <ClInclude Include="map_rendering_widget.h">
+      <Filter>Header Files\Glyph</Filter>
+    </ClInclude>
+    <ClInclude Include="mean_std_widget.h">
       <Filter>Header Files\Glyph</Filter>
     </ClInclude>
   </ItemGroup>

@@ -12,7 +12,7 @@
 #include <QtCore/QStringList>
 
 VariableSelectionWidget::VariableSelectionWidget() {
-    item_model_ = new QStandardItemModel(0, 3, this);
+    item_model_ = new QStandardItemModel(0, 2, this);
     this->setModel(item_model_);
 
     connect(this, SIGNAL(clicked(QModelIndex)), this, SLOT(OnItemClicked(QModelIndex)));
@@ -45,7 +45,7 @@ void VariableSelectionWidget::UpdateWidget() {
     item_model_->clear();
 
     QStringList headers;
-    headers << "Visible" << "Name" << "Color";
+    headers << "Visible" << "Name"/* << "Color"*/;
     item_model_->setHorizontalHeaderLabels(headers);
 
     DisableColumnEidtDelegate *dced = new DisableColumnEidtDelegate();
@@ -53,7 +53,7 @@ void VariableSelectionWidget::UpdateWidget() {
     this->setItemDelegateForColumn(2, dced );
     this->setColumnWidth(0, 80);
     this->setColumnWidth(1, 80);
-    this->setColumnWidth(2, 80);
+    //this->setColumnWidth(2, 80);
 
 
     for (int i = 0; i < var_names_.size(); ++i) {
@@ -61,7 +61,7 @@ void VariableSelectionWidget::UpdateWidget() {
         item_model_->setData(item_model_->index(i, 0), Qt::Checked, Qt::CheckStateRole);
         item_model_->setData(item_model_->index(i, 1), var_names_[i], Qt::DisplayRole);
         item_model_->item(i, 1)->setTextAlignment(Qt::AlignCenter);
-        item_model_->setData(item_model_->index(i, 2), QVariant(var_colors_[i]), Qt::DecorationRole);
+        //item_model_->setData(item_model_->index(i, 2), QVariant(var_colors_[i]), Qt::DecorationRole);
     }
 }
 

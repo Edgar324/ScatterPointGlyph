@@ -25,7 +25,7 @@ class GlyphObject : public QObject
 
 public:
     GlyphObject(int cluster_id, vector<QString>& names, vector<QColor>& colors,
-        vector<float>& means, vector<float>& std_devs, 
+        vector<float>& means, vector<float>& overall_means, vector<float>& std_devs, vector<float>& std_dev_ranges,
         float saliency, int point_count, int max_point_count,
         float node_radius, float center_x, float center_y, bool is_expandable);
     ~GlyphObject();
@@ -41,6 +41,8 @@ public:
     int var_num() { return means_.size(); }
     vector<float>& means() { return means_; }
     vector<float>& std_devs() { return std_devs_; }
+    vector<float>& bias() { return bias_; }
+    vector<float>& dev_ranges() { return dev_ranges_; }
     vector<QString>& names() { return names_; }
     vector<QColor>& colors() { return colors_; }
     int highlight_index() { return highlight_index_; }
@@ -70,7 +72,9 @@ private:
     vector<QString> names_;
     vector<QColor> colors_;
     vector<float> means_;
+    vector<float> bias_;
     vector<float> std_devs_;
+    vector<float> dev_ranges_;
 
     int highlight_index_ = 0;
     float highlight_val_ = 0;

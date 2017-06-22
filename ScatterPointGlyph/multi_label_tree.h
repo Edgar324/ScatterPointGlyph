@@ -26,7 +26,7 @@ protected:
 	float max_radius_threshold_ = 0.5;
 	float factor_ = 2.0;
     int SLIC_PIXEL_THRESHOLD = 500;
-    const int EXPECTED_CLUSTER_NUM = 10;
+    const int EXPECTED_CLUSTER_NUM = 40;
 };
 
 #endif

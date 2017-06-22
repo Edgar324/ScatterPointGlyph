@@ -234,6 +234,9 @@ private slots:
 
     void OnActionEvaluateQualityTriggered();
 
+    void OnActionShowMeanTriggered();
+    void OnActionShowVarianceTriggered();
+
 
 	/*void OnBeginClusteringTriggered();
 	void OnClusterFinished();

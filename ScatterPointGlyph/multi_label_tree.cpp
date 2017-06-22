@@ -23,7 +23,7 @@ void MultiLabelTree::AutoConstructTree(float std_dev_threshold) {
 
 void MultiLabelTree::SplitNode(CBranch* node) {
     // if size of linked_node > SLIC_PIXEL_THRESHOLD, using slic to generate super pixels and clustering based on super pixels
-    if (node->linked_nodes.size() > SLIC_PIXEL_THRESHOLD) {
+    if (node->linked_nodes.size() > 2000) {
         SplitOnSlic(node);
     } else {
         DirectSplit(node);

@@ -46,7 +46,8 @@ void GlyphDatasetBuilder::Build(ScatterPointDataset* point_dataset, vector<int>&
     vector<int> selected_vars;
     selected_vars.resize(axis_order.size());
     for (int i = 0; i < axis_order.size(); ++i)
-        selected_vars[i] = selected_var_index[axis_order[i]];
+        selected_vars[i] = i;
+        //selected_vars[i] = selected_var_index[axis_order[i]];
     
     // update selected variable index for usages in other views
     selected_var_index = selected_vars;
@@ -66,6 +67,24 @@ void GlyphDatasetBuilder::Build(ScatterPointDataset* point_dataset, vector<int>&
     // NOTE: Clear and call Modified() before updating the rendering view
     vector<float> node_saliency;
     EvaluateSaliency(point_dataset, current_level_nodes, node_saliency);
+
+    vector<float> overall_means(names.size(), 0);
+    vector<float> dev_ranges(2);
+    dev_ranges[1] = -1e10;
+    dev_ranges[0] = 1e10;
+
+    int all_point_count = 0;
+    for (int i = 0; i < current_level_nodes.size(); i++) {
+        for (int j = 0; j < names.size(); j++) {
+            overall_means[j] += mean_values[i][j] * current_level_nodes[i]->point_count;
+            dev_ranges[0] = min(dev_ranges[0], current_level_nodes[i]->std_deviations[j]);
+            dev_ranges[1] = max(dev_ranges[1], current_level_nodes[i]->std_deviations[j]);
+        }
+        all_point_count += current_level_nodes[i]->point_count;
+    }
+    for (int j = 0; j < names.size(); j++)
+        overall_means[j] /= all_point_count;
+
 
     glyph_dataset->Clear();
     for (int i = 0; i < current_level_nodes.size(); ++i) {
@@ -98,7 +117,8 @@ void GlyphDatasetBuilder::Build(ScatterPointDataset* point_dataset, vector<int>&
         }
 
         GlyphObject* object = new GlyphObject(node->id(),
-            names, colors, means, std_devs, node_saliency[i], node->point_count, max_point_count, 
+            names, colors, means, overall_means, std_devs, dev_ranges,
+            node_saliency[i], node->point_count, max_point_count, 
             glyph_half_size, center_x, center_y, is_expandable);
 
         glyph_dataset->AddGlyphObject(object);
